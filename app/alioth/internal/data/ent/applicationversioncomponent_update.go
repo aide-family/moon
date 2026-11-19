@@ -104,6 +104,20 @@ func (_u *ApplicationVersionComponentUpdate) SetNillableDisplayName(v *string) *
 	return _u
 }
 
+// SetDescription sets the "description" field.
+func (_u *ApplicationVersionComponentUpdate) SetDescription(v string) *ApplicationVersionComponentUpdate {
+	_u.mutation.SetDescription(v)
+	return _u
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_u *ApplicationVersionComponentUpdate) SetNillableDescription(v *string) *ApplicationVersionComponentUpdate {
+	if v != nil {
+		_u.SetDescription(*v)
+	}
+	return _u
+}
+
 // SetSortOrder sets the "sort_order" field.
 func (_u *ApplicationVersionComponentUpdate) SetSortOrder(v int) *ApplicationVersionComponentUpdate {
 	_u.mutation.ResetSortOrder()
@@ -221,6 +235,9 @@ func (_u *ApplicationVersionComponentUpdate) sqlSave(ctx context.Context) (_node
 	if value, ok := _u.mutation.DisplayName(); ok {
 		_spec.SetField(applicationversioncomponent.FieldDisplayName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Description(); ok {
+		_spec.SetField(applicationversioncomponent.FieldDescription, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.SortOrder(); ok {
 		_spec.SetField(applicationversioncomponent.FieldSortOrder, field.TypeInt, value)
 	}
@@ -319,6 +336,20 @@ func (_u *ApplicationVersionComponentUpdateOne) SetDisplayName(v string) *Applic
 func (_u *ApplicationVersionComponentUpdateOne) SetNillableDisplayName(v *string) *ApplicationVersionComponentUpdateOne {
 	if v != nil {
 		_u.SetDisplayName(*v)
+	}
+	return _u
+}
+
+// SetDescription sets the "description" field.
+func (_u *ApplicationVersionComponentUpdateOne) SetDescription(v string) *ApplicationVersionComponentUpdateOne {
+	_u.mutation.SetDescription(v)
+	return _u
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_u *ApplicationVersionComponentUpdateOne) SetNillableDescription(v *string) *ApplicationVersionComponentUpdateOne {
+	if v != nil {
+		_u.SetDescription(*v)
 	}
 	return _u
 }
@@ -469,6 +500,9 @@ func (_u *ApplicationVersionComponentUpdateOne) sqlSave(ctx context.Context) (_n
 	}
 	if value, ok := _u.mutation.DisplayName(); ok {
 		_spec.SetField(applicationversioncomponent.FieldDisplayName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Description(); ok {
+		_spec.SetField(applicationversioncomponent.FieldDescription, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.SortOrder(); ok {
 		_spec.SetField(applicationversioncomponent.FieldSortOrder, field.TypeInt, value)

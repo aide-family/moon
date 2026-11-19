@@ -107,6 +107,17 @@ service ApplicationService {
       body: "*"
     };
   }
+  // SaveApplicationVersionComponent 新增或更新一个服务（组件），允许改服务名与备注。
+  rpc SaveApplicationVersionComponent(SaveApplicationVersionComponentRequest) returns (SaveApplicationVersionComponentResponse) {
+    option (google.api.http) = {
+      post: "/v1/application/{application_uid}/version/{uid}/component"
+      body: "*"
+    };
+  }
+  // DeleteApplicationVersionComponent 删除一个服务及其下的全部资源。
+  rpc DeleteApplicationVersionComponent(DeleteApplicationVersionComponentRequest) returns (DeleteApplicationVersionComponentResponse) {
+    option (google.api.http) = {delete: "/v1/application/{application_uid}/version/{uid}/component/{component_uid}"};
+  }
 }
 
 // ApplicationDeploymentService 管理部署组与集群实例。
@@ -183,7 +194,7 @@ message ApplicationItem {
 message CreateApplicationRequest {
   string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
   string display_name = 2 [json_name = "displayName", (buf.validate.field).string = {max_len: 128}];
-  string category = 3 [(buf.validate.field).string = {in: ["DATABASE", "MIDDLEWARE", "OBSERVABILITY", "TOOLING", "OTHER"]}];
+  string category = 3 [(buf.validate.field).string = {max_len: 32}];
   string description = 4 [(buf.validate.field).string = {max_len: 1024}];
   string readme = 5 [(buf.validate.field).string = {max_len: 65536}];
 }
@@ -191,7 +202,7 @@ message CreateApplicationResponse { ApplicationItem application = 1; }
 message UpdateApplicationRequest {
   string uid = 1 [(buf.validate.field).string = {min_len: 1}];
   string display_name = 2 [json_name = "displayName", (buf.validate.field).string = {max_len: 128}];
-  string category = 3 [(buf.validate.field).string = {in: ["DATABASE", "MIDDLEWARE", "OBSERVABILITY", "TOOLING", "OTHER"]}];
+  string category = 3 [(buf.validate.field).string = {max_len: 32}];
   string description = 4 [(buf.validate.field).string = {max_len: 1024}];
   string readme = 5 [(buf.validate.field).string = {max_len: 65536}];
 }
@@ -204,7 +215,7 @@ message ListApplicationsRequest {
   int32 page = 1 [(buf.validate.field).int32 = {gte: 0}];
   int32 page_size = 2 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 200}];
   string name = 3 [(buf.validate.field).string = {max_len: 64}];
-  string category = 4 [(buf.validate.field).string = {in: ["", "DATABASE", "MIDDLEWARE", "OBSERVABILITY", "TOOLING", "OTHER"]}];
+  string category = 4 [(buf.validate.field).string = {max_len: 32}];
 }
 message ListApplicationsResponse {
   repeated ApplicationItem items = 1;
@@ -268,6 +279,8 @@ message ApplicationVersionComponent {
   int32 sort_order = 4 [json_name = "sortOrder"];
   repeated ApplicationResource resources = 5;
   int32 resource_count = 6 [json_name = "resourceCount"];
+  // description 是服务备注，支持 Markdown。
+  string description = 7;
 }
 message ApplicationVersionItem {
   string uid = 1;
@@ -399,6 +412,24 @@ message ValidateApplicationVersionResourceResponse {
   repeated string errors = 1;
   repeated string warnings = 2;
 }
+message SaveApplicationVersionComponentRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  string uid = 2 [(buf.validate.field).string = {min_len: 1}];
+  // component_uid 为空时新增服务，否则更新对应服务。
+  string component_uid = 3 [json_name = "componentUid", (buf.validate.field).string = {max_len: 64}];
+  string name = 4 [(buf.validate.field).string = {min_len: 1, max_len: 63}];
+  // description 支持 Markdown，最多 2048 字符。
+  string description = 5 [(buf.validate.field).string = {max_len: 2048}];
+  int32 expected_revision = 6 [json_name = "expectedRevision"];
+}
+message SaveApplicationVersionComponentResponse { ApplicationVersionItem version = 1; }
+message DeleteApplicationVersionComponentRequest {
+  string application_uid = 1 [json_name = "applicationUid", (buf.validate.field).string = {min_len: 1}];
+  string uid = 2 [(buf.validate.field).string = {min_len: 1}];
+  string component_uid = 3 [json_name = "componentUid", (buf.validate.field).string = {min_len: 1}];
+  int32 expected_revision = 4 [json_name = "expectedRevision"];
+}
+message DeleteApplicationVersionComponentResponse { ApplicationVersionItem version = 1; }
 
 message ApplicationDeployValues {
   map<string, int32> replicas = 1;

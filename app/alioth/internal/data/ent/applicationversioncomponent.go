@@ -33,6 +33,8 @@ type ApplicationVersionComponent struct {
 	Name string `json:"name,omitempty"`
 	// DisplayName holds the value of the "display_name" field.
 	DisplayName string `json:"display_name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
 	// SortOrder holds the value of the "sort_order" field.
 	SortOrder    int `json:"sort_order,omitempty"`
 	selectValues sql.SelectValues
@@ -45,7 +47,7 @@ func (*ApplicationVersionComponent) scanValues(columns []string) ([]any, error) 
 		switch columns[i] {
 		case applicationversioncomponent.FieldID, applicationversioncomponent.FieldSortOrder:
 			values[i] = new(sql.NullInt64)
-		case applicationversioncomponent.FieldUID, applicationversioncomponent.FieldNamespaceUID, applicationversioncomponent.FieldApplicationUID, applicationversioncomponent.FieldVersionUID, applicationversioncomponent.FieldName, applicationversioncomponent.FieldDisplayName:
+		case applicationversioncomponent.FieldUID, applicationversioncomponent.FieldNamespaceUID, applicationversioncomponent.FieldApplicationUID, applicationversioncomponent.FieldVersionUID, applicationversioncomponent.FieldName, applicationversioncomponent.FieldDisplayName, applicationversioncomponent.FieldDescription:
 			values[i] = new(sql.NullString)
 		case applicationversioncomponent.FieldCreatedAt, applicationversioncomponent.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -118,6 +120,12 @@ func (_m *ApplicationVersionComponent) assignValues(columns []string, values []a
 			} else if value.Valid {
 				_m.DisplayName = value.String
 			}
+		case applicationversioncomponent.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				_m.Description = value.String
+			}
 		case applicationversioncomponent.FieldSortOrder:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field sort_order", values[i])
@@ -183,6 +191,9 @@ func (_m *ApplicationVersionComponent) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("display_name=")
 	builder.WriteString(_m.DisplayName)
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(_m.Description)
 	builder.WriteString(", ")
 	builder.WriteString("sort_order=")
 	builder.WriteString(fmt.Sprintf("%v", _m.SortOrder))

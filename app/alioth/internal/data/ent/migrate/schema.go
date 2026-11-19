@@ -671,7 +671,7 @@ var (
 		{Name: "namespace_uid", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
 		{Name: "display_name", Type: field.TypeString, Default: ""},
-		{Name: "category", Type: field.TypeEnum, Enums: []string{"DATABASE", "MIDDLEWARE", "OBSERVABILITY", "TOOLING", "OTHER"}, Default: "OTHER"},
+		{Name: "category", Type: field.TypeString, Default: "OTHER"},
 		{Name: "description", Type: field.TypeString, Default: ""},
 		{Name: "readme", Type: field.TypeString, Size: 2147483647, Default: ""},
 	}
@@ -945,6 +945,7 @@ var (
 		{Name: "version_uid", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
 		{Name: "display_name", Type: field.TypeString, Default: ""},
+		{Name: "description", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "sort_order", Type: field.TypeInt, Default: 0},
 	}
 	// ApplicationVersionComponentsTable holds the schema information for the "application_version_components" table.

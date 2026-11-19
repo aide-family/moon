@@ -14798,7 +14798,7 @@ type ApplicationMutation struct {
 	namespace_uid *string
 	name          *string
 	display_name  *string
-	category      *application.Category
+	category      *string
 	description   *string
 	readme        *string
 	clearedFields map[string]struct{}
@@ -15171,12 +15171,12 @@ func (m *ApplicationMutation) ResetDisplayName() {
 }
 
 // SetCategory sets the "category" field.
-func (m *ApplicationMutation) SetCategory(a application.Category) {
-	m.category = &a
+func (m *ApplicationMutation) SetCategory(s string) {
+	m.category = &s
 }
 
 // Category returns the value of the "category" field in the mutation.
-func (m *ApplicationMutation) Category() (r application.Category, exists bool) {
+func (m *ApplicationMutation) Category() (r string, exists bool) {
 	v := m.category
 	if v == nil {
 		return
@@ -15187,7 +15187,7 @@ func (m *ApplicationMutation) Category() (r application.Category, exists bool) {
 // OldCategory returns the old "category" field's value of the Application entity.
 // If the Application object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ApplicationMutation) OldCategory(ctx context.Context) (v application.Category, err error) {
+func (m *ApplicationMutation) OldCategory(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCategory is only allowed on UpdateOne operations")
 	}
@@ -15459,7 +15459,7 @@ func (m *ApplicationMutation) SetField(name string, value ent.Value) error {
 		m.SetDisplayName(v)
 		return nil
 	case application.FieldCategory:
-		v, ok := value.(application.Category)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -21601,6 +21601,7 @@ type ApplicationVersionComponentMutation struct {
 	version_uid     *string
 	name            *string
 	display_name    *string
+	description     *string
 	sort_order      *int
 	addsort_order   *int
 	clearedFields   map[string]struct{}
@@ -21995,6 +21996,42 @@ func (m *ApplicationVersionComponentMutation) ResetDisplayName() {
 	m.display_name = nil
 }
 
+// SetDescription sets the "description" field.
+func (m *ApplicationVersionComponentMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *ApplicationVersionComponentMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the ApplicationVersionComponent entity.
+// If the ApplicationVersionComponent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ApplicationVersionComponentMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *ApplicationVersionComponentMutation) ResetDescription() {
+	m.description = nil
+}
+
 // SetSortOrder sets the "sort_order" field.
 func (m *ApplicationVersionComponentMutation) SetSortOrder(i int) {
 	m.sort_order = &i
@@ -22085,7 +22122,7 @@ func (m *ApplicationVersionComponentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ApplicationVersionComponentMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, applicationversioncomponent.FieldCreatedAt)
 	}
@@ -22109,6 +22146,9 @@ func (m *ApplicationVersionComponentMutation) Fields() []string {
 	}
 	if m.display_name != nil {
 		fields = append(fields, applicationversioncomponent.FieldDisplayName)
+	}
+	if m.description != nil {
+		fields = append(fields, applicationversioncomponent.FieldDescription)
 	}
 	if m.sort_order != nil {
 		fields = append(fields, applicationversioncomponent.FieldSortOrder)
@@ -22137,6 +22177,8 @@ func (m *ApplicationVersionComponentMutation) Field(name string) (ent.Value, boo
 		return m.Name()
 	case applicationversioncomponent.FieldDisplayName:
 		return m.DisplayName()
+	case applicationversioncomponent.FieldDescription:
+		return m.Description()
 	case applicationversioncomponent.FieldSortOrder:
 		return m.SortOrder()
 	}
@@ -22164,6 +22206,8 @@ func (m *ApplicationVersionComponentMutation) OldField(ctx context.Context, name
 		return m.OldName(ctx)
 	case applicationversioncomponent.FieldDisplayName:
 		return m.OldDisplayName(ctx)
+	case applicationversioncomponent.FieldDescription:
+		return m.OldDescription(ctx)
 	case applicationversioncomponent.FieldSortOrder:
 		return m.OldSortOrder(ctx)
 	}
@@ -22230,6 +22274,13 @@ func (m *ApplicationVersionComponentMutation) SetField(name string, value ent.Va
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDisplayName(v)
+		return nil
+	case applicationversioncomponent.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
 		return nil
 	case applicationversioncomponent.FieldSortOrder:
 		v, ok := value.(int)
@@ -22325,6 +22376,9 @@ func (m *ApplicationVersionComponentMutation) ResetField(name string) error {
 		return nil
 	case applicationversioncomponent.FieldDisplayName:
 		m.ResetDisplayName()
+		return nil
+	case applicationversioncomponent.FieldDescription:
+		m.ResetDescription()
 		return nil
 	case applicationversioncomponent.FieldSortOrder:
 		m.ResetSortOrder()

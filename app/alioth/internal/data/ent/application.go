@@ -32,7 +32,7 @@ type Application struct {
 	// DisplayName holds the value of the "display_name" field.
 	DisplayName string `json:"display_name,omitempty"`
 	// Category holds the value of the "category" field.
-	Category application.Category `json:"category,omitempty"`
+	Category string `json:"category,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// Readme holds the value of the "readme" field.
@@ -119,7 +119,7 @@ func (_m *Application) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field category", values[i])
 			} else if value.Valid {
-				_m.Category = application.Category(value.String)
+				_m.Category = value.String
 			}
 		case application.FieldDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -193,7 +193,7 @@ func (_m *Application) String() string {
 	builder.WriteString(_m.DisplayName)
 	builder.WriteString(", ")
 	builder.WriteString("category=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Category))
+	builder.WriteString(_m.Category)
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(_m.Description)

@@ -194,6 +194,24 @@ func (s *ApplicationService) DeleteApplicationVersionResource(ctx context.Contex
 	return &v1.DeleteApplicationVersionResourceResponse{Version: applicationVersionItem(*item)}, nil
 }
 
+func (s *ApplicationService) SaveApplicationVersionComponent(ctx context.Context, req *v1.SaveApplicationVersionComponentRequest) (*v1.SaveApplicationVersionComponentResponse, error) {
+	item, err := s.catalog.SaveVersionComponent(ctx, req.GetApplicationUid(), req.GetUid(),
+		req.GetComponentUid(), req.GetName(), req.GetDescription(), req.GetExpectedRevision())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SaveApplicationVersionComponentResponse{Version: applicationVersionItem(*item)}, nil
+}
+
+func (s *ApplicationService) DeleteApplicationVersionComponent(ctx context.Context, req *v1.DeleteApplicationVersionComponentRequest) (*v1.DeleteApplicationVersionComponentResponse, error) {
+	item, err := s.catalog.DeleteVersionComponent(ctx, req.GetApplicationUid(), req.GetUid(),
+		req.GetComponentUid(), req.GetExpectedRevision())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.DeleteApplicationVersionComponentResponse{Version: applicationVersionItem(*item)}, nil
+}
+
 func (s *ApplicationService) ValidateApplicationVersionResource(ctx context.Context, req *v1.ValidateApplicationVersionResourceRequest) (*v1.ValidateApplicationVersionResourceResponse, error) {
 	errs, warnings, err := s.catalog.ValidateVersionResource(ctx, req.GetApplicationUid(), req.GetUid(), req.GetComponent(), req.GetManifest())
 	if err != nil {
@@ -360,6 +378,7 @@ func applicationVersionItem(item bo.ApplicationVersion) *v1.ApplicationVersionIt
 		mapped := &v1.ApplicationVersionComponent{
 			Uid: component.UID, Name: component.Name, DisplayName: component.DisplayName,
 			SortOrder: component.SortOrder, ResourceCount: component.ResourceCount,
+			Description: component.Description,
 		}
 		for _, resource := range component.Resources {
 			mapped.Resources = append(mapped.Resources, applicationResourceItem(resource))

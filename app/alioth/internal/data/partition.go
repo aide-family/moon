@@ -60,7 +60,8 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 	if err := prepareWorkerInstanceColumns(ctx, db); err != nil {
 		return err
 	}
-	if err := prepareApplicationCompositionColumns(ctx, db); err != nil {
+	upgradedComposition, err := prepareApplicationCompositionColumns(ctx, db)
+	if err != nil {
 		return err
 	}
 	opts := []entschema.MigrateOption{}
@@ -86,6 +87,13 @@ func ApplySchema(ctx context.Context, client *ent.Client, db *sql.DB) error {
 	}
 	if err := backfillApplicationComposition(ctx, client); err != nil {
 		return err
+	}
+	// 升级到服务备注模型的那一次启动里清掉历史遗留的空组件；之后允许草稿保留
+	// 没有资源的服务，不能再清理。
+	if upgradedComposition {
+		if err := cleanupEmptyVersionComponents(ctx, db); err != nil {
+			return err
+		}
 	}
 	if err := backfillNotificationGroupTargets(ctx, client); err != nil {
 		return databaseErr(slog.Default(), err)

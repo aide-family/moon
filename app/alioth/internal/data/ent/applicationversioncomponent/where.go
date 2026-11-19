@@ -94,6 +94,11 @@ func DisplayName(v string) predicate.ApplicationVersionComponent {
 	return predicate.ApplicationVersionComponent(sql.FieldEQ(FieldDisplayName, v))
 }
 
+// Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
+func Description(v string) predicate.ApplicationVersionComponent {
+	return predicate.ApplicationVersionComponent(sql.FieldEQ(FieldDescription, v))
+}
+
 // SortOrder applies equality check predicate on the "sort_order" field. It's identical to SortOrderEQ.
 func SortOrder(v int) predicate.ApplicationVersionComponent {
 	return predicate.ApplicationVersionComponent(sql.FieldEQ(FieldSortOrder, v))
@@ -567,6 +572,71 @@ func DisplayNameEqualFold(v string) predicate.ApplicationVersionComponent {
 // DisplayNameContainsFold applies the ContainsFold predicate on the "display_name" field.
 func DisplayNameContainsFold(v string) predicate.ApplicationVersionComponent {
 	return predicate.ApplicationVersionComponent(sql.FieldContainsFold(FieldDisplayName, v))
+}
+
+// DescriptionEQ applies the EQ predicate on the "description" field.
+func DescriptionEQ(v string) predicate.ApplicationVersionComponent {
+	return predicate.ApplicationVersionComponent(sql.FieldEQ(FieldDescription, v))
+}
+
+// DescriptionNEQ applies the NEQ predicate on the "description" field.
+func DescriptionNEQ(v string) predicate.ApplicationVersionComponent {
+	return predicate.ApplicationVersionComponent(sql.FieldNEQ(FieldDescription, v))
+}
+
+// DescriptionIn applies the In predicate on the "description" field.
+func DescriptionIn(vs ...string) predicate.ApplicationVersionComponent {
+	return predicate.ApplicationVersionComponent(sql.FieldIn(FieldDescription, vs...))
+}
+
+// DescriptionNotIn applies the NotIn predicate on the "description" field.
+func DescriptionNotIn(vs ...string) predicate.ApplicationVersionComponent {
+	return predicate.ApplicationVersionComponent(sql.FieldNotIn(FieldDescription, vs...))
+}
+
+// DescriptionGT applies the GT predicate on the "description" field.
+func DescriptionGT(v string) predicate.ApplicationVersionComponent {
+	return predicate.ApplicationVersionComponent(sql.FieldGT(FieldDescription, v))
+}
+
+// DescriptionGTE applies the GTE predicate on the "description" field.
+func DescriptionGTE(v string) predicate.ApplicationVersionComponent {
+	return predicate.ApplicationVersionComponent(sql.FieldGTE(FieldDescription, v))
+}
+
+// DescriptionLT applies the LT predicate on the "description" field.
+func DescriptionLT(v string) predicate.ApplicationVersionComponent {
+	return predicate.ApplicationVersionComponent(sql.FieldLT(FieldDescription, v))
+}
+
+// DescriptionLTE applies the LTE predicate on the "description" field.
+func DescriptionLTE(v string) predicate.ApplicationVersionComponent {
+	return predicate.ApplicationVersionComponent(sql.FieldLTE(FieldDescription, v))
+}
+
+// DescriptionContains applies the Contains predicate on the "description" field.
+func DescriptionContains(v string) predicate.ApplicationVersionComponent {
+	return predicate.ApplicationVersionComponent(sql.FieldContains(FieldDescription, v))
+}
+
+// DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
+func DescriptionHasPrefix(v string) predicate.ApplicationVersionComponent {
+	return predicate.ApplicationVersionComponent(sql.FieldHasPrefix(FieldDescription, v))
+}
+
+// DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
+func DescriptionHasSuffix(v string) predicate.ApplicationVersionComponent {
+	return predicate.ApplicationVersionComponent(sql.FieldHasSuffix(FieldDescription, v))
+}
+
+// DescriptionEqualFold applies the EqualFold predicate on the "description" field.
+func DescriptionEqualFold(v string) predicate.ApplicationVersionComponent {
+	return predicate.ApplicationVersionComponent(sql.FieldEqualFold(FieldDescription, v))
+}
+
+// DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
+func DescriptionContainsFold(v string) predicate.ApplicationVersionComponent {
+	return predicate.ApplicationVersionComponent(sql.FieldContainsFold(FieldDescription, v))
 }
 
 // SortOrderEQ applies the EQ predicate on the "sort_order" field.

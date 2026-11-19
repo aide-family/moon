@@ -95,13 +95,13 @@ func (_c *ApplicationCreate) SetNillableDisplayName(v *string) *ApplicationCreat
 }
 
 // SetCategory sets the "category" field.
-func (_c *ApplicationCreate) SetCategory(v application.Category) *ApplicationCreate {
+func (_c *ApplicationCreate) SetCategory(v string) *ApplicationCreate {
 	_c.mutation.SetCategory(v)
 	return _c
 }
 
 // SetNillableCategory sets the "category" field if the given value is not nil.
-func (_c *ApplicationCreate) SetNillableCategory(v *application.Category) *ApplicationCreate {
+func (_c *ApplicationCreate) SetNillableCategory(v *string) *ApplicationCreate {
 	if v != nil {
 		_c.SetCategory(*v)
 	}
@@ -235,11 +235,6 @@ func (_c *ApplicationCreate) check() error {
 	if _, ok := _c.mutation.Category(); !ok {
 		return &ValidationError{Name: "category", err: errors.New(`ent: missing required field "Application.category"`)}
 	}
-	if v, ok := _c.mutation.Category(); ok {
-		if err := application.CategoryValidator(v); err != nil {
-			return &ValidationError{Name: "category", err: fmt.Errorf(`ent: validator failed for field "Application.category": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "Application.description"`)}
 	}
@@ -301,7 +296,7 @@ func (_c *ApplicationCreate) createSpec() (*Application, *sqlgraph.CreateSpec) {
 		_node.DisplayName = value
 	}
 	if value, ok := _c.mutation.Category(); ok {
-		_spec.SetField(application.FieldCategory, field.TypeEnum, value)
+		_spec.SetField(application.FieldCategory, field.TypeString, value)
 		_node.Category = value
 	}
 	if value, ok := _c.mutation.Description(); ok {

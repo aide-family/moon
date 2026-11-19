@@ -1,14 +1,15 @@
 package application
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/aide-family/moon/app/alioth/pkg/bo"
 	"github.com/aide-family/moon/pkg/merr"
 )
 
-// Composer 维护版本内「服务（组件）+ 资源」的归一化视图：分组、排序、资源增删
-// 与可执行动作。它不碰存储，状态机与权限留在 Catalog。
+// Composer 维护版本内「服务（组件）+ 资源」的归一化视图：分组、排序、服务与资源
+// 增删改。它不碰存储，状态机与权限留在 Catalog。
 type Composer struct{}
 
 func NewComposer() *Composer {
@@ -16,7 +17,8 @@ func NewComposer() *Composer {
 }
 
 // Compose 按资源自带的 Component 分组；空名归入 default。组件顺序按首次出现，
-// 资源顺序沿用输入顺序。版本没有资源时也保留 default 组件。
+// 资源顺序沿用输入顺序。版本没有资源时返回空组件列表：服务由用户显式创建，
+// 不再自动补 default。
 func (composer *Composer) Compose(resources []bo.ApplicationResource) []bo.ApplicationVersionComponent {
 	components := make([]bo.ApplicationVersionComponent, 0)
 	index := map[string]int{}
@@ -33,12 +35,6 @@ func (composer *Composer) Compose(resources []bo.ApplicationResource) []bo.Appli
 		}
 		resource.Component = name
 		components[position].Resources = append(components[position].Resources, resource)
-	}
-	if len(components) == 0 {
-		components = append(components, bo.ApplicationVersionComponent{
-			Name: defaultComponentName, DisplayName: defaultComponentName, SortOrder: 0,
-			Resources: make([]bo.ApplicationResource, 0),
-		})
 	}
 	return normalizeComponentOrders(components)
 }
@@ -64,7 +60,8 @@ func (composer *Composer) FindResource(components []bo.ApplicationVersionCompone
 	return bo.ApplicationResource{}, merr.NotFound("version resource not found")
 }
 
-// ValidateForPublish 要求至少一个组件且每个组件至少一个资源。
+// ValidateForPublish 要求至少一个组件且每个组件至少一个资源。版本内容在草稿
+// 阶段允许 0 个服务、0 个资源，只有上架时才校验。
 func (composer *Composer) ValidateForPublish(components []bo.ApplicationVersionComponent) error {
 	if len(components) == 0 {
 		return merr.Invalid("version must have at least one component")
@@ -116,7 +113,7 @@ func (composer *Composer) SaveResource(components []bo.ApplicationVersionCompone
 	return composer.place(components, resource), nil
 }
 
-// DeleteResource 删除资源；组件变空时删除，但版本始终保留至少一个组件。
+// DeleteResource 删除资源；组件变空时删除，版本可以因此变成 0 个服务。
 func (composer *Composer) DeleteResource(components []bo.ApplicationVersionComponent, resourceUID string) ([]bo.ApplicationVersionComponent, error) {
 	found := false
 	for position := range components {
@@ -139,6 +136,74 @@ func (composer *Composer) DeleteResource(components []bo.ApplicationVersionCompo
 		return nil, merr.NotFound("version resource not found")
 	}
 	return normalizeComponentOrders(dropEmptyComponents(components)), nil
+}
+
+// SaveComponent 新增或更新一个服务（组件）。componentUID 为空时按末尾顺序新建；
+// 非空时改名字与备注。改名会同步该服务下所有资源的 Component，避免资源仍指向
+// 旧名。名称必须是小写 DNS-1123 label，且在同一版本内唯一。
+func (composer *Composer) SaveComponent(components []bo.ApplicationVersionComponent, componentUID, name, description string) ([]bo.ApplicationVersionComponent, error) {
+	name = strings.TrimSpace(name)
+	if err := validateComponentName(name); err != nil {
+		return nil, err
+	}
+	description = strings.TrimSpace(description)
+	if len([]rune(description)) > maxComponentDesc {
+		return nil, merr.Invalid("component description must not exceed 2048 characters")
+	}
+	position := -1
+	for index := range components {
+		sameComponent := componentUID != "" && components[index].UID == componentUID
+		if components[index].Name == name && !sameComponent {
+			return nil, merr.Conflict("component name already exists in this version")
+		}
+		if sameComponent {
+			position = index
+		}
+	}
+	if componentUID == "" {
+		components = append(components, bo.ApplicationVersionComponent{
+			Name: name, DisplayName: name, Description: description,
+			Resources: make([]bo.ApplicationResource, 0),
+		})
+		return normalizeComponentOrders(components), nil
+	}
+	if position < 0 {
+		return nil, merr.NotFound("version component not found")
+	}
+	components[position].Name = name
+	components[position].DisplayName = name
+	components[position].Description = description
+	for resourcePosition := range components[position].Resources {
+		components[position].Resources[resourcePosition].Component = name
+	}
+	return normalizeComponentOrders(components), nil
+}
+
+// FindComponent 按 uid 查找版本内的服务。
+func (composer *Composer) FindComponent(components []bo.ApplicationVersionComponent, componentUID string) (bo.ApplicationVersionComponent, error) {
+	for _, component := range components {
+		if componentUID != "" && component.UID == componentUID {
+			return component, nil
+		}
+	}
+	return bo.ApplicationVersionComponent{}, merr.NotFound("version component not found")
+}
+
+// DeleteComponent 删除一个服务及其下的全部资源；版本可以因此变成 0 个服务。
+func (composer *Composer) DeleteComponent(components []bo.ApplicationVersionComponent, componentUID string) ([]bo.ApplicationVersionComponent, error) {
+	kept := make([]bo.ApplicationVersionComponent, 0, len(components))
+	found := false
+	for _, component := range components {
+		if componentUID != "" && component.UID == componentUID {
+			found = true
+			continue
+		}
+		kept = append(kept, component)
+	}
+	if !found {
+		return nil, merr.NotFound("version component not found")
+	}
+	return normalizeComponentOrders(kept), nil
 }
 
 // AllowedActions 按状态给出可执行动作；RELEASE 只表示版本可发布部署，具体集群
@@ -174,24 +239,14 @@ func (composer *Composer) place(components []bo.ApplicationVersionComponent, res
 	return normalizeComponentOrders(components)
 }
 
-// dropEmptyComponents 删除没有资源的组件；至少保留一个组件。
+// dropEmptyComponents 删除没有资源的组件。版本允许 0 个服务，不再补齐 default。
 func dropEmptyComponents(components []bo.ApplicationVersionComponent) []bo.ApplicationVersionComponent {
-	if len(components) == 0 {
-		return []bo.ApplicationVersionComponent{{
-			Name: defaultComponentName, DisplayName: defaultComponentName,
-			Resources: make([]bo.ApplicationResource, 0),
-		}}
-	}
 	kept := make([]bo.ApplicationVersionComponent, 0, len(components))
 	for _, component := range components {
 		if len(component.Resources) == 0 {
 			continue
 		}
 		kept = append(kept, component)
-	}
-	if len(kept) == 0 {
-		// 最后一个组件即使没有资源也保留，版本始终至少一个组件。
-		return components[:1]
 	}
 	return kept
 }
@@ -215,5 +270,19 @@ func normalizeComponentName(name string) string {
 	return name
 }
 
-// defaultComponentName 是无 component 输入时的默认服务名。
+// componentNamePattern 是小写 DNS-1123 label 的形状，服务名用它做资源分组名。
+var componentNamePattern = regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`)
+
+// validateComponentName 要求服务名是小写 DNS-1123 label，长度不超过 63。
+func validateComponentName(name string) error {
+	if name == "" || len(name) > maxComponentRunes {
+		return merr.Invalid("component name must be a lowercase DNS-1123 label and not exceed 63 characters")
+	}
+	if !componentNamePattern.MatchString(name) {
+		return merr.Invalid("component name must be a lowercase DNS-1123 label")
+	}
+	return nil
+}
+
+// defaultComponentName 是没有 component 输入时的兜底服务名。
 const defaultComponentName = "default"

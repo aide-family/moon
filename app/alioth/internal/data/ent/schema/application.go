@@ -23,7 +23,8 @@ func (Application) Fields() []ent.Field {
 		field.String("namespace_uid").NotEmpty(),
 		field.String("name").NotEmpty(),
 		field.String("display_name").Default(""),
-		field.Enum("category").Values("DATABASE", "MIDDLEWARE", "OBSERVABILITY", "TOOLING", "OTHER").Default("OTHER"),
+		// category 是自由字符串，由业务层限制长度；内置分类只是默认值，不再做枚举校验。
+		field.String("category").Default("OTHER"),
 		field.String("description").Default(""),
 		field.Text("readme").Default(""),
 	}

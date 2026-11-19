@@ -97,13 +97,13 @@ func (_u *ApplicationUpdate) SetNillableDisplayName(v *string) *ApplicationUpdat
 }
 
 // SetCategory sets the "category" field.
-func (_u *ApplicationUpdate) SetCategory(v application.Category) *ApplicationUpdate {
+func (_u *ApplicationUpdate) SetCategory(v string) *ApplicationUpdate {
 	_u.mutation.SetCategory(v)
 	return _u
 }
 
 // SetNillableCategory sets the "category" field if the given value is not nil.
-func (_u *ApplicationUpdate) SetNillableCategory(v *application.Category) *ApplicationUpdate {
+func (_u *ApplicationUpdate) SetNillableCategory(v *string) *ApplicationUpdate {
 	if v != nil {
 		_u.SetCategory(*v)
 	}
@@ -191,11 +191,6 @@ func (_u *ApplicationUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Application.name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Category(); ok {
-		if err := application.CategoryValidator(v); err != nil {
-			return &ValidationError{Name: "category", err: fmt.Errorf(`ent: validator failed for field "Application.category": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -230,7 +225,7 @@ func (_u *ApplicationUpdate) sqlSave(ctx context.Context) (_node int, err error)
 		_spec.SetField(application.FieldDisplayName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Category(); ok {
-		_spec.SetField(application.FieldCategory, field.TypeEnum, value)
+		_spec.SetField(application.FieldCategory, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(application.FieldDescription, field.TypeString, value)
@@ -327,13 +322,13 @@ func (_u *ApplicationUpdateOne) SetNillableDisplayName(v *string) *ApplicationUp
 }
 
 // SetCategory sets the "category" field.
-func (_u *ApplicationUpdateOne) SetCategory(v application.Category) *ApplicationUpdateOne {
+func (_u *ApplicationUpdateOne) SetCategory(v string) *ApplicationUpdateOne {
 	_u.mutation.SetCategory(v)
 	return _u
 }
 
 // SetNillableCategory sets the "category" field if the given value is not nil.
-func (_u *ApplicationUpdateOne) SetNillableCategory(v *application.Category) *ApplicationUpdateOne {
+func (_u *ApplicationUpdateOne) SetNillableCategory(v *string) *ApplicationUpdateOne {
 	if v != nil {
 		_u.SetCategory(*v)
 	}
@@ -434,11 +429,6 @@ func (_u *ApplicationUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Application.name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Category(); ok {
-		if err := application.CategoryValidator(v); err != nil {
-			return &ValidationError{Name: "category", err: fmt.Errorf(`ent: validator failed for field "Application.category": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -490,7 +480,7 @@ func (_u *ApplicationUpdateOne) sqlSave(ctx context.Context) (_node *Application
 		_spec.SetField(application.FieldDisplayName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Category(); ok {
-		_spec.SetField(application.FieldCategory, field.TypeEnum, value)
+		_spec.SetField(application.FieldCategory, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Description(); ok {
 		_spec.SetField(application.FieldDescription, field.TypeString, value)

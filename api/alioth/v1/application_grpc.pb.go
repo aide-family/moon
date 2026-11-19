@@ -38,6 +38,8 @@ const (
 	ApplicationService_SaveApplicationVersionResource_FullMethodName     = "/alioth.v1.ApplicationService/SaveApplicationVersionResource"
 	ApplicationService_DeleteApplicationVersionResource_FullMethodName   = "/alioth.v1.ApplicationService/DeleteApplicationVersionResource"
 	ApplicationService_ValidateApplicationVersionResource_FullMethodName = "/alioth.v1.ApplicationService/ValidateApplicationVersionResource"
+	ApplicationService_SaveApplicationVersionComponent_FullMethodName    = "/alioth.v1.ApplicationService/SaveApplicationVersionComponent"
+	ApplicationService_DeleteApplicationVersionComponent_FullMethodName  = "/alioth.v1.ApplicationService/DeleteApplicationVersionComponent"
 )
 
 // ApplicationServiceClient is the client API for ApplicationService service.
@@ -73,6 +75,10 @@ type ApplicationServiceClient interface {
 	DeleteApplicationVersionResource(ctx context.Context, in *DeleteApplicationVersionResourceRequest, opts ...grpc.CallOption) (*DeleteApplicationVersionResourceResponse, error)
 	// ValidateApplicationVersionResource 只校验一段资源 YAML，不写入版本。
 	ValidateApplicationVersionResource(ctx context.Context, in *ValidateApplicationVersionResourceRequest, opts ...grpc.CallOption) (*ValidateApplicationVersionResourceResponse, error)
+	// SaveApplicationVersionComponent 新增或更新一个服务（组件），允许改服务名与备注。
+	SaveApplicationVersionComponent(ctx context.Context, in *SaveApplicationVersionComponentRequest, opts ...grpc.CallOption) (*SaveApplicationVersionComponentResponse, error)
+	// DeleteApplicationVersionComponent 删除一个服务及其下的全部资源。
+	DeleteApplicationVersionComponent(ctx context.Context, in *DeleteApplicationVersionComponentRequest, opts ...grpc.CallOption) (*DeleteApplicationVersionComponentResponse, error)
 }
 
 type applicationServiceClient struct {
@@ -273,6 +279,26 @@ func (c *applicationServiceClient) ValidateApplicationVersionResource(ctx contex
 	return out, nil
 }
 
+func (c *applicationServiceClient) SaveApplicationVersionComponent(ctx context.Context, in *SaveApplicationVersionComponentRequest, opts ...grpc.CallOption) (*SaveApplicationVersionComponentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveApplicationVersionComponentResponse)
+	err := c.cc.Invoke(ctx, ApplicationService_SaveApplicationVersionComponent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationServiceClient) DeleteApplicationVersionComponent(ctx context.Context, in *DeleteApplicationVersionComponentRequest, opts ...grpc.CallOption) (*DeleteApplicationVersionComponentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteApplicationVersionComponentResponse)
+	err := c.cc.Invoke(ctx, ApplicationService_DeleteApplicationVersionComponent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ApplicationServiceServer is the server API for ApplicationService service.
 // All implementations must embed UnimplementedApplicationServiceServer
 // for forward compatibility.
@@ -306,6 +332,10 @@ type ApplicationServiceServer interface {
 	DeleteApplicationVersionResource(context.Context, *DeleteApplicationVersionResourceRequest) (*DeleteApplicationVersionResourceResponse, error)
 	// ValidateApplicationVersionResource 只校验一段资源 YAML，不写入版本。
 	ValidateApplicationVersionResource(context.Context, *ValidateApplicationVersionResourceRequest) (*ValidateApplicationVersionResourceResponse, error)
+	// SaveApplicationVersionComponent 新增或更新一个服务（组件），允许改服务名与备注。
+	SaveApplicationVersionComponent(context.Context, *SaveApplicationVersionComponentRequest) (*SaveApplicationVersionComponentResponse, error)
+	// DeleteApplicationVersionComponent 删除一个服务及其下的全部资源。
+	DeleteApplicationVersionComponent(context.Context, *DeleteApplicationVersionComponentRequest) (*DeleteApplicationVersionComponentResponse, error)
 	mustEmbedUnimplementedApplicationServiceServer()
 }
 
@@ -372,6 +402,12 @@ func (UnimplementedApplicationServiceServer) DeleteApplicationVersionResource(co
 }
 func (UnimplementedApplicationServiceServer) ValidateApplicationVersionResource(context.Context, *ValidateApplicationVersionResourceRequest) (*ValidateApplicationVersionResourceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ValidateApplicationVersionResource not implemented")
+}
+func (UnimplementedApplicationServiceServer) SaveApplicationVersionComponent(context.Context, *SaveApplicationVersionComponentRequest) (*SaveApplicationVersionComponentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveApplicationVersionComponent not implemented")
+}
+func (UnimplementedApplicationServiceServer) DeleteApplicationVersionComponent(context.Context, *DeleteApplicationVersionComponentRequest) (*DeleteApplicationVersionComponentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteApplicationVersionComponent not implemented")
 }
 func (UnimplementedApplicationServiceServer) mustEmbedUnimplementedApplicationServiceServer() {}
 func (UnimplementedApplicationServiceServer) testEmbeddedByValue()                            {}
@@ -736,6 +772,42 @@ func _ApplicationService_ValidateApplicationVersionResource_Handler(srv interfac
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ApplicationService_SaveApplicationVersionComponent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveApplicationVersionComponentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).SaveApplicationVersionComponent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationService_SaveApplicationVersionComponent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).SaveApplicationVersionComponent(ctx, req.(*SaveApplicationVersionComponentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ApplicationService_DeleteApplicationVersionComponent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteApplicationVersionComponentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationServiceServer).DeleteApplicationVersionComponent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ApplicationService_DeleteApplicationVersionComponent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationServiceServer).DeleteApplicationVersionComponent(ctx, req.(*DeleteApplicationVersionComponentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ApplicationService_ServiceDesc is the grpc.ServiceDesc for ApplicationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -818,6 +890,14 @@ var ApplicationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ValidateApplicationVersionResource",
 			Handler:    _ApplicationService_ValidateApplicationVersionResource_Handler,
+		},
+		{
+			MethodName: "SaveApplicationVersionComponent",
+			Handler:    _ApplicationService_SaveApplicationVersionComponent_Handler,
+		},
+		{
+			MethodName: "DeleteApplicationVersionComponent",
+			Handler:    _ApplicationService_DeleteApplicationVersionComponent_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

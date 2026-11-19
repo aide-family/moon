@@ -92,6 +92,20 @@ func (_c *ApplicationVersionComponentCreate) SetNillableDisplayName(v *string) *
 	return _c
 }
 
+// SetDescription sets the "description" field.
+func (_c *ApplicationVersionComponentCreate) SetDescription(v string) *ApplicationVersionComponentCreate {
+	_c.mutation.SetDescription(v)
+	return _c
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_c *ApplicationVersionComponentCreate) SetNillableDescription(v *string) *ApplicationVersionComponentCreate {
+	if v != nil {
+		_c.SetDescription(*v)
+	}
+	return _c
+}
+
 // SetSortOrder sets the "sort_order" field.
 func (_c *ApplicationVersionComponentCreate) SetSortOrder(v int) *ApplicationVersionComponentCreate {
 	_c.mutation.SetSortOrder(v)
@@ -153,6 +167,10 @@ func (_c *ApplicationVersionComponentCreate) defaults() {
 		v := applicationversioncomponent.DefaultDisplayName
 		_c.mutation.SetDisplayName(v)
 	}
+	if _, ok := _c.mutation.Description(); !ok {
+		v := applicationversioncomponent.DefaultDescription
+		_c.mutation.SetDescription(v)
+	}
 	if _, ok := _c.mutation.SortOrder(); !ok {
 		v := applicationversioncomponent.DefaultSortOrder
 		_c.mutation.SetSortOrder(v)
@@ -209,6 +227,9 @@ func (_c *ApplicationVersionComponentCreate) check() error {
 	}
 	if _, ok := _c.mutation.DisplayName(); !ok {
 		return &ValidationError{Name: "display_name", err: errors.New(`ent: missing required field "ApplicationVersionComponent.display_name"`)}
+	}
+	if _, ok := _c.mutation.Description(); !ok {
+		return &ValidationError{Name: "description", err: errors.New(`ent: missing required field "ApplicationVersionComponent.description"`)}
 	}
 	if _, ok := _c.mutation.SortOrder(); !ok {
 		return &ValidationError{Name: "sort_order", err: errors.New(`ent: missing required field "ApplicationVersionComponent.sort_order"`)}
@@ -270,6 +291,10 @@ func (_c *ApplicationVersionComponentCreate) createSpec() (*ApplicationVersionCo
 	if value, ok := _c.mutation.DisplayName(); ok {
 		_spec.SetField(applicationversioncomponent.FieldDisplayName, field.TypeString, value)
 		_node.DisplayName = value
+	}
+	if value, ok := _c.mutation.Description(); ok {
+		_spec.SetField(applicationversioncomponent.FieldDescription, field.TypeString, value)
+		_node.Description = value
 	}
 	if value, ok := _c.mutation.SortOrder(); ok {
 		_spec.SetField(applicationversioncomponent.FieldSortOrder, field.TypeInt, value)

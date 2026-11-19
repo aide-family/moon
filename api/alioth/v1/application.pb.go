@@ -1057,6 +1057,8 @@ type ApplicationVersionComponent struct {
 	SortOrder     int32                  `protobuf:"varint,4,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
 	Resources     []*ApplicationResource `protobuf:"bytes,5,rep,name=resources,proto3" json:"resources,omitempty"`
 	ResourceCount int32                  `protobuf:"varint,6,opt,name=resource_count,json=resourceCount,proto3" json:"resource_count,omitempty"`
+	// description 是服务备注，支持 Markdown。
+	Description   string `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1131,6 +1133,13 @@ func (x *ApplicationVersionComponent) GetResourceCount() int32 {
 		return x.ResourceCount
 	}
 	return 0
+}
+
+func (x *ApplicationVersionComponent) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
 }
 
 type ApplicationVersionItem struct {
@@ -2877,6 +2886,248 @@ func (x *ValidateApplicationVersionResourceResponse) GetWarnings() []string {
 	return nil
 }
 
+type SaveApplicationVersionComponentRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ApplicationUid string                 `protobuf:"bytes,1,opt,name=application_uid,json=applicationUid,proto3" json:"application_uid,omitempty"`
+	Uid            string                 `protobuf:"bytes,2,opt,name=uid,proto3" json:"uid,omitempty"`
+	// component_uid 为空时新增服务，否则更新对应服务。
+	ComponentUid string `protobuf:"bytes,3,opt,name=component_uid,json=componentUid,proto3" json:"component_uid,omitempty"`
+	Name         string `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	// description 支持 Markdown，最多 2048 字符。
+	Description      string `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
+	ExpectedRevision int32  `protobuf:"varint,6,opt,name=expected_revision,json=expectedRevision,proto3" json:"expected_revision,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SaveApplicationVersionComponentRequest) Reset() {
+	*x = SaveApplicationVersionComponentRequest{}
+	mi := &file_alioth_v1_application_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveApplicationVersionComponentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveApplicationVersionComponentRequest) ProtoMessage() {}
+
+func (x *SaveApplicationVersionComponentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_application_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveApplicationVersionComponentRequest.ProtoReflect.Descriptor instead.
+func (*SaveApplicationVersionComponentRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *SaveApplicationVersionComponentRequest) GetApplicationUid() string {
+	if x != nil {
+		return x.ApplicationUid
+	}
+	return ""
+}
+
+func (x *SaveApplicationVersionComponentRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *SaveApplicationVersionComponentRequest) GetComponentUid() string {
+	if x != nil {
+		return x.ComponentUid
+	}
+	return ""
+}
+
+func (x *SaveApplicationVersionComponentRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SaveApplicationVersionComponentRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *SaveApplicationVersionComponentRequest) GetExpectedRevision() int32 {
+	if x != nil {
+		return x.ExpectedRevision
+	}
+	return 0
+}
+
+type SaveApplicationVersionComponentResponse struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Version       *ApplicationVersionItem `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveApplicationVersionComponentResponse) Reset() {
+	*x = SaveApplicationVersionComponentResponse{}
+	mi := &file_alioth_v1_application_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveApplicationVersionComponentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveApplicationVersionComponentResponse) ProtoMessage() {}
+
+func (x *SaveApplicationVersionComponentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_application_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveApplicationVersionComponentResponse.ProtoReflect.Descriptor instead.
+func (*SaveApplicationVersionComponentResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *SaveApplicationVersionComponentResponse) GetVersion() *ApplicationVersionItem {
+	if x != nil {
+		return x.Version
+	}
+	return nil
+}
+
+type DeleteApplicationVersionComponentRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	ApplicationUid   string                 `protobuf:"bytes,1,opt,name=application_uid,json=applicationUid,proto3" json:"application_uid,omitempty"`
+	Uid              string                 `protobuf:"bytes,2,opt,name=uid,proto3" json:"uid,omitempty"`
+	ComponentUid     string                 `protobuf:"bytes,3,opt,name=component_uid,json=componentUid,proto3" json:"component_uid,omitempty"`
+	ExpectedRevision int32                  `protobuf:"varint,4,opt,name=expected_revision,json=expectedRevision,proto3" json:"expected_revision,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *DeleteApplicationVersionComponentRequest) Reset() {
+	*x = DeleteApplicationVersionComponentRequest{}
+	mi := &file_alioth_v1_application_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteApplicationVersionComponentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteApplicationVersionComponentRequest) ProtoMessage() {}
+
+func (x *DeleteApplicationVersionComponentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_application_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteApplicationVersionComponentRequest.ProtoReflect.Descriptor instead.
+func (*DeleteApplicationVersionComponentRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *DeleteApplicationVersionComponentRequest) GetApplicationUid() string {
+	if x != nil {
+		return x.ApplicationUid
+	}
+	return ""
+}
+
+func (x *DeleteApplicationVersionComponentRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *DeleteApplicationVersionComponentRequest) GetComponentUid() string {
+	if x != nil {
+		return x.ComponentUid
+	}
+	return ""
+}
+
+func (x *DeleteApplicationVersionComponentRequest) GetExpectedRevision() int32 {
+	if x != nil {
+		return x.ExpectedRevision
+	}
+	return 0
+}
+
+type DeleteApplicationVersionComponentResponse struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Version       *ApplicationVersionItem `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteApplicationVersionComponentResponse) Reset() {
+	*x = DeleteApplicationVersionComponentResponse{}
+	mi := &file_alioth_v1_application_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteApplicationVersionComponentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteApplicationVersionComponentResponse) ProtoMessage() {}
+
+func (x *DeleteApplicationVersionComponentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_application_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteApplicationVersionComponentResponse.ProtoReflect.Descriptor instead.
+func (*DeleteApplicationVersionComponentResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *DeleteApplicationVersionComponentResponse) GetVersion() *ApplicationVersionItem {
+	if x != nil {
+		return x.Version
+	}
+	return nil
+}
+
 type ApplicationDeployValues struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Replicas      map[string]int32       `protobuf:"bytes,1,rep,name=replicas,proto3" json:"replicas,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
@@ -2889,7 +3140,7 @@ type ApplicationDeployValues struct {
 
 func (x *ApplicationDeployValues) Reset() {
 	*x = ApplicationDeployValues{}
-	mi := &file_alioth_v1_application_proto_msgTypes[44]
+	mi := &file_alioth_v1_application_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2901,7 +3152,7 @@ func (x *ApplicationDeployValues) String() string {
 func (*ApplicationDeployValues) ProtoMessage() {}
 
 func (x *ApplicationDeployValues) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[44]
+	mi := &file_alioth_v1_application_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2914,7 +3165,7 @@ func (x *ApplicationDeployValues) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplicationDeployValues.ProtoReflect.Descriptor instead.
 func (*ApplicationDeployValues) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{44}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *ApplicationDeployValues) GetReplicas() map[string]int32 {
@@ -2964,7 +3215,7 @@ type DeploymentCluster struct {
 
 func (x *DeploymentCluster) Reset() {
 	*x = DeploymentCluster{}
-	mi := &file_alioth_v1_application_proto_msgTypes[45]
+	mi := &file_alioth_v1_application_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2976,7 +3227,7 @@ func (x *DeploymentCluster) String() string {
 func (*DeploymentCluster) ProtoMessage() {}
 
 func (x *DeploymentCluster) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[45]
+	mi := &file_alioth_v1_application_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2989,7 +3240,7 @@ func (x *DeploymentCluster) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeploymentCluster.ProtoReflect.Descriptor instead.
 func (*DeploymentCluster) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{45}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *DeploymentCluster) GetUid() string {
@@ -3077,7 +3328,7 @@ type ApplicationReleaseItem struct {
 
 func (x *ApplicationReleaseItem) Reset() {
 	*x = ApplicationReleaseItem{}
-	mi := &file_alioth_v1_application_proto_msgTypes[46]
+	mi := &file_alioth_v1_application_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3089,7 +3340,7 @@ func (x *ApplicationReleaseItem) String() string {
 func (*ApplicationReleaseItem) ProtoMessage() {}
 
 func (x *ApplicationReleaseItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[46]
+	mi := &file_alioth_v1_application_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3102,7 +3353,7 @@ func (x *ApplicationReleaseItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplicationReleaseItem.ProtoReflect.Descriptor instead.
 func (*ApplicationReleaseItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{46}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *ApplicationReleaseItem) GetUid() string {
@@ -3224,7 +3475,7 @@ type ApplicationDeploymentItem struct {
 
 func (x *ApplicationDeploymentItem) Reset() {
 	*x = ApplicationDeploymentItem{}
-	mi := &file_alioth_v1_application_proto_msgTypes[47]
+	mi := &file_alioth_v1_application_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3236,7 +3487,7 @@ func (x *ApplicationDeploymentItem) String() string {
 func (*ApplicationDeploymentItem) ProtoMessage() {}
 
 func (x *ApplicationDeploymentItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[47]
+	mi := &file_alioth_v1_application_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3249,7 +3500,7 @@ func (x *ApplicationDeploymentItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplicationDeploymentItem.ProtoReflect.Descriptor instead.
 func (*ApplicationDeploymentItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{47}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *ApplicationDeploymentItem) GetUid() string {
@@ -3357,7 +3608,7 @@ type CreateApplicationDeploymentRequest struct {
 
 func (x *CreateApplicationDeploymentRequest) Reset() {
 	*x = CreateApplicationDeploymentRequest{}
-	mi := &file_alioth_v1_application_proto_msgTypes[48]
+	mi := &file_alioth_v1_application_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3369,7 +3620,7 @@ func (x *CreateApplicationDeploymentRequest) String() string {
 func (*CreateApplicationDeploymentRequest) ProtoMessage() {}
 
 func (x *CreateApplicationDeploymentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[48]
+	mi := &file_alioth_v1_application_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3382,7 +3633,7 @@ func (x *CreateApplicationDeploymentRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use CreateApplicationDeploymentRequest.ProtoReflect.Descriptor instead.
 func (*CreateApplicationDeploymentRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{48}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *CreateApplicationDeploymentRequest) GetApplicationUid() string {
@@ -3436,7 +3687,7 @@ type CreateApplicationDeploymentResponse struct {
 
 func (x *CreateApplicationDeploymentResponse) Reset() {
 	*x = CreateApplicationDeploymentResponse{}
-	mi := &file_alioth_v1_application_proto_msgTypes[49]
+	mi := &file_alioth_v1_application_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3448,7 +3699,7 @@ func (x *CreateApplicationDeploymentResponse) String() string {
 func (*CreateApplicationDeploymentResponse) ProtoMessage() {}
 
 func (x *CreateApplicationDeploymentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[49]
+	mi := &file_alioth_v1_application_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3461,7 +3712,7 @@ func (x *CreateApplicationDeploymentResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use CreateApplicationDeploymentResponse.ProtoReflect.Descriptor instead.
 func (*CreateApplicationDeploymentResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{49}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *CreateApplicationDeploymentResponse) GetDeployment() *ApplicationDeploymentItem {
@@ -3485,7 +3736,7 @@ type ListApplicationDeploymentsRequest struct {
 
 func (x *ListApplicationDeploymentsRequest) Reset() {
 	*x = ListApplicationDeploymentsRequest{}
-	mi := &file_alioth_v1_application_proto_msgTypes[50]
+	mi := &file_alioth_v1_application_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3497,7 +3748,7 @@ func (x *ListApplicationDeploymentsRequest) String() string {
 func (*ListApplicationDeploymentsRequest) ProtoMessage() {}
 
 func (x *ListApplicationDeploymentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[50]
+	mi := &file_alioth_v1_application_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3510,7 +3761,7 @@ func (x *ListApplicationDeploymentsRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListApplicationDeploymentsRequest.ProtoReflect.Descriptor instead.
 func (*ListApplicationDeploymentsRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{50}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *ListApplicationDeploymentsRequest) GetPage() int32 {
@@ -3567,7 +3818,7 @@ type ListApplicationDeploymentsResponse struct {
 
 func (x *ListApplicationDeploymentsResponse) Reset() {
 	*x = ListApplicationDeploymentsResponse{}
-	mi := &file_alioth_v1_application_proto_msgTypes[51]
+	mi := &file_alioth_v1_application_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3579,7 +3830,7 @@ func (x *ListApplicationDeploymentsResponse) String() string {
 func (*ListApplicationDeploymentsResponse) ProtoMessage() {}
 
 func (x *ListApplicationDeploymentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[51]
+	mi := &file_alioth_v1_application_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3592,7 +3843,7 @@ func (x *ListApplicationDeploymentsResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ListApplicationDeploymentsResponse.ProtoReflect.Descriptor instead.
 func (*ListApplicationDeploymentsResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{51}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *ListApplicationDeploymentsResponse) GetItems() []*ApplicationDeploymentItem {
@@ -3632,7 +3883,7 @@ type GetApplicationDeploymentRequest struct {
 
 func (x *GetApplicationDeploymentRequest) Reset() {
 	*x = GetApplicationDeploymentRequest{}
-	mi := &file_alioth_v1_application_proto_msgTypes[52]
+	mi := &file_alioth_v1_application_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3644,7 +3895,7 @@ func (x *GetApplicationDeploymentRequest) String() string {
 func (*GetApplicationDeploymentRequest) ProtoMessage() {}
 
 func (x *GetApplicationDeploymentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[52]
+	mi := &file_alioth_v1_application_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3657,7 +3908,7 @@ func (x *GetApplicationDeploymentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetApplicationDeploymentRequest.ProtoReflect.Descriptor instead.
 func (*GetApplicationDeploymentRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{52}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *GetApplicationDeploymentRequest) GetUid() string {
@@ -3676,7 +3927,7 @@ type GetApplicationDeploymentResponse struct {
 
 func (x *GetApplicationDeploymentResponse) Reset() {
 	*x = GetApplicationDeploymentResponse{}
-	mi := &file_alioth_v1_application_proto_msgTypes[53]
+	mi := &file_alioth_v1_application_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3688,7 +3939,7 @@ func (x *GetApplicationDeploymentResponse) String() string {
 func (*GetApplicationDeploymentResponse) ProtoMessage() {}
 
 func (x *GetApplicationDeploymentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[53]
+	mi := &file_alioth_v1_application_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3701,7 +3952,7 @@ func (x *GetApplicationDeploymentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetApplicationDeploymentResponse.ProtoReflect.Descriptor instead.
 func (*GetApplicationDeploymentResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{53}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *GetApplicationDeploymentResponse) GetDeployment() *ApplicationDeploymentItem {
@@ -3723,7 +3974,7 @@ type UpgradeApplicationDeploymentRequest struct {
 
 func (x *UpgradeApplicationDeploymentRequest) Reset() {
 	*x = UpgradeApplicationDeploymentRequest{}
-	mi := &file_alioth_v1_application_proto_msgTypes[54]
+	mi := &file_alioth_v1_application_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3735,7 +3986,7 @@ func (x *UpgradeApplicationDeploymentRequest) String() string {
 func (*UpgradeApplicationDeploymentRequest) ProtoMessage() {}
 
 func (x *UpgradeApplicationDeploymentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[54]
+	mi := &file_alioth_v1_application_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3748,7 +3999,7 @@ func (x *UpgradeApplicationDeploymentRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use UpgradeApplicationDeploymentRequest.ProtoReflect.Descriptor instead.
 func (*UpgradeApplicationDeploymentRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{54}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *UpgradeApplicationDeploymentRequest) GetUid() string {
@@ -3788,7 +4039,7 @@ type UpgradeApplicationDeploymentResponse struct {
 
 func (x *UpgradeApplicationDeploymentResponse) Reset() {
 	*x = UpgradeApplicationDeploymentResponse{}
-	mi := &file_alioth_v1_application_proto_msgTypes[55]
+	mi := &file_alioth_v1_application_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3800,7 +4051,7 @@ func (x *UpgradeApplicationDeploymentResponse) String() string {
 func (*UpgradeApplicationDeploymentResponse) ProtoMessage() {}
 
 func (x *UpgradeApplicationDeploymentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[55]
+	mi := &file_alioth_v1_application_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3813,7 +4064,7 @@ func (x *UpgradeApplicationDeploymentResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use UpgradeApplicationDeploymentResponse.ProtoReflect.Descriptor instead.
 func (*UpgradeApplicationDeploymentResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{55}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *UpgradeApplicationDeploymentResponse) GetDeployment() *ApplicationDeploymentItem {
@@ -3834,7 +4085,7 @@ type RollbackApplicationDeploymentRequest struct {
 
 func (x *RollbackApplicationDeploymentRequest) Reset() {
 	*x = RollbackApplicationDeploymentRequest{}
-	mi := &file_alioth_v1_application_proto_msgTypes[56]
+	mi := &file_alioth_v1_application_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3846,7 +4097,7 @@ func (x *RollbackApplicationDeploymentRequest) String() string {
 func (*RollbackApplicationDeploymentRequest) ProtoMessage() {}
 
 func (x *RollbackApplicationDeploymentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[56]
+	mi := &file_alioth_v1_application_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3859,7 +4110,7 @@ func (x *RollbackApplicationDeploymentRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use RollbackApplicationDeploymentRequest.ProtoReflect.Descriptor instead.
 func (*RollbackApplicationDeploymentRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{56}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *RollbackApplicationDeploymentRequest) GetUid() string {
@@ -3892,7 +4143,7 @@ type RollbackApplicationDeploymentResponse struct {
 
 func (x *RollbackApplicationDeploymentResponse) Reset() {
 	*x = RollbackApplicationDeploymentResponse{}
-	mi := &file_alioth_v1_application_proto_msgTypes[57]
+	mi := &file_alioth_v1_application_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3904,7 +4155,7 @@ func (x *RollbackApplicationDeploymentResponse) String() string {
 func (*RollbackApplicationDeploymentResponse) ProtoMessage() {}
 
 func (x *RollbackApplicationDeploymentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[57]
+	mi := &file_alioth_v1_application_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3917,7 +4168,7 @@ func (x *RollbackApplicationDeploymentResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use RollbackApplicationDeploymentResponse.ProtoReflect.Descriptor instead.
 func (*RollbackApplicationDeploymentResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{57}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *RollbackApplicationDeploymentResponse) GetDeployment() *ApplicationDeploymentItem {
@@ -3937,7 +4188,7 @@ type RedeployApplicationDeploymentRequest struct {
 
 func (x *RedeployApplicationDeploymentRequest) Reset() {
 	*x = RedeployApplicationDeploymentRequest{}
-	mi := &file_alioth_v1_application_proto_msgTypes[58]
+	mi := &file_alioth_v1_application_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3949,7 +4200,7 @@ func (x *RedeployApplicationDeploymentRequest) String() string {
 func (*RedeployApplicationDeploymentRequest) ProtoMessage() {}
 
 func (x *RedeployApplicationDeploymentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[58]
+	mi := &file_alioth_v1_application_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3962,7 +4213,7 @@ func (x *RedeployApplicationDeploymentRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use RedeployApplicationDeploymentRequest.ProtoReflect.Descriptor instead.
 func (*RedeployApplicationDeploymentRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{58}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *RedeployApplicationDeploymentRequest) GetUid() string {
@@ -3988,7 +4239,7 @@ type RedeployApplicationDeploymentResponse struct {
 
 func (x *RedeployApplicationDeploymentResponse) Reset() {
 	*x = RedeployApplicationDeploymentResponse{}
-	mi := &file_alioth_v1_application_proto_msgTypes[59]
+	mi := &file_alioth_v1_application_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4000,7 +4251,7 @@ func (x *RedeployApplicationDeploymentResponse) String() string {
 func (*RedeployApplicationDeploymentResponse) ProtoMessage() {}
 
 func (x *RedeployApplicationDeploymentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[59]
+	mi := &file_alioth_v1_application_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4013,7 +4264,7 @@ func (x *RedeployApplicationDeploymentResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use RedeployApplicationDeploymentResponse.ProtoReflect.Descriptor instead.
 func (*RedeployApplicationDeploymentResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{59}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *RedeployApplicationDeploymentResponse) GetDeployment() *ApplicationDeploymentItem {
@@ -4035,7 +4286,7 @@ type UninstallApplicationDeploymentRequest struct {
 
 func (x *UninstallApplicationDeploymentRequest) Reset() {
 	*x = UninstallApplicationDeploymentRequest{}
-	mi := &file_alioth_v1_application_proto_msgTypes[60]
+	mi := &file_alioth_v1_application_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4047,7 +4298,7 @@ func (x *UninstallApplicationDeploymentRequest) String() string {
 func (*UninstallApplicationDeploymentRequest) ProtoMessage() {}
 
 func (x *UninstallApplicationDeploymentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[60]
+	mi := &file_alioth_v1_application_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4060,7 +4311,7 @@ func (x *UninstallApplicationDeploymentRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use UninstallApplicationDeploymentRequest.ProtoReflect.Descriptor instead.
 func (*UninstallApplicationDeploymentRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{60}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *UninstallApplicationDeploymentRequest) GetUid() string {
@@ -4100,7 +4351,7 @@ type UninstallApplicationDeploymentResponse struct {
 
 func (x *UninstallApplicationDeploymentResponse) Reset() {
 	*x = UninstallApplicationDeploymentResponse{}
-	mi := &file_alioth_v1_application_proto_msgTypes[61]
+	mi := &file_alioth_v1_application_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4112,7 +4363,7 @@ func (x *UninstallApplicationDeploymentResponse) String() string {
 func (*UninstallApplicationDeploymentResponse) ProtoMessage() {}
 
 func (x *UninstallApplicationDeploymentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[61]
+	mi := &file_alioth_v1_application_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4125,7 +4376,7 @@ func (x *UninstallApplicationDeploymentResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use UninstallApplicationDeploymentResponse.ProtoReflect.Descriptor instead.
 func (*UninstallApplicationDeploymentResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{61}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *UninstallApplicationDeploymentResponse) GetDeployment() *ApplicationDeploymentItem {
@@ -4158,7 +4409,7 @@ type ApplicationOperationItem struct {
 
 func (x *ApplicationOperationItem) Reset() {
 	*x = ApplicationOperationItem{}
-	mi := &file_alioth_v1_application_proto_msgTypes[62]
+	mi := &file_alioth_v1_application_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4170,7 +4421,7 @@ func (x *ApplicationOperationItem) String() string {
 func (*ApplicationOperationItem) ProtoMessage() {}
 
 func (x *ApplicationOperationItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[62]
+	mi := &file_alioth_v1_application_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4183,7 +4434,7 @@ func (x *ApplicationOperationItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplicationOperationItem.ProtoReflect.Descriptor instead.
 func (*ApplicationOperationItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{62}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *ApplicationOperationItem) GetUid() string {
@@ -4303,7 +4554,7 @@ type ResourceRef struct {
 
 func (x *ResourceRef) Reset() {
 	*x = ResourceRef{}
-	mi := &file_alioth_v1_application_proto_msgTypes[63]
+	mi := &file_alioth_v1_application_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4315,7 +4566,7 @@ func (x *ResourceRef) String() string {
 func (*ResourceRef) ProtoMessage() {}
 
 func (x *ResourceRef) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[63]
+	mi := &file_alioth_v1_application_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4328,7 +4579,7 @@ func (x *ResourceRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResourceRef.ProtoReflect.Descriptor instead.
 func (*ResourceRef) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{63}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *ResourceRef) GetApiVersion() string {
@@ -4371,7 +4622,7 @@ type ListApplicationReleaseOperationsRequest struct {
 
 func (x *ListApplicationReleaseOperationsRequest) Reset() {
 	*x = ListApplicationReleaseOperationsRequest{}
-	mi := &file_alioth_v1_application_proto_msgTypes[64]
+	mi := &file_alioth_v1_application_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4383,7 +4634,7 @@ func (x *ListApplicationReleaseOperationsRequest) String() string {
 func (*ListApplicationReleaseOperationsRequest) ProtoMessage() {}
 
 func (x *ListApplicationReleaseOperationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[64]
+	mi := &file_alioth_v1_application_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4396,7 +4647,7 @@ func (x *ListApplicationReleaseOperationsRequest) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use ListApplicationReleaseOperationsRequest.ProtoReflect.Descriptor instead.
 func (*ListApplicationReleaseOperationsRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{64}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *ListApplicationReleaseOperationsRequest) GetUid() string {
@@ -4439,7 +4690,7 @@ type ListApplicationReleaseOperationsResponse struct {
 
 func (x *ListApplicationReleaseOperationsResponse) Reset() {
 	*x = ListApplicationReleaseOperationsResponse{}
-	mi := &file_alioth_v1_application_proto_msgTypes[65]
+	mi := &file_alioth_v1_application_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4451,7 +4702,7 @@ func (x *ListApplicationReleaseOperationsResponse) String() string {
 func (*ListApplicationReleaseOperationsResponse) ProtoMessage() {}
 
 func (x *ListApplicationReleaseOperationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[65]
+	mi := &file_alioth_v1_application_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4464,7 +4715,7 @@ func (x *ListApplicationReleaseOperationsResponse) ProtoReflect() protoreflect.M
 
 // Deprecated: Use ListApplicationReleaseOperationsResponse.ProtoReflect.Descriptor instead.
 func (*ListApplicationReleaseOperationsResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{65}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *ListApplicationReleaseOperationsResponse) GetItems() []*ApplicationOperationItem {
@@ -4504,7 +4755,7 @@ type GetApplicationReleaseRequest struct {
 
 func (x *GetApplicationReleaseRequest) Reset() {
 	*x = GetApplicationReleaseRequest{}
-	mi := &file_alioth_v1_application_proto_msgTypes[66]
+	mi := &file_alioth_v1_application_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4516,7 +4767,7 @@ func (x *GetApplicationReleaseRequest) String() string {
 func (*GetApplicationReleaseRequest) ProtoMessage() {}
 
 func (x *GetApplicationReleaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[66]
+	mi := &file_alioth_v1_application_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4529,7 +4780,7 @@ func (x *GetApplicationReleaseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetApplicationReleaseRequest.ProtoReflect.Descriptor instead.
 func (*GetApplicationReleaseRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{66}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *GetApplicationReleaseRequest) GetUid() string {
@@ -4548,7 +4799,7 @@ type GetApplicationReleaseResponse struct {
 
 func (x *GetApplicationReleaseResponse) Reset() {
 	*x = GetApplicationReleaseResponse{}
-	mi := &file_alioth_v1_application_proto_msgTypes[67]
+	mi := &file_alioth_v1_application_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4560,7 +4811,7 @@ func (x *GetApplicationReleaseResponse) String() string {
 func (*GetApplicationReleaseResponse) ProtoMessage() {}
 
 func (x *GetApplicationReleaseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[67]
+	mi := &file_alioth_v1_application_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4573,7 +4824,7 @@ func (x *GetApplicationReleaseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetApplicationReleaseResponse.ProtoReflect.Descriptor instead.
 func (*GetApplicationReleaseResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{67}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *GetApplicationReleaseResponse) GetRelease() *ApplicationReleaseItem {
@@ -4596,7 +4847,7 @@ type ListApplicationReleasesRequest struct {
 
 func (x *ListApplicationReleasesRequest) Reset() {
 	*x = ListApplicationReleasesRequest{}
-	mi := &file_alioth_v1_application_proto_msgTypes[68]
+	mi := &file_alioth_v1_application_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4608,7 +4859,7 @@ func (x *ListApplicationReleasesRequest) String() string {
 func (*ListApplicationReleasesRequest) ProtoMessage() {}
 
 func (x *ListApplicationReleasesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[68]
+	mi := &file_alioth_v1_application_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4621,7 +4872,7 @@ func (x *ListApplicationReleasesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListApplicationReleasesRequest.ProtoReflect.Descriptor instead.
 func (*ListApplicationReleasesRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{68}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *ListApplicationReleasesRequest) GetPage() int32 {
@@ -4671,7 +4922,7 @@ type ListApplicationReleasesResponse struct {
 
 func (x *ListApplicationReleasesResponse) Reset() {
 	*x = ListApplicationReleasesResponse{}
-	mi := &file_alioth_v1_application_proto_msgTypes[69]
+	mi := &file_alioth_v1_application_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4683,7 +4934,7 @@ func (x *ListApplicationReleasesResponse) String() string {
 func (*ListApplicationReleasesResponse) ProtoMessage() {}
 
 func (x *ListApplicationReleasesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[69]
+	mi := &file_alioth_v1_application_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4696,7 +4947,7 @@ func (x *ListApplicationReleasesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListApplicationReleasesResponse.ProtoReflect.Descriptor instead.
 func (*ListApplicationReleasesResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{69}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *ListApplicationReleasesResponse) GetItems() []*ApplicationReleaseItem {
@@ -4738,7 +4989,7 @@ type ListReleaseOperationsRequest struct {
 
 func (x *ListReleaseOperationsRequest) Reset() {
 	*x = ListReleaseOperationsRequest{}
-	mi := &file_alioth_v1_application_proto_msgTypes[70]
+	mi := &file_alioth_v1_application_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4750,7 +5001,7 @@ func (x *ListReleaseOperationsRequest) String() string {
 func (*ListReleaseOperationsRequest) ProtoMessage() {}
 
 func (x *ListReleaseOperationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[70]
+	mi := &file_alioth_v1_application_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4763,7 +5014,7 @@ func (x *ListReleaseOperationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListReleaseOperationsRequest.ProtoReflect.Descriptor instead.
 func (*ListReleaseOperationsRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{70}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *ListReleaseOperationsRequest) GetUid() string {
@@ -4799,7 +5050,7 @@ type ListReleaseOperationsResponse struct {
 
 func (x *ListReleaseOperationsResponse) Reset() {
 	*x = ListReleaseOperationsResponse{}
-	mi := &file_alioth_v1_application_proto_msgTypes[71]
+	mi := &file_alioth_v1_application_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4811,7 +5062,7 @@ func (x *ListReleaseOperationsResponse) String() string {
 func (*ListReleaseOperationsResponse) ProtoMessage() {}
 
 func (x *ListReleaseOperationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[71]
+	mi := &file_alioth_v1_application_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4824,7 +5075,7 @@ func (x *ListReleaseOperationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListReleaseOperationsResponse.ProtoReflect.Descriptor instead.
 func (*ListReleaseOperationsResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{71}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *ListReleaseOperationsResponse) GetItems() []*ApplicationOperationItem {
@@ -4864,7 +5115,7 @@ type GetApplicationOperationRequest struct {
 
 func (x *GetApplicationOperationRequest) Reset() {
 	*x = GetApplicationOperationRequest{}
-	mi := &file_alioth_v1_application_proto_msgTypes[72]
+	mi := &file_alioth_v1_application_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4876,7 +5127,7 @@ func (x *GetApplicationOperationRequest) String() string {
 func (*GetApplicationOperationRequest) ProtoMessage() {}
 
 func (x *GetApplicationOperationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[72]
+	mi := &file_alioth_v1_application_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4889,7 +5140,7 @@ func (x *GetApplicationOperationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetApplicationOperationRequest.ProtoReflect.Descriptor instead.
 func (*GetApplicationOperationRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{72}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *GetApplicationOperationRequest) GetUid() string {
@@ -4908,7 +5159,7 @@ type GetApplicationOperationResponse struct {
 
 func (x *GetApplicationOperationResponse) Reset() {
 	*x = GetApplicationOperationResponse{}
-	mi := &file_alioth_v1_application_proto_msgTypes[73]
+	mi := &file_alioth_v1_application_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4920,7 +5171,7 @@ func (x *GetApplicationOperationResponse) String() string {
 func (*GetApplicationOperationResponse) ProtoMessage() {}
 
 func (x *GetApplicationOperationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_application_proto_msgTypes[73]
+	mi := &file_alioth_v1_application_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4933,7 +5184,7 @@ func (x *GetApplicationOperationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetApplicationOperationResponse.ProtoReflect.Descriptor instead.
 func (*GetApplicationOperationResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_application_proto_rawDescGZIP(), []int{73}
+	return file_alioth_v1_application_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *GetApplicationOperationResponse) GetOperation() *ApplicationOperationItem {
@@ -4958,21 +5209,19 @@ const file_alioth_v1_application_proto_rawDesc = "" +
 	"\rversion_count\x18\a \x01(\x05R\fversionCount\x12%\n" +
 	"\x0elatest_version\x18\b \x01(\tR\rlatestVersion\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\t \x01(\x03R\tcreatedAt\"\x8d\x02\n" +
+	"created_at\x18\t \x01(\x03R\tcreatedAt\"\xda\x01\n" +
 	"\x18CreateApplicationRequest\x12\x1d\n" +
 	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12+\n" +
-	"\fdisplay_name\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x01R\vdisplayName\x12V\n" +
-	"\bcategory\x18\x03 \x01(\tB:\xbaH7r5R\bDATABASER\n" +
-	"MIDDLEWARER\rOBSERVABILITYR\aTOOLINGR\x05OTHERR\bcategory\x12*\n" +
+	"\fdisplay_name\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x01R\vdisplayName\x12#\n" +
+	"\bcategory\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x18 R\bcategory\x12*\n" +
 	"\vdescription\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\x80\bR\vdescription\x12!\n" +
 	"\x06readme\x18\x05 \x01(\tB\t\xbaH\x06r\x04\x18\x80\x80\x04R\x06readme\"Y\n" +
 	"\x19CreateApplicationResponse\x12<\n" +
-	"\vapplication\x18\x01 \x01(\v2\x1a.alioth.v1.ApplicationItemR\vapplication\"\x89\x02\n" +
+	"\vapplication\x18\x01 \x01(\v2\x1a.alioth.v1.ApplicationItemR\vapplication\"\xd6\x01\n" +
 	"\x18UpdateApplicationRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12+\n" +
-	"\fdisplay_name\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x01R\vdisplayName\x12V\n" +
-	"\bcategory\x18\x03 \x01(\tB:\xbaH7r5R\bDATABASER\n" +
-	"MIDDLEWARER\rOBSERVABILITYR\aTOOLINGR\x05OTHERR\bcategory\x12*\n" +
+	"\fdisplay_name\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x01R\vdisplayName\x12#\n" +
+	"\bcategory\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x18 R\bcategory\x12*\n" +
 	"\vdescription\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\x80\bR\vdescription\x12!\n" +
 	"\x06readme\x18\x05 \x01(\tB\t\xbaH\x06r\x04\x18\x80\x80\x04R\x06readme\"Y\n" +
 	"\x19UpdateApplicationResponse\x12<\n" +
@@ -4983,14 +5232,13 @@ const file_alioth_v1_application_proto_rawDesc = "" +
 	"\x15GetApplicationRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"V\n" +
 	"\x16GetApplicationResponse\x12<\n" +
-	"\vapplication\x18\x01 \x01(\v2\x1a.alioth.v1.ApplicationItemR\vapplication\"\xd6\x01\n" +
+	"\vapplication\x18\x01 \x01(\v2\x1a.alioth.v1.ApplicationItemR\vapplication\"\xa1\x01\n" +
 	"\x17ListApplicationsRequest\x12\x1b\n" +
 	"\x04page\x18\x01 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\x04page\x12'\n" +
 	"\tpage_size\x18\x02 \x01(\x05B\n" +
 	"\xbaH\a\x1a\x05\x18\xc8\x01(\x00R\bpageSize\x12\x1b\n" +
-	"\x04name\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x18@R\x04name\x12X\n" +
-	"\bcategory\x18\x04 \x01(\tB<\xbaH9r7R\x00R\bDATABASER\n" +
-	"MIDDLEWARER\rOBSERVABILITYR\aTOOLINGR\x05OTHERR\bcategory\"\x93\x01\n" +
+	"\x04name\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x18@R\x04name\x12#\n" +
+	"\bcategory\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x18 R\bcategory\"\x93\x01\n" +
 	"\x18ListApplicationsResponse\x120\n" +
 	"\x05items\x18\x01 \x03(\v2\x1a.alioth.v1.ApplicationItemR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
@@ -5036,7 +5284,7 @@ const file_alioth_v1_application_proto_rawDesc = "" +
 	"\x0econtainer_path\x18\r \x01(\tR\rcontainerPath\x12\x18\n" +
 	"\aproject\x18\x0e \x01(\tR\aproject\x12\x16\n" +
 	"\x06source\x18\x0f \x01(\tR\x06source\x12%\n" +
-	"\x0eresolved_image\x18\x10 \x01(\tR\rresolvedImage\"\xea\x01\n" +
+	"\x0eresolved_image\x18\x10 \x01(\tR\rresolvedImage\"\x8c\x02\n" +
 	"\x1bApplicationVersionComponent\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
@@ -5044,7 +5292,8 @@ const file_alioth_v1_application_proto_rawDesc = "" +
 	"\n" +
 	"sort_order\x18\x04 \x01(\x05R\tsortOrder\x12<\n" +
 	"\tresources\x18\x05 \x03(\v2\x1e.alioth.v1.ApplicationResourceR\tresources\x12%\n" +
-	"\x0eresource_count\x18\x06 \x01(\x05R\rresourceCount\"\xe8\x05\n" +
+	"\x0eresource_count\x18\x06 \x01(\x05R\rresourceCount\x12 \n" +
+	"\vdescription\x18\a \x01(\tR\vdescription\"\xe8\x05\n" +
 	"\x16ApplicationVersionItem\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\tR\x03uid\x12'\n" +
 	"\x0fapplication_uid\x18\x02 \x01(\tR\x0eapplicationUid\x12\x18\n" +
@@ -5171,7 +5420,23 @@ const file_alioth_v1_application_proto_rawDesc = "" +
 	"\bmanifest\x18\x04 \x01(\tB\v\xbaH\br\x06\x10\x01\x18\x80\x80 R\bmanifest\"`\n" +
 	"*ValidateApplicationVersionResourceResponse\x12\x16\n" +
 	"\x06errors\x18\x01 \x03(\tR\x06errors\x12\x1a\n" +
-	"\bwarnings\x18\x02 \x03(\tR\bwarnings\"\xec\x04\n" +
+	"\bwarnings\x18\x02 \x03(\tR\bwarnings\"\x9b\x02\n" +
+	"&SaveApplicationVersionComponentRequest\x120\n" +
+	"\x0fapplication_uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x0eapplicationUid\x12\x19\n" +
+	"\x03uid\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12,\n" +
+	"\rcomponent_uid\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x18@R\fcomponentUid\x12\x1d\n" +
+	"\x04name\x18\x04 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18?R\x04name\x12*\n" +
+	"\vdescription\x18\x05 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x10R\vdescription\x12+\n" +
+	"\x11expected_revision\x18\x06 \x01(\x05R\x10expectedRevision\"f\n" +
+	"'SaveApplicationVersionComponentResponse\x12;\n" +
+	"\aversion\x18\x01 \x01(\v2!.alioth.v1.ApplicationVersionItemR\aversion\"\xd2\x01\n" +
+	"(DeleteApplicationVersionComponentRequest\x120\n" +
+	"\x0fapplication_uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x0eapplicationUid\x12\x19\n" +
+	"\x03uid\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12,\n" +
+	"\rcomponent_uid\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\fcomponentUid\x12+\n" +
+	"\x11expected_revision\x18\x04 \x01(\x05R\x10expectedRevision\"h\n" +
+	")DeleteApplicationVersionComponentResponse\x12;\n" +
+	"\aversion\x18\x01 \x01(\v2!.alioth.v1.ApplicationVersionItemR\aversion\"\xec\x04\n" +
 	"\x17ApplicationDeployValues\x12L\n" +
 	"\breplicas\x18\x01 \x03(\v20.alioth.v1.ApplicationDeployValues.ReplicasEntryR\breplicas\x12P\n" +
 	"\n" +
@@ -5374,7 +5639,7 @@ const file_alioth_v1_application_proto_rawDesc = "" +
 	"\x1eGetApplicationOperationRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\"d\n" +
 	"\x1fGetApplicationOperationResponse\x12A\n" +
-	"\toperation\x18\x01 \x01(\v2#.alioth.v1.ApplicationOperationItemR\toperation2\xa2\x1a\n" +
+	"\toperation\x18\x01 \x01(\v2#.alioth.v1.ApplicationOperationItemR\toperation2\xd7\x1d\n" +
 	"\x12ApplicationService\x12z\n" +
 	"\x11CreateApplication\x12#.alioth.v1.CreateApplicationRequest\x1a$.alioth.v1.CreateApplicationResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/v1/application\x12\x80\x01\n" +
 	"\x11UpdateApplication\x12#.alioth.v1.UpdateApplicationRequest\x1a$.alioth.v1.UpdateApplicationResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\x1a\x15/v1/application/{uid}\x12}\n" +
@@ -5394,7 +5659,9 @@ const file_alioth_v1_application_proto_rawDesc = "" +
 	"\x1dGetApplicationVersionResource\x12/.alioth.v1.GetApplicationVersionResourceRequest\x1a0.alioth.v1.GetApplicationVersionResourceResponse\"O\x82\xd3\xe4\x93\x02I\x12G/v1/application/{application_uid}/version/{uid}/resource/{resource_uid}\x12\xd9\x01\n" +
 	"\x1eSaveApplicationVersionResource\x120.alioth.v1.SaveApplicationVersionResourceRequest\x1a1.alioth.v1.SaveApplicationVersionResourceResponse\"R\x82\xd3\xe4\x93\x02L:\x01*\x1aG/v1/application/{application_uid}/version/{uid}/resource/{resource_uid}\x12\xdc\x01\n" +
 	" DeleteApplicationVersionResource\x122.alioth.v1.DeleteApplicationVersionResourceRequest\x1a3.alioth.v1.DeleteApplicationVersionResourceResponse\"O\x82\xd3\xe4\x93\x02I*G/v1/application/{application_uid}/version/{uid}/resource/{resource_uid}\x12\xdf\x01\n" +
-	"\"ValidateApplicationVersionResource\x124.alioth.v1.ValidateApplicationVersionResourceRequest\x1a5.alioth.v1.ValidateApplicationVersionResourceResponse\"L\x82\xd3\xe4\x93\x02F:\x01*\"A/v1/application/{application_uid}/version/{uid}/resource/validate2\xbb\v\n" +
+	"\"ValidateApplicationVersionResource\x124.alioth.v1.ValidateApplicationVersionResourceRequest\x1a5.alioth.v1.ValidateApplicationVersionResourceResponse\"L\x82\xd3\xe4\x93\x02F:\x01*\"A/v1/application/{application_uid}/version/{uid}/resource/validate\x12\xce\x01\n" +
+	"\x1fSaveApplicationVersionComponent\x121.alioth.v1.SaveApplicationVersionComponentRequest\x1a2.alioth.v1.SaveApplicationVersionComponentResponse\"D\x82\xd3\xe4\x93\x02>:\x01*\"9/v1/application/{application_uid}/version/{uid}/component\x12\xe1\x01\n" +
+	"!DeleteApplicationVersionComponent\x123.alioth.v1.DeleteApplicationVersionComponentRequest\x1a4.alioth.v1.DeleteApplicationVersionComponentResponse\"Q\x82\xd3\xe4\x93\x02K*I/v1/application/{application_uid}/version/{uid}/component/{component_uid}2\xbb\v\n" +
 	"\x1cApplicationDeploymentService\x12\xa4\x01\n" +
 	"\x1bCreateApplicationDeployment\x12-.alioth.v1.CreateApplicationDeploymentRequest\x1a..alioth.v1.CreateApplicationDeploymentResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/v1/application-deployments\x12\x9e\x01\n" +
 	"\x1aListApplicationDeployments\x12,.alioth.v1.ListApplicationDeploymentsRequest\x1a-.alioth.v1.ListApplicationDeploymentsResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/v1/application-deployments\x12\x9e\x01\n" +
@@ -5422,7 +5689,7 @@ func file_alioth_v1_application_proto_rawDescGZIP() []byte {
 	return file_alioth_v1_application_proto_rawDescData
 }
 
-var file_alioth_v1_application_proto_msgTypes = make([]protoimpl.MessageInfo, 79)
+var file_alioth_v1_application_proto_msgTypes = make([]protoimpl.MessageInfo, 83)
 var file_alioth_v1_application_proto_goTypes = []any{
 	(*ApplicationItem)(nil),                            // 0: alioth.v1.ApplicationItem
 	(*CreateApplicationRequest)(nil),                   // 1: alioth.v1.CreateApplicationRequest
@@ -5468,41 +5735,45 @@ var file_alioth_v1_application_proto_goTypes = []any{
 	(*DeleteApplicationVersionResourceResponse)(nil),   // 41: alioth.v1.DeleteApplicationVersionResourceResponse
 	(*ValidateApplicationVersionResourceRequest)(nil),  // 42: alioth.v1.ValidateApplicationVersionResourceRequest
 	(*ValidateApplicationVersionResourceResponse)(nil), // 43: alioth.v1.ValidateApplicationVersionResourceResponse
-	(*ApplicationDeployValues)(nil),                    // 44: alioth.v1.ApplicationDeployValues
-	(*DeploymentCluster)(nil),                          // 45: alioth.v1.DeploymentCluster
-	(*ApplicationReleaseItem)(nil),                     // 46: alioth.v1.ApplicationReleaseItem
-	(*ApplicationDeploymentItem)(nil),                  // 47: alioth.v1.ApplicationDeploymentItem
-	(*CreateApplicationDeploymentRequest)(nil),         // 48: alioth.v1.CreateApplicationDeploymentRequest
-	(*CreateApplicationDeploymentResponse)(nil),        // 49: alioth.v1.CreateApplicationDeploymentResponse
-	(*ListApplicationDeploymentsRequest)(nil),          // 50: alioth.v1.ListApplicationDeploymentsRequest
-	(*ListApplicationDeploymentsResponse)(nil),         // 51: alioth.v1.ListApplicationDeploymentsResponse
-	(*GetApplicationDeploymentRequest)(nil),            // 52: alioth.v1.GetApplicationDeploymentRequest
-	(*GetApplicationDeploymentResponse)(nil),           // 53: alioth.v1.GetApplicationDeploymentResponse
-	(*UpgradeApplicationDeploymentRequest)(nil),        // 54: alioth.v1.UpgradeApplicationDeploymentRequest
-	(*UpgradeApplicationDeploymentResponse)(nil),       // 55: alioth.v1.UpgradeApplicationDeploymentResponse
-	(*RollbackApplicationDeploymentRequest)(nil),       // 56: alioth.v1.RollbackApplicationDeploymentRequest
-	(*RollbackApplicationDeploymentResponse)(nil),      // 57: alioth.v1.RollbackApplicationDeploymentResponse
-	(*RedeployApplicationDeploymentRequest)(nil),       // 58: alioth.v1.RedeployApplicationDeploymentRequest
-	(*RedeployApplicationDeploymentResponse)(nil),      // 59: alioth.v1.RedeployApplicationDeploymentResponse
-	(*UninstallApplicationDeploymentRequest)(nil),      // 60: alioth.v1.UninstallApplicationDeploymentRequest
-	(*UninstallApplicationDeploymentResponse)(nil),     // 61: alioth.v1.UninstallApplicationDeploymentResponse
-	(*ApplicationOperationItem)(nil),                   // 62: alioth.v1.ApplicationOperationItem
-	(*ResourceRef)(nil),                                // 63: alioth.v1.ResourceRef
-	(*ListApplicationReleaseOperationsRequest)(nil),    // 64: alioth.v1.ListApplicationReleaseOperationsRequest
-	(*ListApplicationReleaseOperationsResponse)(nil),   // 65: alioth.v1.ListApplicationReleaseOperationsResponse
-	(*GetApplicationReleaseRequest)(nil),               // 66: alioth.v1.GetApplicationReleaseRequest
-	(*GetApplicationReleaseResponse)(nil),              // 67: alioth.v1.GetApplicationReleaseResponse
-	(*ListApplicationReleasesRequest)(nil),             // 68: alioth.v1.ListApplicationReleasesRequest
-	(*ListApplicationReleasesResponse)(nil),            // 69: alioth.v1.ListApplicationReleasesResponse
-	(*ListReleaseOperationsRequest)(nil),               // 70: alioth.v1.ListReleaseOperationsRequest
-	(*ListReleaseOperationsResponse)(nil),              // 71: alioth.v1.ListReleaseOperationsResponse
-	(*GetApplicationOperationRequest)(nil),             // 72: alioth.v1.GetApplicationOperationRequest
-	(*GetApplicationOperationResponse)(nil),            // 73: alioth.v1.GetApplicationOperationResponse
-	nil,                                                // 74: alioth.v1.SaveApplicationVersionResourceRequest.SecretValuesEntry
-	nil,                                                // 75: alioth.v1.ApplicationDeployValues.ReplicasEntry
-	nil,                                                // 76: alioth.v1.ApplicationDeployValues.ImageTagsEntry
-	nil,                                                // 77: alioth.v1.ApplicationDeployValues.IngressHostsEntry
-	nil,                                                // 78: alioth.v1.ApplicationDeployValues.SecretValuesEntry
+	(*SaveApplicationVersionComponentRequest)(nil),     // 44: alioth.v1.SaveApplicationVersionComponentRequest
+	(*SaveApplicationVersionComponentResponse)(nil),    // 45: alioth.v1.SaveApplicationVersionComponentResponse
+	(*DeleteApplicationVersionComponentRequest)(nil),   // 46: alioth.v1.DeleteApplicationVersionComponentRequest
+	(*DeleteApplicationVersionComponentResponse)(nil),  // 47: alioth.v1.DeleteApplicationVersionComponentResponse
+	(*ApplicationDeployValues)(nil),                    // 48: alioth.v1.ApplicationDeployValues
+	(*DeploymentCluster)(nil),                          // 49: alioth.v1.DeploymentCluster
+	(*ApplicationReleaseItem)(nil),                     // 50: alioth.v1.ApplicationReleaseItem
+	(*ApplicationDeploymentItem)(nil),                  // 51: alioth.v1.ApplicationDeploymentItem
+	(*CreateApplicationDeploymentRequest)(nil),         // 52: alioth.v1.CreateApplicationDeploymentRequest
+	(*CreateApplicationDeploymentResponse)(nil),        // 53: alioth.v1.CreateApplicationDeploymentResponse
+	(*ListApplicationDeploymentsRequest)(nil),          // 54: alioth.v1.ListApplicationDeploymentsRequest
+	(*ListApplicationDeploymentsResponse)(nil),         // 55: alioth.v1.ListApplicationDeploymentsResponse
+	(*GetApplicationDeploymentRequest)(nil),            // 56: alioth.v1.GetApplicationDeploymentRequest
+	(*GetApplicationDeploymentResponse)(nil),           // 57: alioth.v1.GetApplicationDeploymentResponse
+	(*UpgradeApplicationDeploymentRequest)(nil),        // 58: alioth.v1.UpgradeApplicationDeploymentRequest
+	(*UpgradeApplicationDeploymentResponse)(nil),       // 59: alioth.v1.UpgradeApplicationDeploymentResponse
+	(*RollbackApplicationDeploymentRequest)(nil),       // 60: alioth.v1.RollbackApplicationDeploymentRequest
+	(*RollbackApplicationDeploymentResponse)(nil),      // 61: alioth.v1.RollbackApplicationDeploymentResponse
+	(*RedeployApplicationDeploymentRequest)(nil),       // 62: alioth.v1.RedeployApplicationDeploymentRequest
+	(*RedeployApplicationDeploymentResponse)(nil),      // 63: alioth.v1.RedeployApplicationDeploymentResponse
+	(*UninstallApplicationDeploymentRequest)(nil),      // 64: alioth.v1.UninstallApplicationDeploymentRequest
+	(*UninstallApplicationDeploymentResponse)(nil),     // 65: alioth.v1.UninstallApplicationDeploymentResponse
+	(*ApplicationOperationItem)(nil),                   // 66: alioth.v1.ApplicationOperationItem
+	(*ResourceRef)(nil),                                // 67: alioth.v1.ResourceRef
+	(*ListApplicationReleaseOperationsRequest)(nil),    // 68: alioth.v1.ListApplicationReleaseOperationsRequest
+	(*ListApplicationReleaseOperationsResponse)(nil),   // 69: alioth.v1.ListApplicationReleaseOperationsResponse
+	(*GetApplicationReleaseRequest)(nil),               // 70: alioth.v1.GetApplicationReleaseRequest
+	(*GetApplicationReleaseResponse)(nil),              // 71: alioth.v1.GetApplicationReleaseResponse
+	(*ListApplicationReleasesRequest)(nil),             // 72: alioth.v1.ListApplicationReleasesRequest
+	(*ListApplicationReleasesResponse)(nil),            // 73: alioth.v1.ListApplicationReleasesResponse
+	(*ListReleaseOperationsRequest)(nil),               // 74: alioth.v1.ListReleaseOperationsRequest
+	(*ListReleaseOperationsResponse)(nil),              // 75: alioth.v1.ListReleaseOperationsResponse
+	(*GetApplicationOperationRequest)(nil),             // 76: alioth.v1.GetApplicationOperationRequest
+	(*GetApplicationOperationResponse)(nil),            // 77: alioth.v1.GetApplicationOperationResponse
+	nil,                                                // 78: alioth.v1.SaveApplicationVersionResourceRequest.SecretValuesEntry
+	nil,                                                // 79: alioth.v1.ApplicationDeployValues.ReplicasEntry
+	nil,                                                // 80: alioth.v1.ApplicationDeployValues.ImageTagsEntry
+	nil,                                                // 81: alioth.v1.ApplicationDeployValues.IngressHostsEntry
+	nil,                                                // 82: alioth.v1.ApplicationDeployValues.SecretValuesEntry
 }
 var file_alioth_v1_application_proto_depIdxs = []int32{
 	0,  // 0: alioth.v1.CreateApplicationResponse.application:type_name -> alioth.v1.ApplicationItem
@@ -5526,97 +5797,103 @@ var file_alioth_v1_application_proto_depIdxs = []int32{
 	12, // 18: alioth.v1.CreateApplicationVersionResourceRequest.resource:type_name -> alioth.v1.ApplicationResourceInput
 	15, // 19: alioth.v1.CreateApplicationVersionResourceResponse.version:type_name -> alioth.v1.ApplicationVersionItem
 	11, // 20: alioth.v1.GetApplicationVersionResourceResponse.resource:type_name -> alioth.v1.ApplicationResource
-	74, // 21: alioth.v1.SaveApplicationVersionResourceRequest.secret_values:type_name -> alioth.v1.SaveApplicationVersionResourceRequest.SecretValuesEntry
+	78, // 21: alioth.v1.SaveApplicationVersionResourceRequest.secret_values:type_name -> alioth.v1.SaveApplicationVersionResourceRequest.SecretValuesEntry
 	15, // 22: alioth.v1.SaveApplicationVersionResourceResponse.version:type_name -> alioth.v1.ApplicationVersionItem
 	15, // 23: alioth.v1.DeleteApplicationVersionResourceResponse.version:type_name -> alioth.v1.ApplicationVersionItem
-	75, // 24: alioth.v1.ApplicationDeployValues.replicas:type_name -> alioth.v1.ApplicationDeployValues.ReplicasEntry
-	76, // 25: alioth.v1.ApplicationDeployValues.image_tags:type_name -> alioth.v1.ApplicationDeployValues.ImageTagsEntry
-	77, // 26: alioth.v1.ApplicationDeployValues.ingress_hosts:type_name -> alioth.v1.ApplicationDeployValues.IngressHostsEntry
-	78, // 27: alioth.v1.ApplicationDeployValues.secret_values:type_name -> alioth.v1.ApplicationDeployValues.SecretValuesEntry
-	45, // 28: alioth.v1.ApplicationDeploymentItem.clusters:type_name -> alioth.v1.DeploymentCluster
-	46, // 29: alioth.v1.ApplicationDeploymentItem.releases:type_name -> alioth.v1.ApplicationReleaseItem
-	44, // 30: alioth.v1.CreateApplicationDeploymentRequest.values:type_name -> alioth.v1.ApplicationDeployValues
-	47, // 31: alioth.v1.CreateApplicationDeploymentResponse.deployment:type_name -> alioth.v1.ApplicationDeploymentItem
-	47, // 32: alioth.v1.ListApplicationDeploymentsResponse.items:type_name -> alioth.v1.ApplicationDeploymentItem
-	47, // 33: alioth.v1.GetApplicationDeploymentResponse.deployment:type_name -> alioth.v1.ApplicationDeploymentItem
-	44, // 34: alioth.v1.UpgradeApplicationDeploymentRequest.values:type_name -> alioth.v1.ApplicationDeployValues
-	47, // 35: alioth.v1.UpgradeApplicationDeploymentResponse.deployment:type_name -> alioth.v1.ApplicationDeploymentItem
-	47, // 36: alioth.v1.RollbackApplicationDeploymentResponse.deployment:type_name -> alioth.v1.ApplicationDeploymentItem
-	47, // 37: alioth.v1.RedeployApplicationDeploymentResponse.deployment:type_name -> alioth.v1.ApplicationDeploymentItem
-	47, // 38: alioth.v1.UninstallApplicationDeploymentResponse.deployment:type_name -> alioth.v1.ApplicationDeploymentItem
-	63, // 39: alioth.v1.ApplicationOperationItem.resources:type_name -> alioth.v1.ResourceRef
-	62, // 40: alioth.v1.ListApplicationReleaseOperationsResponse.items:type_name -> alioth.v1.ApplicationOperationItem
-	46, // 41: alioth.v1.GetApplicationReleaseResponse.release:type_name -> alioth.v1.ApplicationReleaseItem
-	46, // 42: alioth.v1.ListApplicationReleasesResponse.items:type_name -> alioth.v1.ApplicationReleaseItem
-	62, // 43: alioth.v1.ListReleaseOperationsResponse.items:type_name -> alioth.v1.ApplicationOperationItem
-	62, // 44: alioth.v1.GetApplicationOperationResponse.operation:type_name -> alioth.v1.ApplicationOperationItem
-	1,  // 45: alioth.v1.ApplicationService.CreateApplication:input_type -> alioth.v1.CreateApplicationRequest
-	3,  // 46: alioth.v1.ApplicationService.UpdateApplication:input_type -> alioth.v1.UpdateApplicationRequest
-	5,  // 47: alioth.v1.ApplicationService.DeleteApplication:input_type -> alioth.v1.DeleteApplicationRequest
-	7,  // 48: alioth.v1.ApplicationService.GetApplication:input_type -> alioth.v1.GetApplicationRequest
-	9,  // 49: alioth.v1.ApplicationService.ListApplications:input_type -> alioth.v1.ListApplicationsRequest
-	16, // 50: alioth.v1.ApplicationService.CreateApplicationVersion:input_type -> alioth.v1.CreateApplicationVersionRequest
-	18, // 51: alioth.v1.ApplicationService.UpdateApplicationVersion:input_type -> alioth.v1.UpdateApplicationVersionRequest
-	20, // 52: alioth.v1.ApplicationService.DeleteApplicationVersion:input_type -> alioth.v1.DeleteApplicationVersionRequest
-	22, // 53: alioth.v1.ApplicationService.ValidateApplicationVersion:input_type -> alioth.v1.ValidateApplicationVersionRequest
-	24, // 54: alioth.v1.ApplicationService.PublishApplicationVersion:input_type -> alioth.v1.PublishApplicationVersionRequest
-	26, // 55: alioth.v1.ApplicationService.DeprecateApplicationVersion:input_type -> alioth.v1.DeprecateApplicationVersionRequest
-	28, // 56: alioth.v1.ApplicationService.ListApplicationVersions:input_type -> alioth.v1.ListApplicationVersionsRequest
-	30, // 57: alioth.v1.ApplicationService.GetApplicationVersion:input_type -> alioth.v1.GetApplicationVersionRequest
-	32, // 58: alioth.v1.ApplicationService.DuplicateApplicationVersion:input_type -> alioth.v1.DuplicateApplicationVersionRequest
-	34, // 59: alioth.v1.ApplicationService.CreateApplicationVersionResource:input_type -> alioth.v1.CreateApplicationVersionResourceRequest
-	36, // 60: alioth.v1.ApplicationService.GetApplicationVersionResource:input_type -> alioth.v1.GetApplicationVersionResourceRequest
-	38, // 61: alioth.v1.ApplicationService.SaveApplicationVersionResource:input_type -> alioth.v1.SaveApplicationVersionResourceRequest
-	40, // 62: alioth.v1.ApplicationService.DeleteApplicationVersionResource:input_type -> alioth.v1.DeleteApplicationVersionResourceRequest
-	42, // 63: alioth.v1.ApplicationService.ValidateApplicationVersionResource:input_type -> alioth.v1.ValidateApplicationVersionResourceRequest
-	48, // 64: alioth.v1.ApplicationDeploymentService.CreateApplicationDeployment:input_type -> alioth.v1.CreateApplicationDeploymentRequest
-	50, // 65: alioth.v1.ApplicationDeploymentService.ListApplicationDeployments:input_type -> alioth.v1.ListApplicationDeploymentsRequest
-	52, // 66: alioth.v1.ApplicationDeploymentService.GetApplicationDeployment:input_type -> alioth.v1.GetApplicationDeploymentRequest
-	54, // 67: alioth.v1.ApplicationDeploymentService.UpgradeApplicationDeployment:input_type -> alioth.v1.UpgradeApplicationDeploymentRequest
-	56, // 68: alioth.v1.ApplicationDeploymentService.RollbackApplicationDeployment:input_type -> alioth.v1.RollbackApplicationDeploymentRequest
-	58, // 69: alioth.v1.ApplicationDeploymentService.RedeployApplicationDeployment:input_type -> alioth.v1.RedeployApplicationDeploymentRequest
-	60, // 70: alioth.v1.ApplicationDeploymentService.UninstallApplicationDeployment:input_type -> alioth.v1.UninstallApplicationDeploymentRequest
-	64, // 71: alioth.v1.ApplicationDeploymentService.ListApplicationReleaseOperations:input_type -> alioth.v1.ListApplicationReleaseOperationsRequest
-	66, // 72: alioth.v1.ApplicationReleaseService.GetApplicationRelease:input_type -> alioth.v1.GetApplicationReleaseRequest
-	68, // 73: alioth.v1.ApplicationReleaseService.ListApplicationReleases:input_type -> alioth.v1.ListApplicationReleasesRequest
-	70, // 74: alioth.v1.ApplicationReleaseService.ListApplicationReleaseOperations:input_type -> alioth.v1.ListReleaseOperationsRequest
-	72, // 75: alioth.v1.ApplicationReleaseService.GetApplicationOperation:input_type -> alioth.v1.GetApplicationOperationRequest
-	2,  // 76: alioth.v1.ApplicationService.CreateApplication:output_type -> alioth.v1.CreateApplicationResponse
-	4,  // 77: alioth.v1.ApplicationService.UpdateApplication:output_type -> alioth.v1.UpdateApplicationResponse
-	6,  // 78: alioth.v1.ApplicationService.DeleteApplication:output_type -> alioth.v1.DeleteApplicationResponse
-	8,  // 79: alioth.v1.ApplicationService.GetApplication:output_type -> alioth.v1.GetApplicationResponse
-	10, // 80: alioth.v1.ApplicationService.ListApplications:output_type -> alioth.v1.ListApplicationsResponse
-	17, // 81: alioth.v1.ApplicationService.CreateApplicationVersion:output_type -> alioth.v1.CreateApplicationVersionResponse
-	19, // 82: alioth.v1.ApplicationService.UpdateApplicationVersion:output_type -> alioth.v1.UpdateApplicationVersionResponse
-	21, // 83: alioth.v1.ApplicationService.DeleteApplicationVersion:output_type -> alioth.v1.DeleteApplicationVersionResponse
-	23, // 84: alioth.v1.ApplicationService.ValidateApplicationVersion:output_type -> alioth.v1.ValidateApplicationVersionResponse
-	25, // 85: alioth.v1.ApplicationService.PublishApplicationVersion:output_type -> alioth.v1.PublishApplicationVersionResponse
-	27, // 86: alioth.v1.ApplicationService.DeprecateApplicationVersion:output_type -> alioth.v1.DeprecateApplicationVersionResponse
-	29, // 87: alioth.v1.ApplicationService.ListApplicationVersions:output_type -> alioth.v1.ListApplicationVersionsResponse
-	31, // 88: alioth.v1.ApplicationService.GetApplicationVersion:output_type -> alioth.v1.GetApplicationVersionResponse
-	33, // 89: alioth.v1.ApplicationService.DuplicateApplicationVersion:output_type -> alioth.v1.DuplicateApplicationVersionResponse
-	35, // 90: alioth.v1.ApplicationService.CreateApplicationVersionResource:output_type -> alioth.v1.CreateApplicationVersionResourceResponse
-	37, // 91: alioth.v1.ApplicationService.GetApplicationVersionResource:output_type -> alioth.v1.GetApplicationVersionResourceResponse
-	39, // 92: alioth.v1.ApplicationService.SaveApplicationVersionResource:output_type -> alioth.v1.SaveApplicationVersionResourceResponse
-	41, // 93: alioth.v1.ApplicationService.DeleteApplicationVersionResource:output_type -> alioth.v1.DeleteApplicationVersionResourceResponse
-	43, // 94: alioth.v1.ApplicationService.ValidateApplicationVersionResource:output_type -> alioth.v1.ValidateApplicationVersionResourceResponse
-	49, // 95: alioth.v1.ApplicationDeploymentService.CreateApplicationDeployment:output_type -> alioth.v1.CreateApplicationDeploymentResponse
-	51, // 96: alioth.v1.ApplicationDeploymentService.ListApplicationDeployments:output_type -> alioth.v1.ListApplicationDeploymentsResponse
-	53, // 97: alioth.v1.ApplicationDeploymentService.GetApplicationDeployment:output_type -> alioth.v1.GetApplicationDeploymentResponse
-	55, // 98: alioth.v1.ApplicationDeploymentService.UpgradeApplicationDeployment:output_type -> alioth.v1.UpgradeApplicationDeploymentResponse
-	57, // 99: alioth.v1.ApplicationDeploymentService.RollbackApplicationDeployment:output_type -> alioth.v1.RollbackApplicationDeploymentResponse
-	59, // 100: alioth.v1.ApplicationDeploymentService.RedeployApplicationDeployment:output_type -> alioth.v1.RedeployApplicationDeploymentResponse
-	61, // 101: alioth.v1.ApplicationDeploymentService.UninstallApplicationDeployment:output_type -> alioth.v1.UninstallApplicationDeploymentResponse
-	65, // 102: alioth.v1.ApplicationDeploymentService.ListApplicationReleaseOperations:output_type -> alioth.v1.ListApplicationReleaseOperationsResponse
-	67, // 103: alioth.v1.ApplicationReleaseService.GetApplicationRelease:output_type -> alioth.v1.GetApplicationReleaseResponse
-	69, // 104: alioth.v1.ApplicationReleaseService.ListApplicationReleases:output_type -> alioth.v1.ListApplicationReleasesResponse
-	71, // 105: alioth.v1.ApplicationReleaseService.ListApplicationReleaseOperations:output_type -> alioth.v1.ListReleaseOperationsResponse
-	73, // 106: alioth.v1.ApplicationReleaseService.GetApplicationOperation:output_type -> alioth.v1.GetApplicationOperationResponse
-	76, // [76:107] is the sub-list for method output_type
-	45, // [45:76] is the sub-list for method input_type
-	45, // [45:45] is the sub-list for extension type_name
-	45, // [45:45] is the sub-list for extension extendee
-	0,  // [0:45] is the sub-list for field type_name
+	15, // 24: alioth.v1.SaveApplicationVersionComponentResponse.version:type_name -> alioth.v1.ApplicationVersionItem
+	15, // 25: alioth.v1.DeleteApplicationVersionComponentResponse.version:type_name -> alioth.v1.ApplicationVersionItem
+	79, // 26: alioth.v1.ApplicationDeployValues.replicas:type_name -> alioth.v1.ApplicationDeployValues.ReplicasEntry
+	80, // 27: alioth.v1.ApplicationDeployValues.image_tags:type_name -> alioth.v1.ApplicationDeployValues.ImageTagsEntry
+	81, // 28: alioth.v1.ApplicationDeployValues.ingress_hosts:type_name -> alioth.v1.ApplicationDeployValues.IngressHostsEntry
+	82, // 29: alioth.v1.ApplicationDeployValues.secret_values:type_name -> alioth.v1.ApplicationDeployValues.SecretValuesEntry
+	49, // 30: alioth.v1.ApplicationDeploymentItem.clusters:type_name -> alioth.v1.DeploymentCluster
+	50, // 31: alioth.v1.ApplicationDeploymentItem.releases:type_name -> alioth.v1.ApplicationReleaseItem
+	48, // 32: alioth.v1.CreateApplicationDeploymentRequest.values:type_name -> alioth.v1.ApplicationDeployValues
+	51, // 33: alioth.v1.CreateApplicationDeploymentResponse.deployment:type_name -> alioth.v1.ApplicationDeploymentItem
+	51, // 34: alioth.v1.ListApplicationDeploymentsResponse.items:type_name -> alioth.v1.ApplicationDeploymentItem
+	51, // 35: alioth.v1.GetApplicationDeploymentResponse.deployment:type_name -> alioth.v1.ApplicationDeploymentItem
+	48, // 36: alioth.v1.UpgradeApplicationDeploymentRequest.values:type_name -> alioth.v1.ApplicationDeployValues
+	51, // 37: alioth.v1.UpgradeApplicationDeploymentResponse.deployment:type_name -> alioth.v1.ApplicationDeploymentItem
+	51, // 38: alioth.v1.RollbackApplicationDeploymentResponse.deployment:type_name -> alioth.v1.ApplicationDeploymentItem
+	51, // 39: alioth.v1.RedeployApplicationDeploymentResponse.deployment:type_name -> alioth.v1.ApplicationDeploymentItem
+	51, // 40: alioth.v1.UninstallApplicationDeploymentResponse.deployment:type_name -> alioth.v1.ApplicationDeploymentItem
+	67, // 41: alioth.v1.ApplicationOperationItem.resources:type_name -> alioth.v1.ResourceRef
+	66, // 42: alioth.v1.ListApplicationReleaseOperationsResponse.items:type_name -> alioth.v1.ApplicationOperationItem
+	50, // 43: alioth.v1.GetApplicationReleaseResponse.release:type_name -> alioth.v1.ApplicationReleaseItem
+	50, // 44: alioth.v1.ListApplicationReleasesResponse.items:type_name -> alioth.v1.ApplicationReleaseItem
+	66, // 45: alioth.v1.ListReleaseOperationsResponse.items:type_name -> alioth.v1.ApplicationOperationItem
+	66, // 46: alioth.v1.GetApplicationOperationResponse.operation:type_name -> alioth.v1.ApplicationOperationItem
+	1,  // 47: alioth.v1.ApplicationService.CreateApplication:input_type -> alioth.v1.CreateApplicationRequest
+	3,  // 48: alioth.v1.ApplicationService.UpdateApplication:input_type -> alioth.v1.UpdateApplicationRequest
+	5,  // 49: alioth.v1.ApplicationService.DeleteApplication:input_type -> alioth.v1.DeleteApplicationRequest
+	7,  // 50: alioth.v1.ApplicationService.GetApplication:input_type -> alioth.v1.GetApplicationRequest
+	9,  // 51: alioth.v1.ApplicationService.ListApplications:input_type -> alioth.v1.ListApplicationsRequest
+	16, // 52: alioth.v1.ApplicationService.CreateApplicationVersion:input_type -> alioth.v1.CreateApplicationVersionRequest
+	18, // 53: alioth.v1.ApplicationService.UpdateApplicationVersion:input_type -> alioth.v1.UpdateApplicationVersionRequest
+	20, // 54: alioth.v1.ApplicationService.DeleteApplicationVersion:input_type -> alioth.v1.DeleteApplicationVersionRequest
+	22, // 55: alioth.v1.ApplicationService.ValidateApplicationVersion:input_type -> alioth.v1.ValidateApplicationVersionRequest
+	24, // 56: alioth.v1.ApplicationService.PublishApplicationVersion:input_type -> alioth.v1.PublishApplicationVersionRequest
+	26, // 57: alioth.v1.ApplicationService.DeprecateApplicationVersion:input_type -> alioth.v1.DeprecateApplicationVersionRequest
+	28, // 58: alioth.v1.ApplicationService.ListApplicationVersions:input_type -> alioth.v1.ListApplicationVersionsRequest
+	30, // 59: alioth.v1.ApplicationService.GetApplicationVersion:input_type -> alioth.v1.GetApplicationVersionRequest
+	32, // 60: alioth.v1.ApplicationService.DuplicateApplicationVersion:input_type -> alioth.v1.DuplicateApplicationVersionRequest
+	34, // 61: alioth.v1.ApplicationService.CreateApplicationVersionResource:input_type -> alioth.v1.CreateApplicationVersionResourceRequest
+	36, // 62: alioth.v1.ApplicationService.GetApplicationVersionResource:input_type -> alioth.v1.GetApplicationVersionResourceRequest
+	38, // 63: alioth.v1.ApplicationService.SaveApplicationVersionResource:input_type -> alioth.v1.SaveApplicationVersionResourceRequest
+	40, // 64: alioth.v1.ApplicationService.DeleteApplicationVersionResource:input_type -> alioth.v1.DeleteApplicationVersionResourceRequest
+	42, // 65: alioth.v1.ApplicationService.ValidateApplicationVersionResource:input_type -> alioth.v1.ValidateApplicationVersionResourceRequest
+	44, // 66: alioth.v1.ApplicationService.SaveApplicationVersionComponent:input_type -> alioth.v1.SaveApplicationVersionComponentRequest
+	46, // 67: alioth.v1.ApplicationService.DeleteApplicationVersionComponent:input_type -> alioth.v1.DeleteApplicationVersionComponentRequest
+	52, // 68: alioth.v1.ApplicationDeploymentService.CreateApplicationDeployment:input_type -> alioth.v1.CreateApplicationDeploymentRequest
+	54, // 69: alioth.v1.ApplicationDeploymentService.ListApplicationDeployments:input_type -> alioth.v1.ListApplicationDeploymentsRequest
+	56, // 70: alioth.v1.ApplicationDeploymentService.GetApplicationDeployment:input_type -> alioth.v1.GetApplicationDeploymentRequest
+	58, // 71: alioth.v1.ApplicationDeploymentService.UpgradeApplicationDeployment:input_type -> alioth.v1.UpgradeApplicationDeploymentRequest
+	60, // 72: alioth.v1.ApplicationDeploymentService.RollbackApplicationDeployment:input_type -> alioth.v1.RollbackApplicationDeploymentRequest
+	62, // 73: alioth.v1.ApplicationDeploymentService.RedeployApplicationDeployment:input_type -> alioth.v1.RedeployApplicationDeploymentRequest
+	64, // 74: alioth.v1.ApplicationDeploymentService.UninstallApplicationDeployment:input_type -> alioth.v1.UninstallApplicationDeploymentRequest
+	68, // 75: alioth.v1.ApplicationDeploymentService.ListApplicationReleaseOperations:input_type -> alioth.v1.ListApplicationReleaseOperationsRequest
+	70, // 76: alioth.v1.ApplicationReleaseService.GetApplicationRelease:input_type -> alioth.v1.GetApplicationReleaseRequest
+	72, // 77: alioth.v1.ApplicationReleaseService.ListApplicationReleases:input_type -> alioth.v1.ListApplicationReleasesRequest
+	74, // 78: alioth.v1.ApplicationReleaseService.ListApplicationReleaseOperations:input_type -> alioth.v1.ListReleaseOperationsRequest
+	76, // 79: alioth.v1.ApplicationReleaseService.GetApplicationOperation:input_type -> alioth.v1.GetApplicationOperationRequest
+	2,  // 80: alioth.v1.ApplicationService.CreateApplication:output_type -> alioth.v1.CreateApplicationResponse
+	4,  // 81: alioth.v1.ApplicationService.UpdateApplication:output_type -> alioth.v1.UpdateApplicationResponse
+	6,  // 82: alioth.v1.ApplicationService.DeleteApplication:output_type -> alioth.v1.DeleteApplicationResponse
+	8,  // 83: alioth.v1.ApplicationService.GetApplication:output_type -> alioth.v1.GetApplicationResponse
+	10, // 84: alioth.v1.ApplicationService.ListApplications:output_type -> alioth.v1.ListApplicationsResponse
+	17, // 85: alioth.v1.ApplicationService.CreateApplicationVersion:output_type -> alioth.v1.CreateApplicationVersionResponse
+	19, // 86: alioth.v1.ApplicationService.UpdateApplicationVersion:output_type -> alioth.v1.UpdateApplicationVersionResponse
+	21, // 87: alioth.v1.ApplicationService.DeleteApplicationVersion:output_type -> alioth.v1.DeleteApplicationVersionResponse
+	23, // 88: alioth.v1.ApplicationService.ValidateApplicationVersion:output_type -> alioth.v1.ValidateApplicationVersionResponse
+	25, // 89: alioth.v1.ApplicationService.PublishApplicationVersion:output_type -> alioth.v1.PublishApplicationVersionResponse
+	27, // 90: alioth.v1.ApplicationService.DeprecateApplicationVersion:output_type -> alioth.v1.DeprecateApplicationVersionResponse
+	29, // 91: alioth.v1.ApplicationService.ListApplicationVersions:output_type -> alioth.v1.ListApplicationVersionsResponse
+	31, // 92: alioth.v1.ApplicationService.GetApplicationVersion:output_type -> alioth.v1.GetApplicationVersionResponse
+	33, // 93: alioth.v1.ApplicationService.DuplicateApplicationVersion:output_type -> alioth.v1.DuplicateApplicationVersionResponse
+	35, // 94: alioth.v1.ApplicationService.CreateApplicationVersionResource:output_type -> alioth.v1.CreateApplicationVersionResourceResponse
+	37, // 95: alioth.v1.ApplicationService.GetApplicationVersionResource:output_type -> alioth.v1.GetApplicationVersionResourceResponse
+	39, // 96: alioth.v1.ApplicationService.SaveApplicationVersionResource:output_type -> alioth.v1.SaveApplicationVersionResourceResponse
+	41, // 97: alioth.v1.ApplicationService.DeleteApplicationVersionResource:output_type -> alioth.v1.DeleteApplicationVersionResourceResponse
+	43, // 98: alioth.v1.ApplicationService.ValidateApplicationVersionResource:output_type -> alioth.v1.ValidateApplicationVersionResourceResponse
+	45, // 99: alioth.v1.ApplicationService.SaveApplicationVersionComponent:output_type -> alioth.v1.SaveApplicationVersionComponentResponse
+	47, // 100: alioth.v1.ApplicationService.DeleteApplicationVersionComponent:output_type -> alioth.v1.DeleteApplicationVersionComponentResponse
+	53, // 101: alioth.v1.ApplicationDeploymentService.CreateApplicationDeployment:output_type -> alioth.v1.CreateApplicationDeploymentResponse
+	55, // 102: alioth.v1.ApplicationDeploymentService.ListApplicationDeployments:output_type -> alioth.v1.ListApplicationDeploymentsResponse
+	57, // 103: alioth.v1.ApplicationDeploymentService.GetApplicationDeployment:output_type -> alioth.v1.GetApplicationDeploymentResponse
+	59, // 104: alioth.v1.ApplicationDeploymentService.UpgradeApplicationDeployment:output_type -> alioth.v1.UpgradeApplicationDeploymentResponse
+	61, // 105: alioth.v1.ApplicationDeploymentService.RollbackApplicationDeployment:output_type -> alioth.v1.RollbackApplicationDeploymentResponse
+	63, // 106: alioth.v1.ApplicationDeploymentService.RedeployApplicationDeployment:output_type -> alioth.v1.RedeployApplicationDeploymentResponse
+	65, // 107: alioth.v1.ApplicationDeploymentService.UninstallApplicationDeployment:output_type -> alioth.v1.UninstallApplicationDeploymentResponse
+	69, // 108: alioth.v1.ApplicationDeploymentService.ListApplicationReleaseOperations:output_type -> alioth.v1.ListApplicationReleaseOperationsResponse
+	71, // 109: alioth.v1.ApplicationReleaseService.GetApplicationRelease:output_type -> alioth.v1.GetApplicationReleaseResponse
+	73, // 110: alioth.v1.ApplicationReleaseService.ListApplicationReleases:output_type -> alioth.v1.ListApplicationReleasesResponse
+	75, // 111: alioth.v1.ApplicationReleaseService.ListApplicationReleaseOperations:output_type -> alioth.v1.ListReleaseOperationsResponse
+	77, // 112: alioth.v1.ApplicationReleaseService.GetApplicationOperation:output_type -> alioth.v1.GetApplicationOperationResponse
+	80, // [80:113] is the sub-list for method output_type
+	47, // [47:80] is the sub-list for method input_type
+	47, // [47:47] is the sub-list for extension type_name
+	47, // [47:47] is the sub-list for extension extendee
+	0,  // [0:47] is the sub-list for field type_name
 }
 
 func init() { file_alioth_v1_application_proto_init() }
@@ -5630,7 +5907,7 @@ func file_alioth_v1_application_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alioth_v1_application_proto_rawDesc), len(file_alioth_v1_application_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   79,
+			NumMessages:   83,
 			NumExtensions: 0,
 			NumServices:   3,
 		},

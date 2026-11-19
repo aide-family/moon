@@ -22,6 +22,9 @@ const (
 	maxVersionRunes     = 32
 	maxChangelog        = 4096
 	maxComponentRunes   = 63
+	maxComponentDesc    = 2048
+	defaultCategory     = "OTHER"
+	maxCategoryRunes    = 32
 	draftVersionStatus  = "DRAFT"
 	publishVersionState = "PUBLISHED"
 	deprecateState      = "DEPRECATED"
@@ -517,7 +520,7 @@ func (catalog *Catalog) SaveVersionResource(ctx context.Context, applicationUID,
 	return item, nil
 }
 
-// DeleteVersionResource 删除草稿版本里的单条资源；组件变空时删除，但保留至少一个。
+// DeleteVersionResource 删除草稿版本里的单条资源；组件变空时删除，版本可以变成 0 个服务。
 func (catalog *Catalog) DeleteVersionResource(ctx context.Context, applicationUID, uid, resourceUID string, expectedRevision int32) (*bo.ApplicationVersion, error) {
 	ns, err := catalog.access.Allow(ctx, perm.ApplicationWrite)
 	if err != nil {
@@ -540,6 +543,85 @@ func (catalog *Catalog) DeleteVersionResource(ctx context.Context, applicationUI
 	version.Images = images
 	version.Validation = bo.ApplicationValidation{Warnings: imageWarnings}
 	item, err := catalog.apps.DeleteVersionResource(ctx, *version, resourceUID, expectedRevision)
+	if err != nil {
+		return nil, catalog.access.Wrap(err)
+	}
+	catalog.decorate(item)
+	return item, nil
+}
+
+// SaveVersionComponent 新增或更新版本内的服务（组件）。新增服务只允许草稿；
+// 名称必须是小写 DNS-1123 label 且版本内唯一。改名时同步该服务下所有资源的
+// component，避免资源仍指向旧名；最后按整版内容写入并做 revision CAS。
+func (catalog *Catalog) SaveVersionComponent(ctx context.Context, applicationUID, versionUID, componentUID, name, description string, expectedRevision int32) (*bo.ApplicationVersion, error) {
+	ns, err := catalog.access.Allow(ctx, perm.ApplicationWrite)
+	if err != nil {
+		return nil, err
+	}
+	version, err := catalog.apps.GetVersion(ctx, ns, applicationUID, versionUID)
+	if err != nil {
+		return nil, catalog.access.Wrap(err)
+	}
+	if version.Status != draftVersionStatus {
+		return nil, merr.Conflict("only draft version components can be changed")
+	}
+	components, err := catalog.composer.SaveComponent(version.Components, componentUID, name, description)
+	if err != nil {
+		return nil, err
+	}
+	return catalog.saveVersionComponents(ctx, ns, applicationUID, version, components, expectedRevision)
+}
+
+// DeleteVersionComponent 删除草稿版本里的一个服务，及其下的全部资源。版本
+// 允许删除到 0 个服务；只有上架时才要求至少一个服务。
+func (catalog *Catalog) DeleteVersionComponent(ctx context.Context, applicationUID, versionUID, componentUID string, expectedRevision int32) (*bo.ApplicationVersion, error) {
+	ns, err := catalog.access.Allow(ctx, perm.ApplicationWrite)
+	if err != nil {
+		return nil, err
+	}
+	version, err := catalog.apps.GetVersion(ctx, ns, applicationUID, versionUID)
+	if err != nil {
+		return nil, catalog.access.Wrap(err)
+	}
+	if version.Status != draftVersionStatus {
+		return nil, merr.Conflict("only draft version components can be changed")
+	}
+	removed, err := catalog.composer.FindComponent(version.Components, componentUID)
+	if err != nil {
+		return nil, err
+	}
+	components, err := catalog.composer.DeleteComponent(version.Components, componentUID)
+	if err != nil {
+		return nil, err
+	}
+	// 服务下的资源被一起删除时，版本级密文里对应的 Secret 值也要清掉，避免以后
+	// 复用同一个资源 item 时把旧密码带到新资源上。
+	if len(removed.Resources) > 0 {
+		secrets, err := catalog.apps.GetVersionSecrets(ctx, ns, versionUID)
+		if err != nil {
+			return nil, catalog.access.Wrap(err)
+		}
+		for _, resource := range removed.Resources {
+			prefix := resource.Item + "/"
+			for key := range secrets {
+				if strings.HasPrefix(key, prefix) {
+					delete(secrets, key)
+				}
+			}
+		}
+		version.SecretValues = secrets
+	}
+	return catalog.saveVersionComponents(ctx, ns, applicationUID, version, components, expectedRevision)
+}
+
+// saveVersionComponents 用新的组件视图重算镜像与校验提示，再整版写入存储。
+func (catalog *Catalog) saveVersionComponents(ctx context.Context, namespaceUID, applicationUID string, version *bo.ApplicationVersion, components []bo.ApplicationVersionComponent, expectedRevision int32) (*bo.ApplicationVersion, error) {
+	version.Components = components
+	version.Resources = catalog.composer.Flatten(components)
+	images, warnings := catalog.resolveImages(ctx, namespaceUID, applicationUID, components)
+	version.Images = images
+	version.Validation = bo.ApplicationValidation{Warnings: warnings}
+	item, err := catalog.apps.SaveVersionContent(ctx, *version, expectedRevision)
 	if err != nil {
 		return nil, catalog.access.Wrap(err)
 	}
@@ -595,10 +677,13 @@ func normalizeApplication(in *bo.Application) error {
 	if in.Name == "" || len([]rune(in.Name)) > 64 {
 		return merr.Invalid("application name is required and must not exceed 64 characters")
 	}
-	switch in.Category {
-	case "DATABASE", "MIDDLEWARE", "OBSERVABILITY", "TOOLING", "OTHER":
-	default:
-		return merr.Invalid("invalid application category")
+	// 分类是自定义字符串：内置分类只是默认值，不再限制固定枚举。
+	in.Category = strings.TrimSpace(in.Category)
+	if in.Category == "" {
+		in.Category = defaultCategory
+	}
+	if len([]rune(in.Category)) > maxCategoryRunes {
+		return merr.Invalid("application category must not exceed 32 characters")
 	}
 	in.DisplayName = strings.TrimSpace(in.DisplayName)
 	in.Description = strings.TrimSpace(in.Description)

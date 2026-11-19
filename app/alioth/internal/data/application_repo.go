@@ -60,7 +60,7 @@ type versionSpecResource struct {
 func (r *applicationRepo) CreateApplication(ctx context.Context, in bo.Application) (*bo.Application, error) {
 	row, err := r.client.Application.Create().
 		SetUID(id.New()).SetNamespaceUID(in.NamespaceUID).SetName(in.Name).
-		SetDisplayName(in.DisplayName).SetCategory(application.Category(in.Category)).
+		SetDisplayName(in.DisplayName).SetCategory(in.Category).
 		SetDescription(in.Description).SetReadme(in.Readme).Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -71,7 +71,7 @@ func (r *applicationRepo) CreateApplication(ctx context.Context, in bo.Applicati
 func (r *applicationRepo) UpdateApplication(ctx context.Context, in bo.Application) (*bo.Application, error) {
 	n, err := r.client.Application.Update().
 		Where(application.UIDEQ(in.UID), application.NamespaceUIDEQ(in.NamespaceUID), application.DeletedAtIsNil()).
-		SetDisplayName(in.DisplayName).SetCategory(application.Category(in.Category)).
+		SetDisplayName(in.DisplayName).SetCategory(in.Category).
 		SetDescription(in.Description).SetReadme(in.Readme).Save(ctx)
 	if err != nil {
 		return nil, r.fail(err)
@@ -131,7 +131,7 @@ func (r *applicationRepo) ListApplications(ctx context.Context, namespaceUID str
 		query.Where(application.NameContainsFold(name))
 	}
 	if category := strings.TrimSpace(filter.Category); category != "" {
-		query.Where(application.CategoryEQ(application.Category(category)))
+		query.Where(application.CategoryEQ(category))
 	}
 	total, err := query.Clone().Count(ctx)
 	if err != nil {
@@ -156,9 +156,6 @@ func (r *applicationRepo) ListApplications(ctx context.Context, namespaceUID str
 func (r *applicationRepo) CreateVersion(ctx context.Context, in bo.ApplicationVersion) (*bo.ApplicationVersion, error) {
 	if _, err := r.getApplicationRow(ctx, in.NamespaceUID, in.ApplicationUID); err != nil {
 		return nil, err
-	}
-	if len(in.Components) == 0 {
-		in.Components = []bo.ApplicationVersionComponent{{Name: defaultComponentName, DisplayName: defaultComponentName}}
 	}
 	spec, cipher, validation, err := r.encodeVersion(in)
 	if err != nil {
@@ -233,9 +230,6 @@ func (r *applicationRepo) UpdateVersion(ctx context.Context, in bo.ApplicationVe
 }
 
 func (r *applicationRepo) SaveVersionContent(ctx context.Context, in bo.ApplicationVersion, expectedRevision int32) (*bo.ApplicationVersion, error) {
-	if len(in.Components) == 0 {
-		return nil, merr.Invalid("version must keep at least one component")
-	}
 	sqlTx, client, err := r.beginVersionTx(ctx)
 	if err != nil {
 		return nil, err
@@ -273,9 +267,6 @@ func (r *applicationRepo) SaveVersionContent(ctx context.Context, in bo.Applicat
 }
 
 func (r *applicationRepo) SaveVersionResource(ctx context.Context, in bo.ApplicationVersion, change bo.ApplicationResourceChange) (*bo.ApplicationVersion, error) {
-	if len(in.Components) == 0 {
-		return nil, merr.Invalid("version must keep at least one component")
-	}
 	sqlTx, client, err := r.beginVersionTx(ctx)
 	if err != nil {
 		return nil, err
@@ -313,9 +304,6 @@ func (r *applicationRepo) SaveVersionResource(ctx context.Context, in bo.Applica
 }
 
 func (r *applicationRepo) DeleteVersionResource(ctx context.Context, in bo.ApplicationVersion, resourceUID string, expectedRevision int32) (*bo.ApplicationVersion, error) {
-	if len(in.Components) == 0 {
-		return nil, merr.Invalid("version must keep at least one component")
-	}
 	sqlTx, client, err := r.beginVersionTx(ctx)
 	if err != nil {
 		return nil, err
@@ -492,10 +480,11 @@ func (r *applicationRepo) GetVersion(ctx context.Context, namespaceUID, applicat
 	} else {
 		components = legacyComponents(item.Resources)
 	}
-	applyComponents(&item, components)
 	if images, err := r.ListVersionImages(ctx, namespaceUID, uid); err == nil {
 		item.Images = images
+		attachVersionImageRefs(components, images)
 	}
+	applyComponents(&item, components)
 	return &item, nil
 }
 
@@ -527,10 +516,11 @@ func (r *applicationRepo) ListVersions(ctx context.Context, namespaceUID, applic
 		} else {
 			components = legacyComponents(item.Resources)
 		}
-		applyComponents(&item, components)
 		if images, err := r.ListVersionImages(ctx, namespaceUID, row.UID); err == nil {
 			item.Images = images
+			attachVersionImageRefs(components, images)
 		}
+		applyComponents(&item, components)
 		items = append(items, item)
 	}
 	return items, total, nil
@@ -700,10 +690,21 @@ FOR UPDATE`, versionUID, namespaceUID, applicationUID).Scan(&revision, &status, 
 }
 
 // writeComposition 用期望的组件视图覆盖版本内容：按 uid/名称匹配并 upsert 组件与
-// 资源，删除不再存在的行。调用方负责事务与状态校验。
+// 资源，删除不再存在的行。版本允许 0 个组件；此时清空该版本的全部组件与资源。
+// 调用方负责事务与状态校验。
 func (r *applicationRepo) writeComposition(ctx context.Context, client *ent.Client, namespaceUID, applicationUID, versionUID string, components []bo.ApplicationVersionComponent) (map[string]string, error) {
 	if len(components) == 0 {
-		return nil, merr.Invalid("version must keep at least one component")
+		if _, err := client.ApplicationVersionResource.Delete().Where(
+			applicationversionresource.VersionUIDEQ(versionUID),
+		).Exec(ctx); err != nil {
+			return nil, r.fail(err)
+		}
+		if _, err := client.ApplicationVersionComponent.Delete().Where(
+			applicationversioncomponent.VersionUIDEQ(versionUID),
+		).Exec(ctx); err != nil {
+			return nil, r.fail(err)
+		}
+		return map[string]string{}, nil
 	}
 	componentRows, err := client.ApplicationVersionComponent.Query().Where(
 		applicationversioncomponent.VersionUIDEQ(versionUID),
@@ -753,13 +754,16 @@ func (r *applicationRepo) writeComposition(ctx context.Context, client *ent.Clie
 		}
 		if row != nil {
 			if _, err := client.ApplicationVersionComponent.UpdateOne(row).
-				SetName(name).SetDisplayName(displayName).SetSortOrder(int(component.SortOrder)).Save(ctx); err != nil {
+				SetName(name).SetDisplayName(displayName).
+				SetDescription(strings.TrimSpace(component.Description)).
+				SetSortOrder(int(component.SortOrder)).Save(ctx); err != nil {
 				return nil, r.fail(err)
 			}
 		} else {
 			row, err = client.ApplicationVersionComponent.Create().
 				SetUID(id.New()).SetNamespaceUID(namespaceUID).SetApplicationUID(applicationUID).
 				SetVersionUID(versionUID).SetName(name).SetDisplayName(displayName).
+				SetDescription(strings.TrimSpace(component.Description)).
 				SetSortOrder(int(component.SortOrder)).Save(ctx)
 			if err != nil {
 				return nil, r.fail(err)
@@ -877,6 +881,27 @@ func (r *applicationRepo) replaceVersionImages(ctx context.Context, client *ent.
 			}
 		}
 	}
+	// 组件改名后资源与镜像的 component 要一起切换到新名；以资源视图为准。
+	componentByItem := make(map[string]string, len(in.Components)+len(in.Resources))
+	for _, component := range in.Components {
+		name := strings.TrimSpace(component.Name)
+		if name == "" {
+			name = defaultComponentName
+		}
+		for _, resource := range component.Resources {
+			componentByItem[resource.Item] = name
+		}
+	}
+	for _, resource := range in.Resources {
+		if _, ok := componentByItem[resource.Item]; ok {
+			continue
+		}
+		name := strings.TrimSpace(resource.Component)
+		if name == "" {
+			name = defaultComponentName
+		}
+		componentByItem[resource.Item] = name
+	}
 	applicationUID := in.ApplicationUID
 	for _, image := range in.Images {
 		platforms, _ := json.Marshal(image.Platforms)
@@ -884,13 +909,17 @@ func (r *applicationRepo) replaceVersionImages(ctx context.Context, client *ent.
 		if resourceUID == "" {
 			resourceUID = resourceUIDByItem[image.ResourceItem]
 		}
+		component := image.Component
+		if name, ok := componentByItem[image.ResourceItem]; ok {
+			component = name
+		}
 		if applicationUID == "" {
 			applicationUID = image.ApplicationUID
 		}
 		builder := client.ApplicationVersionImage.Create().
 			SetUID(id.New()).SetNamespaceUID(in.NamespaceUID).SetApplicationUID(applicationUID).
 			SetVersionUID(versionUID).SetResourceItem(image.ResourceItem).SetResourceUID(resourceUID).
-			SetComponent(image.Component).SetContainer(image.Container).
+			SetComponent(component).SetContainer(image.Container).
 			SetContainerPath(image.ContainerPath).SetImage(image.Image).
 			SetRegistryUID(image.RegistryUID).SetRegistryName(image.RegistryName).
 			SetRepository(image.Repository).SetTag(image.Tag).SetDigest(image.Digest).
@@ -927,7 +956,8 @@ func (r *applicationRepo) loadComposition(ctx context.Context, client *ent.Clien
 		componentIndex[row.UID] = len(components)
 		components = append(components, bo.ApplicationVersionComponent{
 			UID: row.UID, Name: row.Name, DisplayName: row.DisplayName,
-			SortOrder: int32(row.SortOrder), Resources: make([]bo.ApplicationResource, 0),
+			Description: row.Description, SortOrder: int32(row.SortOrder),
+			Resources: make([]bo.ApplicationResource, 0),
 		})
 	}
 	for _, row := range resourceRows {
@@ -969,8 +999,34 @@ func applyComponents(item *bo.ApplicationVersion, components []bo.ApplicationVer
 	item.ResourceCount = resourceCount
 }
 
+// attachVersionImageRefs 把镜像快照还原成资源上的容器引用，保证改名/整版保存
+// 重新解析镜像时不会丢掉 container 与 containerPath。
+func attachVersionImageRefs(components []bo.ApplicationVersionComponent, images []bo.ApplicationVersionImage) {
+	refsByResource := make(map[string][]bo.ApplicationImageRef, len(images))
+	for _, image := range images {
+		if image.ResourceUID == "" || image.ContainerPath == "" {
+			continue
+		}
+		refsByResource[image.ResourceUID] = append(refsByResource[image.ResourceUID], bo.ApplicationImageRef{
+			Image: image.Image, Container: image.Container, ContainerPath: image.ContainerPath,
+		})
+	}
+	for component := range components {
+		for position := range components[component].Resources {
+			resource := &components[component].Resources[position]
+			if refs, ok := refsByResource[resource.UID]; ok {
+				resource.ImageRefs = refs
+			}
+		}
+	}
+}
+
 // legacyComponents 把 spec 里的扁平资源包成一个默认组件，供尚未回填的版本读取。
+// 版本没有资源时返回空组件列表，避免旧版本继续出现空 default 服务。
 func legacyComponents(resources []bo.ApplicationResource) []bo.ApplicationVersionComponent {
+	if len(resources) == 0 {
+		return []bo.ApplicationVersionComponent{}
+	}
 	for index := range resources {
 		if resources[index].Component == "" {
 			resources[index].Component = defaultComponentName
@@ -1163,7 +1219,7 @@ func (r *applicationRepo) decodeSecrets(cipher string) (map[string]string, error
 func toApplication(row *ent.Application) bo.Application {
 	return bo.Application{
 		UID: row.UID, NamespaceUID: row.NamespaceUID, Name: row.Name, DisplayName: row.DisplayName,
-		Category: string(row.Category), Description: row.Description, Readme: row.Readme, CreatedAt: row.CreatedAt,
+		Category: row.Category, Description: row.Description, Readme: row.Readme, CreatedAt: row.CreatedAt,
 	}
 }
 

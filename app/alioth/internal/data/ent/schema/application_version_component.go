@@ -24,6 +24,8 @@ func (ApplicationVersionComponent) Fields() []ent.Field {
 		field.String("version_uid").NotEmpty(),
 		field.String("name").NotEmpty(),
 		field.String("display_name").Default(""),
+		// description 是服务备注，支持 Markdown。
+		field.Text("description").Default(""),
 		field.Int("sort_order").Default(0),
 	}
 }

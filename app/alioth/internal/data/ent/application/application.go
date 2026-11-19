@@ -3,7 +3,6 @@
 package application
 
 import (
-	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -78,40 +77,13 @@ var (
 	NameValidator func(string) error
 	// DefaultDisplayName holds the default value on creation for the "display_name" field.
 	DefaultDisplayName string
+	// DefaultCategory holds the default value on creation for the "category" field.
+	DefaultCategory string
 	// DefaultDescription holds the default value on creation for the "description" field.
 	DefaultDescription string
 	// DefaultReadme holds the default value on creation for the "readme" field.
 	DefaultReadme string
 )
-
-// Category defines the type for the "category" enum field.
-type Category string
-
-// CategoryOTHER is the default value of the Category enum.
-const DefaultCategory = CategoryOTHER
-
-// Category values.
-const (
-	CategoryDATABASE      Category = "DATABASE"
-	CategoryMIDDLEWARE    Category = "MIDDLEWARE"
-	CategoryOBSERVABILITY Category = "OBSERVABILITY"
-	CategoryTOOLING       Category = "TOOLING"
-	CategoryOTHER         Category = "OTHER"
-)
-
-func (c Category) String() string {
-	return string(c)
-}
-
-// CategoryValidator is a validator for the "category" field enum values. It is called by the builders before save.
-func CategoryValidator(c Category) error {
-	switch c {
-	case CategoryDATABASE, CategoryMIDDLEWARE, CategoryOBSERVABILITY, CategoryTOOLING, CategoryOTHER:
-		return nil
-	default:
-		return fmt.Errorf("application: invalid enum value for category field: %q", c)
-	}
-}
 
 // OrderOption defines the ordering options for the Application queries.
 type OrderOption func(*sql.Selector)

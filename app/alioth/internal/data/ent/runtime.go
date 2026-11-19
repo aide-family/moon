@@ -798,6 +798,10 @@ func init() {
 	applicationDescDisplayName := applicationFields[3].Descriptor()
 	// application.DefaultDisplayName holds the default value on creation for the display_name field.
 	application.DefaultDisplayName = applicationDescDisplayName.Default.(string)
+	// applicationDescCategory is the schema descriptor for category field.
+	applicationDescCategory := applicationFields[4].Descriptor()
+	// application.DefaultCategory holds the default value on creation for the category field.
+	application.DefaultCategory = applicationDescCategory.Default.(string)
 	// applicationDescDescription is the schema descriptor for description field.
 	applicationDescDescription := applicationFields[5].Descriptor()
 	// application.DefaultDescription holds the default value on creation for the description field.
@@ -1149,8 +1153,12 @@ func init() {
 	applicationversioncomponentDescDisplayName := applicationversioncomponentFields[5].Descriptor()
 	// applicationversioncomponent.DefaultDisplayName holds the default value on creation for the display_name field.
 	applicationversioncomponent.DefaultDisplayName = applicationversioncomponentDescDisplayName.Default.(string)
+	// applicationversioncomponentDescDescription is the schema descriptor for description field.
+	applicationversioncomponentDescDescription := applicationversioncomponentFields[6].Descriptor()
+	// applicationversioncomponent.DefaultDescription holds the default value on creation for the description field.
+	applicationversioncomponent.DefaultDescription = applicationversioncomponentDescDescription.Default.(string)
 	// applicationversioncomponentDescSortOrder is the schema descriptor for sort_order field.
-	applicationversioncomponentDescSortOrder := applicationversioncomponentFields[6].Descriptor()
+	applicationversioncomponentDescSortOrder := applicationversioncomponentFields[7].Descriptor()
 	// applicationversioncomponent.DefaultSortOrder holds the default value on creation for the sort_order field.
 	applicationversioncomponent.DefaultSortOrder = applicationversioncomponentDescSortOrder.Default.(int)
 	applicationversionimageMixin := schema.ApplicationVersionImage{}.Mixin()

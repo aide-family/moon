@@ -22,6 +22,7 @@ const OperationApplicationServiceCreateApplicationVersion = "/alioth.v1.Applicat
 const OperationApplicationServiceCreateApplicationVersionResource = "/alioth.v1.ApplicationService/CreateApplicationVersionResource"
 const OperationApplicationServiceDeleteApplication = "/alioth.v1.ApplicationService/DeleteApplication"
 const OperationApplicationServiceDeleteApplicationVersion = "/alioth.v1.ApplicationService/DeleteApplicationVersion"
+const OperationApplicationServiceDeleteApplicationVersionComponent = "/alioth.v1.ApplicationService/DeleteApplicationVersionComponent"
 const OperationApplicationServiceDeleteApplicationVersionResource = "/alioth.v1.ApplicationService/DeleteApplicationVersionResource"
 const OperationApplicationServiceDeprecateApplicationVersion = "/alioth.v1.ApplicationService/DeprecateApplicationVersion"
 const OperationApplicationServiceDuplicateApplicationVersion = "/alioth.v1.ApplicationService/DuplicateApplicationVersion"
@@ -31,6 +32,7 @@ const OperationApplicationServiceGetApplicationVersionResource = "/alioth.v1.App
 const OperationApplicationServiceListApplicationVersions = "/alioth.v1.ApplicationService/ListApplicationVersions"
 const OperationApplicationServiceListApplications = "/alioth.v1.ApplicationService/ListApplications"
 const OperationApplicationServicePublishApplicationVersion = "/alioth.v1.ApplicationService/PublishApplicationVersion"
+const OperationApplicationServiceSaveApplicationVersionComponent = "/alioth.v1.ApplicationService/SaveApplicationVersionComponent"
 const OperationApplicationServiceSaveApplicationVersionResource = "/alioth.v1.ApplicationService/SaveApplicationVersionResource"
 const OperationApplicationServiceUpdateApplication = "/alioth.v1.ApplicationService/UpdateApplication"
 const OperationApplicationServiceUpdateApplicationVersion = "/alioth.v1.ApplicationService/UpdateApplicationVersion"
@@ -44,6 +46,8 @@ type ApplicationServiceHTTPServer interface {
 	CreateApplicationVersionResource(context.Context, *CreateApplicationVersionResourceRequest) (*CreateApplicationVersionResourceResponse, error)
 	DeleteApplication(context.Context, *DeleteApplicationRequest) (*DeleteApplicationResponse, error)
 	DeleteApplicationVersion(context.Context, *DeleteApplicationVersionRequest) (*DeleteApplicationVersionResponse, error)
+	// DeleteApplicationVersionComponent DeleteApplicationVersionComponent 删除一个服务及其下的全部资源。
+	DeleteApplicationVersionComponent(context.Context, *DeleteApplicationVersionComponentRequest) (*DeleteApplicationVersionComponentResponse, error)
 	// DeleteApplicationVersionResource DeleteApplicationVersionResource 删除草稿版本里的单个资源。
 	DeleteApplicationVersionResource(context.Context, *DeleteApplicationVersionResourceRequest) (*DeleteApplicationVersionResourceResponse, error)
 	DeprecateApplicationVersion(context.Context, *DeprecateApplicationVersionRequest) (*DeprecateApplicationVersionResponse, error)
@@ -56,6 +60,8 @@ type ApplicationServiceHTTPServer interface {
 	ListApplicationVersions(context.Context, *ListApplicationVersionsRequest) (*ListApplicationVersionsResponse, error)
 	ListApplications(context.Context, *ListApplicationsRequest) (*ListApplicationsResponse, error)
 	PublishApplicationVersion(context.Context, *PublishApplicationVersionRequest) (*PublishApplicationVersionResponse, error)
+	// SaveApplicationVersionComponent SaveApplicationVersionComponent 新增或更新一个服务（组件），允许改服务名与备注。
+	SaveApplicationVersionComponent(context.Context, *SaveApplicationVersionComponentRequest) (*SaveApplicationVersionComponentResponse, error)
 	// SaveApplicationVersionResource SaveApplicationVersionResource 编辑草稿版本里的单个资源。
 	SaveApplicationVersionResource(context.Context, *SaveApplicationVersionResourceRequest) (*SaveApplicationVersionResourceResponse, error)
 	UpdateApplication(context.Context, *UpdateApplicationRequest) (*UpdateApplicationResponse, error)
@@ -86,6 +92,8 @@ func RegisterApplicationServiceHTTPServer(s *http.Server, srv ApplicationService
 	r.Handle("PUT", "/v1/application/{application_uid}/version/{uid}/resource/{resource_uid}", _ApplicationService_SaveApplicationVersionResource0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/v1/application/{application_uid}/version/{uid}/resource/{resource_uid}", _ApplicationService_DeleteApplicationVersionResource0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/application/{application_uid}/version/{uid}/resource/validate", _ApplicationService_ValidateApplicationVersionResource0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/application/{application_uid}/version/{uid}/component", _ApplicationService_SaveApplicationVersionComponent0_HTTP_Handler(srv))
+	r.Handle("DELETE", "/v1/application/{application_uid}/version/{uid}/component/{component_uid}", _ApplicationService_DeleteApplicationVersionComponent0_HTTP_Handler(srv))
 }
 
 func _ApplicationService_CreateApplication0_HTTP_Handler(srv ApplicationServiceHTTPServer) func(ctx http.Context) error {
@@ -500,6 +508,50 @@ func _ApplicationService_ValidateApplicationVersionResource0_HTTP_Handler(srv Ap
 	}
 }
 
+func _ApplicationService_SaveApplicationVersionComponent0_HTTP_Handler(srv ApplicationServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SaveApplicationVersionComponentRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationApplicationServiceSaveApplicationVersionComponent)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SaveApplicationVersionComponent(ctx, req.(*SaveApplicationVersionComponentRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SaveApplicationVersionComponentResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _ApplicationService_DeleteApplicationVersionComponent0_HTTP_Handler(srv ApplicationServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteApplicationVersionComponentRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationApplicationServiceDeleteApplicationVersionComponent)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteApplicationVersionComponent(ctx, req.(*DeleteApplicationVersionComponentRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteApplicationVersionComponentResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type ApplicationServiceHTTPClient interface {
 	CreateApplication(ctx context.Context, req *CreateApplicationRequest, opts ...http.CallOption) (rsp *CreateApplicationResponse, err error)
 	CreateApplicationVersion(ctx context.Context, req *CreateApplicationVersionRequest, opts ...http.CallOption) (rsp *CreateApplicationVersionResponse, err error)
@@ -507,6 +559,8 @@ type ApplicationServiceHTTPClient interface {
 	CreateApplicationVersionResource(ctx context.Context, req *CreateApplicationVersionResourceRequest, opts ...http.CallOption) (rsp *CreateApplicationVersionResourceResponse, err error)
 	DeleteApplication(ctx context.Context, req *DeleteApplicationRequest, opts ...http.CallOption) (rsp *DeleteApplicationResponse, err error)
 	DeleteApplicationVersion(ctx context.Context, req *DeleteApplicationVersionRequest, opts ...http.CallOption) (rsp *DeleteApplicationVersionResponse, err error)
+	// DeleteApplicationVersionComponent DeleteApplicationVersionComponent 删除一个服务及其下的全部资源。
+	DeleteApplicationVersionComponent(ctx context.Context, req *DeleteApplicationVersionComponentRequest, opts ...http.CallOption) (rsp *DeleteApplicationVersionComponentResponse, err error)
 	// DeleteApplicationVersionResource DeleteApplicationVersionResource 删除草稿版本里的单个资源。
 	DeleteApplicationVersionResource(ctx context.Context, req *DeleteApplicationVersionResourceRequest, opts ...http.CallOption) (rsp *DeleteApplicationVersionResourceResponse, err error)
 	DeprecateApplicationVersion(ctx context.Context, req *DeprecateApplicationVersionRequest, opts ...http.CallOption) (rsp *DeprecateApplicationVersionResponse, err error)
@@ -519,6 +573,8 @@ type ApplicationServiceHTTPClient interface {
 	ListApplicationVersions(ctx context.Context, req *ListApplicationVersionsRequest, opts ...http.CallOption) (rsp *ListApplicationVersionsResponse, err error)
 	ListApplications(ctx context.Context, req *ListApplicationsRequest, opts ...http.CallOption) (rsp *ListApplicationsResponse, err error)
 	PublishApplicationVersion(ctx context.Context, req *PublishApplicationVersionRequest, opts ...http.CallOption) (rsp *PublishApplicationVersionResponse, err error)
+	// SaveApplicationVersionComponent SaveApplicationVersionComponent 新增或更新一个服务（组件），允许改服务名与备注。
+	SaveApplicationVersionComponent(ctx context.Context, req *SaveApplicationVersionComponentRequest, opts ...http.CallOption) (rsp *SaveApplicationVersionComponentResponse, err error)
 	// SaveApplicationVersionResource SaveApplicationVersionResource 编辑草稿版本里的单个资源。
 	SaveApplicationVersionResource(ctx context.Context, req *SaveApplicationVersionResourceRequest, opts ...http.CallOption) (rsp *SaveApplicationVersionResourceResponse, err error)
 	UpdateApplication(ctx context.Context, req *UpdateApplicationRequest, opts ...http.CallOption) (rsp *UpdateApplicationResponse, err error)
@@ -611,6 +667,23 @@ func (c *ApplicationServiceHTTPClientImpl) DeleteApplicationVersion(ctx context.
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationApplicationServiceDeleteApplicationVersion),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DeleteApplicationVersionComponent DeleteApplicationVersionComponent 删除一个服务及其下的全部资源。
+func (c *ApplicationServiceHTTPClientImpl) DeleteApplicationVersionComponent(ctx context.Context, in *DeleteApplicationVersionComponentRequest, opts ...http.CallOption) (*DeleteApplicationVersionComponentResponse, error) {
+	var out DeleteApplicationVersionComponentResponse
+	pattern := "/v1/application/{application_uid}/version/{uid}/component/{component_uid}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationApplicationServiceDeleteApplicationVersionComponent),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
@@ -761,6 +834,24 @@ func (c *ApplicationServiceHTTPClientImpl) PublishApplicationVersion(ctx context
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationApplicationServicePublishApplicationVersion),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SaveApplicationVersionComponent SaveApplicationVersionComponent 新增或更新一个服务（组件），允许改服务名与备注。
+func (c *ApplicationServiceHTTPClientImpl) SaveApplicationVersionComponent(ctx context.Context, in *SaveApplicationVersionComponentRequest, opts ...http.CallOption) (*SaveApplicationVersionComponentResponse, error) {
+	var out SaveApplicationVersionComponentResponse
+	pattern := "/v1/application/{application_uid}/version/{uid}/component"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationApplicationServiceSaveApplicationVersionComponent),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

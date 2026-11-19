@@ -81,9 +81,11 @@ type ApplicationVersionCopy struct {
 // ApplicationVersionComponent 是版本内的一个服务（组件），由若干 Kubernetes
 // 资源组成。资源变更只作用于 DRAFT 版本。
 type ApplicationVersionComponent struct {
-	UID           string
-	Name          string
-	DisplayName   string
+	UID         string
+	Name        string
+	DisplayName string
+	// Description 是服务备注，支持 Markdown。
+	Description   string
 	SortOrder     int32
 	Resources     []ApplicationResource
 	ResourceCount int32
