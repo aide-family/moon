@@ -7,7 +7,6 @@ import type {
   ApplicationVersionComponent,
   ApplicationVersionItem,
 } from "@/api/application/types"
-import { HeaderActionsMenu } from "@/components/header-actions-menu"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -59,7 +58,7 @@ export function ApplicationServiceCard({
   const hasDescription = Boolean(component.description?.trim())
 
   return (
-    <Card className="min-w-0">
+    <Card className="min-w-0 animate-in fade-in-0 transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-border hover:shadow-md motion-reduce:animate-none motion-reduce:transition-none motion-reduce:hover:translate-y-0">
       <CardHeader className="border-b border-border/60">
         <CardTitle className="flex min-w-0 flex-wrap items-center gap-2">
           <span className="min-w-0 truncate font-mono">{component.name}</span>
@@ -68,24 +67,26 @@ export function ApplicationServiceCard({
               {component.displayName}
             </span>
           ) : null}
-          {hasDescription ? (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="ml-auto size-6 shrink-0 text-muted-foreground"
-                  aria-label={t("appStore.services.descriptionLabel")}
-                >
-                  <Info className="size-3.5" aria-hidden />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="max-h-72 w-80 overflow-y-auto text-sm">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="ml-auto size-6 shrink-0 text-muted-foreground"
+                aria-label={t("appStore.services.descriptionLabel")}
+              >
+                <Info className="size-3.5" aria-hidden />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="max-h-72 w-80 overflow-y-auto text-sm">
+              {hasDescription ? (
                 <ServiceDescriptionMarkdown content={component.description} />
-              </PopoverContent>
-            </Popover>
-          ) : null}
+              ) : (
+                <p className="text-muted-foreground">{t("appStore.services.noDescription")}</p>
+              )}
+            </PopoverContent>
+          </Popover>
         </CardTitle>
       </CardHeader>
       <CardContent className="grid min-w-0 gap-3 text-sm">
@@ -142,14 +143,17 @@ export function ApplicationServiceCard({
           {t("appStore.services.viewResources")}
         </Button>
         {editable ? (
-          <HeaderActionsMenu
-            label={t("action.more")}
-            actions={[
-              { key: "add-resource", label: t("appStore.addResource"), onSelect: onAddResource },
-              { key: "edit-service", label: t("appStore.services.editService"), onSelect: onEdit },
-              { key: "delete-service", label: t("action.delete"), destructive: true, onSelect: onDelete },
-            ]}
-          />
+          <>
+            <Button variant="ghost" size="sm" onClick={onEdit}>
+              {t("appStore.services.editService")}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onAddResource}>
+              {t("appStore.addResource")}
+            </Button>
+            <Button variant="ghost" size="sm" className="ml-auto text-destructive" onClick={onDelete}>
+              {t("action.delete")}
+            </Button>
+          </>
         ) : null}
       </CardFooter>
     </Card>

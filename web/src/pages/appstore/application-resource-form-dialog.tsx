@@ -548,7 +548,9 @@ export function ApplicationResourceFormDialog({
             applicationUid,
             uid: versionUid,
             resource: {
-              item: name.trim() || componentName.trim(),
+              // item 是版本内的稳定标识；带上 kind 前缀，避免同名 Deployment 与
+              // Service 共用 metadata.name 时被后端判成重复资源。
+              item: name.trim() ? `${kind.toLowerCase()}-${name.trim()}` : componentName.trim(),
               manifest,
               component: componentName.trim(),
             },
@@ -622,7 +624,7 @@ export function ApplicationResourceFormDialog({
                 {kind === "Deployment" || kind === "StatefulSet" ? (
                   <>
                     <FormField label={t("appStore.resourceForm.replicas")} htmlFor="resource-form-replicas" hint={t("appStore.resourceForm.replicasHelp")}>
-                      <Input id="resource-form-replicas" type="number" min={0} max={100} value={replicas} onChange={(event) => touch(setReplicas)(event.target.value)} />
+                      <Input id="resource-form-replicas" type="number" min={0} max={100} value={replicas} placeholder="2" onChange={(event) => touch(setReplicas)(event.target.value)} />
                     </FormField>
                     <FormField label={t("appStore.resourceForm.containerName")} htmlFor="resource-form-container">
                       <Input id="resource-form-container" className="font-mono" value={containerName} placeholder="app" onChange={(event) => touch(setContainerName)(event.target.value)} />
@@ -636,7 +638,7 @@ export function ApplicationResourceFormDialog({
                       />
                     </FormField>
                     <FormField label={t("appStore.resourceForm.containerPort")} htmlFor="resource-form-port" hint={t("appStore.resourceForm.portHelp")} error={errors.port}>
-                      <Input id="resource-form-port" type="number" min={1} max={65535} value={port} onChange={(event) => touch(setPort)(event.target.value)} />
+                      <Input id="resource-form-port" type="number" min={1} max={65535} value={port} placeholder="8080" onChange={(event) => touch(setPort)(event.target.value)} />
                     </FormField>
                   </>
                 ) : null}
@@ -652,10 +654,10 @@ export function ApplicationResourceFormDialog({
                       </Select>
                     </FormField>
                     <FormField label={t("appStore.resourceForm.servicePort")} htmlFor="resource-form-service-port" error={errors.servicePort}>
-                      <Input id="resource-form-service-port" type="number" min={1} max={65535} value={servicePort} onChange={(event) => touch(setServicePort)(event.target.value)} />
+                      <Input id="resource-form-service-port" type="number" min={1} max={65535} value={servicePort} placeholder="80" onChange={(event) => touch(setServicePort)(event.target.value)} />
                     </FormField>
                     <FormField label={t("appStore.resourceForm.targetPort")} htmlFor="resource-form-target-port" error={errors.targetPort}>
-                      <Input id="resource-form-target-port" type="number" min={1} max={65535} value={targetPort} onChange={(event) => touch(setTargetPort)(event.target.value)} />
+                      <Input id="resource-form-target-port" type="number" min={1} max={65535} value={targetPort} placeholder="80" onChange={(event) => touch(setTargetPort)(event.target.value)} />
                     </FormField>
                   </>
                 ) : null}
@@ -697,7 +699,7 @@ export function ApplicationResourceFormDialog({
                       <Input id="resource-form-backend" className="font-mono" value={ingressService} placeholder="app" onChange={(event) => touch(setIngressService)(event.target.value)} />
                     </FormField>
                     <FormField label={t("appStore.resourceForm.backendPort")} htmlFor="resource-form-backend-port" error={errors.ingressPort}>
-                      <Input id="resource-form-backend-port" type="number" min={1} max={65535} value={ingressPort} onChange={(event) => touch(setIngressPort)(event.target.value)} />
+                      <Input id="resource-form-backend-port" type="number" min={1} max={65535} value={ingressPort} placeholder="80" onChange={(event) => touch(setIngressPort)(event.target.value)} />
                     </FormField>
                   </>
                 ) : null}

@@ -5,6 +5,7 @@ import { toast } from "sonner"
 
 import {
   createApplicationVersion,
+  updateApplicationVersion,
   deleteApplication,
   deleteApplicationVersion,
   deprecateApplicationVersion,
@@ -70,6 +71,10 @@ export function ApplicationDetailPage() {
   const [createError, setCreateError] = useState("")
   const [createFormError, setCreateFormError] = useState("")
   const [duplicateSource, setDuplicateSource] = useState<ApplicationVersionItem | null>(null)
+  const [editVersion, setEditVersion] = useState<ApplicationVersionItem | null>(null)
+  const [editChangelog, setEditChangelog] = useState("")
+  const [editPending, setEditPending] = useState(false)
+  const [editError, setEditError] = useState("")
   const [releaseVersionUid, setReleaseVersionUid] = useState<string | undefined>(undefined)
   const [releaseOpen, setReleaseOpen] = useState(false)
   const [deleting, setDeleting] = useState<ApplicationVersionItem | null>(null)
@@ -193,8 +198,33 @@ export function ApplicationDetailPage() {
     }
   }
 
+  async function saveVersionChangelog() {
+    if (!editVersion) return
+    setEditPending(true)
+    setEditError("")
+    try {
+      await updateApplicationVersion({
+        applicationUid: uid,
+        uid: editVersion.uid,
+        changelog: editChangelog.trim(),
+        resources: [],
+        revision: editVersion.revision,
+      })
+      setEditVersion(null)
+      toast.success(t("state.saved"))
+      reload()
+    } catch (err) {
+      setEditError(formErrorMessage(err, t("state.failed")))
+    } finally {
+      setEditPending(false)
+    }
+  }
+
   function versionActions(item: ApplicationVersionItem) {
     return [
+      ...(writable
+        ? [{ key: "edit", label: t("appStore.editVersion"), onSelect: () => { setEditError(""); setEditChangelog(item.changelog); setEditVersion(item) } }]
+        : []),
       ...(releasable && canRunVersionAction(item, "RELEASE")
         ? [{ key: "release", label: t("appStore.releaseAction"), onSelect: () => { setReleaseVersionUid(item.uid); setReleaseOpen(true) } }]
         : []),
@@ -217,7 +247,7 @@ export function ApplicationDetailPage() {
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader
         title={app?.displayName || app?.name || uid}
-        description={app ? `${app.name} · ${applicationCategoryLabel(t, app.category)}${app.description ? ` · ${app.description}` : ""}` : t("state.loading")}
+        description={app ? `${app.name} · ${applicationCategoryLabel(t, app.category)}` : t("state.loading")}
       >
         <Button variant="outline" onClick={() => navigate("/appstore")}>{t("action.goBack")}</Button>
         {releasable ? (
@@ -257,6 +287,7 @@ export function ApplicationDetailPage() {
                     <TableHead>{t("appStore.status")}</TableHead>
                     <TableHead className={TABLE_NOWRAP}>{t("appStore.services.title")}</TableHead>
                     <TableHead className={TABLE_NOWRAP}>{t("appStore.resources")}</TableHead>
+                    <TableHead>{t("appStore.note")}</TableHead>
                     <TableHead className={TABLE_NOWRAP}>{t("action.createdAt")}</TableHead>
                     <TableActionsHead>{t("action.actions")}</TableActionsHead>
                   </TableRow>
@@ -272,11 +303,11 @@ export function ApplicationDetailPage() {
                         >
                           {item.version}
                         </button>
-                        {item.changelog ? <p className="max-w-[28rem] truncate text-xs text-muted-foreground">{item.changelog}</p> : null}
                       </TableCell>
                       <TableCell><StatusBadge value={item.status} /></TableCell>
                       <TableCell className={`font-mono text-xs ${TABLE_NOWRAP}`}>{item.componentCount || item.components?.length || 0}</TableCell>
                       <TableCell className={`font-mono text-xs ${TABLE_NOWRAP}`}>{item.resourceCount || item.resources?.length || 0}</TableCell>
+                      <TableCell className="max-w-[24rem] text-xs text-muted-foreground"><span className="block truncate" title={item.changelog}>{item.changelog || "—"}</span></TableCell>
                       <TableCell className={`font-mono text-xs ${TABLE_NOWRAP}`}>{formatUnixDateTime(item.createdAt) || "—"}</TableCell>
                       <TableActionsCell>
                         <RowActions
@@ -329,6 +360,22 @@ export function ApplicationDetailPage() {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setVersionDialogOpen(false)}>{t("action.cancel")}</Button>
             <Button disabled={creating} onClick={() => void createDraft()}>{creating ? t("action.saving") : t("action.create")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editVersion !== null} onOpenChange={(open) => { if (!open) setEditVersion(null) }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>{t("appStore.editVersion")}</DialogTitle></DialogHeader>
+          <DialogBody className="grid gap-4">
+            <FormField label={t("appStore.changelog")} htmlFor="edit-version-changelog" hint={t("appStore.versionNoteHelp")}>
+              <Textarea id="edit-version-changelog" value={editChangelog} placeholder={t("appStore.changelogPlaceholder")} onChange={(event) => setEditChangelog(event.target.value)} />
+            </FormField>
+          </DialogBody>
+          {editError ? <p className="text-sm text-destructive">{editError}</p> : null}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditVersion(null)}>{t("action.cancel")}</Button>
+            <Button disabled={editPending} onClick={() => void saveVersionChangelog()}>{editPending ? t("action.saving") : t("action.save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

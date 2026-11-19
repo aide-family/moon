@@ -5,13 +5,11 @@ import { useSession } from "@/auth/session"
 
 import {
   listRegistries,
-  listRegistryProjects,
   listRegistryRepositories,
   listRegistryTags,
 } from "@/api/registry"
 import type {
   RegistryItem,
-  RegistryProjectItem,
   RegistryRepositoryItem,
   RegistryTagItem,
 } from "@/api/registry/types"
@@ -48,13 +46,14 @@ function registryHost(endpoint: string): string {
   return endpoint.replace(/^https?:\/\//i, "").replace(/\/+$/, "")
 }
 
-function joinImage(input: { registryName: string; project: string; repository: string; tag: string }): string {
-  const path = [input.registryName, input.project, input.repository].filter(Boolean).join("/")
+function joinImage(input: { registryName: string; repository: string; tag: string }): string {
+  // repository 已经是仓库内的完整路径（可能含 project 前缀），不能再拼一次 project。
+  const path = [input.registryName, input.repository].filter(Boolean).join("/")
   return input.tag ? `${path}:${input.tag}` : path
 }
 
 /**
- * 从镜像仓库选择镜像：registry → project → repository → tag 级联。
+ * 从镜像仓库选择镜像：registry → image（repository）→ tag 三步。
  * 仍保留下方输入框手输外部镜像（例如 Docker Hub 或未接入的仓库），
  * 此时提示 digest 未固定。
  */
@@ -73,8 +72,6 @@ export function ImageReferencePicker({
   const registryAllowed = session.can("registry:read")
   const [registries, setRegistries] = useState<RegistryItem[]>([])
   const [registryUid, setRegistryUid] = useState("")
-  const [projects, setProjects] = useState<RegistryProjectItem[]>([])
-  const [project, setProject] = useState("")
   const [repositories, setRepositories] = useState<RegistryRepositoryItem[]>([])
   const [repository, setRepository] = useState("")
   const [tags, setTags] = useState<RegistryTagItem[]>([])
@@ -118,24 +115,7 @@ export function ImageReferencePicker({
       return
     }
     let active = true
-    void listRegistryProjects(registryUid)
-      .then((result) => {
-        if (active) setProjects(result.items)
-      })
-      .catch(() => {
-        if (active) setProjects([])
-      })
-    return () => {
-      active = false
-    }
-  }, [registryUid])
-
-  useEffect(() => {
-    if (!registryUid) {
-      return
-    }
-    let active = true
-    void listRegistryRepositories(registryUid, { project, page: 1, pageSize: 100 })
+    void listRegistryRepositories(registryUid, { page: 1, pageSize: 100 })
       .then((result) => {
         if (active) setRepositories(result.items)
       })
@@ -145,14 +125,14 @@ export function ImageReferencePicker({
     return () => {
       active = false
     }
-  }, [registryUid, project])
+  }, [registryUid])
 
   useEffect(() => {
     if (!registryUid || !repository) {
       return
     }
     let active = true
-    void listRegistryTags(registryUid, { project, repository, page: 1, pageSize: 100 })
+    void listRegistryTags(registryUid, { repository, page: 1, pageSize: 100 })
       .then((result) => {
         if (active) setTags(result.items)
       })
@@ -162,7 +142,7 @@ export function ImageReferencePicker({
     return () => {
       active = false
     }
-  }, [registryUid, project, repository])
+  }, [registryUid, repository])
 
   function pickTag(next: string) {
     setTag(next)
@@ -172,7 +152,6 @@ export function ImageReferencePicker({
     const item = tags.find((entry) => entry.tag === next)
     const image = joinImage({
       registryName: registryHost(registry.endpoint),
-      project,
       repository,
       tag: next,
     })
@@ -181,7 +160,7 @@ export function ImageReferencePicker({
       registryUid: registry.uid,
       registryName: registry.name,
       endpoint: registryHost(registry.endpoint),
-      project,
+      project: repositories.find((entry) => entry.name === repository)?.project ?? "",
       repository,
       tag: next,
       digest: item?.digest ?? "",
@@ -202,7 +181,7 @@ export function ImageReferencePicker({
 
   return (
     <div className={className}>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid gap-2 sm:grid-cols-3">
         <SearchableSelect
           value={registryUid}
           options={registries.map((item) => ({
@@ -212,7 +191,6 @@ export function ImageReferencePicker({
           }))}
           onChange={(next) => {
             setRegistryUid(next)
-            setProject("")
             setRepository("")
             setTag("")
             setSelection(null)
@@ -227,31 +205,11 @@ export function ImageReferencePicker({
           aria-describedby={ariaDescribedBy}
         />
         <SearchableSelect
-          value={project}
-          options={projects.map((item) => ({
-            value: item.name,
-            label: item.name,
-            description: t("appStore.imagePicker.repositoryCount", { count: item.repositoryCount }),
-          }))}
-          onChange={(next) => {
-            setProject(next)
-            setRepository("")
-            setTag("")
-          }}
-          placeholder={t("appStore.imagePicker.projectPlaceholder")}
-          searchPlaceholder={t("appStore.imagePicker.search")}
-          emptyText={t("appStore.imagePicker.emptyProjects")}
-          clearLabel={t("appStore.imagePicker.clear")}
-          disabled={disabled || !registryUid}
-          invalid={invalid}
-          ariaLabel={t("appStore.imagePicker.project")}
-        />
-        <SearchableSelect
           value={repository}
           options={repositories.map((item) => ({
             value: item.name,
             label: item.name,
-            description: t("appStore.imagePicker.tagCount", { count: item.tagCount }),
+            description: [item.project, t("appStore.imagePicker.tagCount", { count: item.tagCount })].filter(Boolean).join(" · "),
           }))}
           onChange={(next) => {
             setRepository(next)

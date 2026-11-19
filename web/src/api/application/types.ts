@@ -33,8 +33,12 @@ export interface SaveApplicationParams {
   readme: string
 }
 
-export interface UpdateApplicationParams extends SaveApplicationParams {
+export interface UpdateApplicationParams {
   uid: string
+  displayName: string
+  category: ApplicationCategory
+  description: string
+  readme: string
 }
 
 export interface ListApplicationsParams {

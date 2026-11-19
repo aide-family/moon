@@ -25,7 +25,6 @@ import { readFormError } from "@/lib/form-error"
 
 const NAME_MAX = 64
 const DISPLAY_MAX = 128
-const DESCRIPTION_MAX = 1024
 const README_MAX = 65536
 
 interface ApplicationDialogProps {
@@ -45,7 +44,6 @@ export function ApplicationDialog({
   const [name, setName] = useState(() => application?.name ?? "")
   const [displayName, setDisplayName] = useState(() => application?.displayName ?? "")
   const [category, setCategory] = useState(() => application?.category ?? "")
-  const [description, setDescription] = useState(() => application?.description ?? "")
   const [readme, setReadme] = useState(() => application?.readme ?? "")
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
@@ -77,17 +75,17 @@ export function ApplicationDialog({
     setFieldError("")
     setCategoryError("")
     try {
-      const body: SaveApplicationParams = {
-        name: name.trim(),
+      const body = {
         displayName: displayName.trim(),
         // 空分类回退 OTHER；自定义分类原样提交（≤32）。
         category: normalizeApplicationCategory(category),
-        description: description.trim(),
+        // 说明字段已收敛到「说明文档」，编辑时保留历史值，避免旧数据被清空。
+        description: application?.description ?? "",
         readme,
       }
       const result = application
         ? await updateApplication({ ...body, uid: application.uid })
-        : await createApplication(body)
+        : await createApplication({ ...body, name: name.trim() } satisfies SaveApplicationParams)
       onSaved(result.application)
     } catch (err) {
       const failure = readFormError(err, t("state.failed"))
@@ -162,15 +160,6 @@ export function ApplicationDialog({
                 <option key={preset} value={preset}>{t(`appStore.categories.${preset}`)}</option>
               ))}
             </datalist>
-          </FormField>
-          <FormField label={t("appStore.descriptionLabel")} htmlFor="app-description" hint={t("appStore.descriptionHelp")}>
-            <Input
-              id="app-description"
-              value={description}
-              maxLength={DESCRIPTION_MAX}
-              placeholder={t("appStore.descriptionPlaceholder")}
-              onChange={(event) => setDescription(event.target.value)}
-            />
           </FormField>
           <FormField label={t("appStore.readme")} htmlFor="app-readme" className="sm:col-span-full" hint={t("appStore.readmeHelp")}>
             <Textarea
