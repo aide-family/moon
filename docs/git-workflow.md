@@ -26,6 +26,10 @@ git switch -c <类型>/<kebab-case-描述> main
 git merge-base --is-ancestor main HEAD && echo "起点是 main"
 ```
 
+一个会话只用一个分支：分支按会话里的第一个需求命名，后续需求接着这条分支提交，
+不另开分支、不并行开多条分支。会话中途该分支已合并进 `main` 时，后续改动继续用它，
+先 `git rebase main` 再提交。
+
 分支名正则：`^(feat|fix|hotfix|refactor|docs|test|chore|perf|build|ci|revert)/[a-z0-9]+(-[a-z0-9]+)*$`，
 总长 ≤50，小写 ASCII，2–5 个英文词，不用 `wip/tmp/test/updates/changes/new/fix` 这类空词，不加个人前缀。
 新分支不设 upstream。
@@ -35,7 +39,7 @@ checkout 被别的会话占用、或带着他人未提交改动时，不要在�
 
 ## 开发
 
-- 一个任务一个分支，中途不为别的事切分支。
+- 一个会话一个分支，中途不为别的事切分支、不另开分支。
 - 生成代码（`make conf`、ent、Wire、`buf generate`）在分支上重跑，生成物与源文件同一次提交。
 - 不顺手格式化、不重排、不做"顺便优化"。
 - 不 `stash`、不 `checkout --`、不 `restore`、不 `clean` 别人的未提交改动；不动不属于本任务的条目。
@@ -69,6 +73,7 @@ checkout 被别的会话占用、或带着他人未提交改动时，不要在�
 ## 禁止
 
 - 在 `main` 上提交本任务改动（用户明确指示除外）；在 `main` 与 `origin/main` 不一致时切分支。
+- 在同一会话里为后续需求另开分支，或并行开多条分支。
 - 从非 `main` 的分支或提交切本任务分支（用户明确要求接着某个分支做时除外）。
 - `git push`、`git push --force`、`git commit --amend` 已推送提交、`git reset --hard`。
 - 对他人的分支 rebase；对本任务分支 rebase 后强推（除非用户明确同意）。

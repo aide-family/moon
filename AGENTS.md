@@ -4,7 +4,7 @@
 
 改仓库内容前先读 [docs/git-workflow.md](docs/git-workflow.md)（强制）。要点：
 
-1. 先 `git fetch` 把本地 `main` 同步到 `origin/main`（不一致按该文的表处理，不擅自 push），再从 `main` 切 `<类型>/<kebab-case-描述>` 分支开发。
+1. 先 `git fetch` 把本地 `main` 同步到 `origin/main`（不一致按该文的表处理，不擅自 push），再从 `main` 切 `<类型>/<kebab-case-描述>` 分支开发。一个会话只用一个分支：后续需求接着这条分支提交，不另开分支、不并行开多条分支。
 2. 完成后只提交到该分支：不推送、不合并、不打 tag、不建 PR。
 3. 推送还是本地合并进 `main` 由用户决定；合并只用 rebase 后 `--ff-only`，不留合并提交。
 4. 未得到用户明确指示前，推送、合并、rebase、打 tag、建 PR 一条都不执行。
