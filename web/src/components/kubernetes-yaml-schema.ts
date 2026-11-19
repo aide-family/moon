@@ -66,14 +66,107 @@ const servicePort: JSONSchema = {
   additionalProperties: true,
 }
 
+const keySelector: JSONSchema = {
+  type: "object",
+  properties: {
+    name: { type: "string" },
+    key: { type: "string" },
+    optional: { type: "boolean" },
+  },
+  required: ["key"],
+  additionalProperties: true,
+}
+
 const envVar: JSONSchema = {
   type: "object",
   properties: {
     name: { type: "string" },
     value: { type: "string" },
-    valueFrom: { type: "object", additionalProperties: true },
+    valueFrom: {
+      type: "object",
+      properties: {
+        configMapKeyRef: keySelector,
+        secretKeyRef: keySelector,
+        fieldRef: { type: "object", properties: { fieldPath: { type: "string" } }, required: ["fieldPath"], additionalProperties: true },
+        resourceFieldRef: { type: "object", additionalProperties: true },
+      },
+      additionalProperties: true,
+    },
   },
   required: ["name"],
+  additionalProperties: true,
+}
+
+const volumeMount: JSONSchema = {
+  type: "object",
+  properties: {
+    name: { type: "string" },
+    mountPath: { type: "string" },
+    subPath: { type: "string" },
+    readOnly: { type: "boolean" },
+  },
+  required: ["name", "mountPath"],
+  additionalProperties: true,
+}
+
+const volume: JSONSchema = {
+  type: "object",
+  properties: {
+    name: { type: "string" },
+    emptyDir: { type: "object", additionalProperties: true },
+    configMap: { type: "object", properties: { name: { type: "string" }, defaultMode: { type: "integer" }, optional: { type: "boolean" } }, additionalProperties: true },
+    secret: { type: "object", properties: { secretName: { type: "string" }, defaultMode: { type: "integer" }, optional: { type: "boolean" } }, additionalProperties: true },
+    persistentVolumeClaim: { type: "object", properties: { claimName: { type: "string" }, readOnly: { type: "boolean" } }, required: ["claimName"], additionalProperties: true },
+    hostPath: { type: "object", properties: { path: { type: "string" }, type: { type: "string" } }, required: ["path"], additionalProperties: true },
+    projected: { type: "object", additionalProperties: true },
+    nfs: { type: "object", additionalProperties: true },
+  },
+  required: ["name"],
+  additionalProperties: true,
+}
+
+const probeAction: JSONSchema = {
+  type: "object",
+  properties: {
+    httpGet: {
+      type: "object",
+      properties: {
+        path: { type: "string" },
+        port: { type: ["integer", "string"] },
+        host: { type: "string" },
+        scheme: { type: "string", enum: ["HTTP", "HTTPS"] },
+      },
+      required: ["port"],
+      additionalProperties: true,
+    },
+    tcpSocket: {
+      type: "object",
+      properties: {
+        host: { type: "string" },
+        port: { type: ["integer", "string"] },
+      },
+      required: ["port"],
+      additionalProperties: true,
+    },
+    exec: {
+      type: "object",
+      properties: { command: { type: "array", items: { type: "string" }, minItems: 1 } },
+      required: ["command"],
+      additionalProperties: true,
+    },
+    grpc: {
+      type: "object",
+      properties: { port: { type: "integer" }, service: { type: "string" } },
+      required: ["port"],
+      additionalProperties: true,
+    },
+    initialDelaySeconds: { type: "integer", minimum: 0 },
+    periodSeconds: { type: "integer", minimum: 1 },
+    timeoutSeconds: { type: "integer", minimum: 1 },
+    successThreshold: { type: "integer", minimum: 1 },
+    failureThreshold: { type: "integer", minimum: 1 },
+    terminationGracePeriodSeconds: { type: "integer", minimum: 0 },
+  },
   additionalProperties: true,
 }
 
@@ -96,10 +189,10 @@ const container: JSONSchema = {
       },
       additionalProperties: true,
     },
-    volumeMounts: { type: "array", items: { type: "object", additionalProperties: true } },
-    readinessProbe: { type: "object", additionalProperties: true },
-    livenessProbe: { type: "object", additionalProperties: true },
-    startupProbe: { type: "object", additionalProperties: true },
+    volumeMounts: { type: "array", items: volumeMount },
+    readinessProbe: probeAction,
+    livenessProbe: probeAction,
+    startupProbe: probeAction,
     securityContext: { type: "object", additionalProperties: true },
   },
   required: ["name", "image"],
@@ -111,7 +204,7 @@ const podSpec: JSONSchema = {
   properties: {
     containers: { type: "array", items: container, minItems: 1 },
     initContainers: { type: "array", items: container },
-    volumes: { type: "array", items: { type: "object", additionalProperties: true } },
+    volumes: { type: "array", items: volume },
     serviceAccountName: { type: "string" },
     restartPolicy: { type: "string", enum: ["Always", "OnFailure", "Never"] },
     nodeSelector: stringMap,

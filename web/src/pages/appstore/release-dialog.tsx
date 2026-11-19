@@ -82,7 +82,7 @@ export function ApplicationReleaseDialog({
     let active = true
     void Promise.all([
       listApplicationVersions(applicationUid, { page: 1, pageSize: 200, status: "PUBLISHED" }),
-      listClusters({ page: 1, pageSize: 200 }),
+      listClusters({ page: 1, pageSize: 100 }),
       listApplicationDeployments({ applicationUid, page: 1, pageSize: 200 }),
     ])
       .then(([versionResult, clusterResult, deploymentResult]) => {

@@ -1,6 +1,7 @@
-import { useState } from "react"
+import { ChevronDown } from "lucide-react"
+import { useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
-import { parse as parseYaml } from "yaml"
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml"
 
 import {
   createApplicationVersionResource,
@@ -13,6 +14,12 @@ import { ImageReferencePicker } from "@/components/image-reference-picker"
 import { FormField, KeyValueRowLabels } from "@/components/form-field"
 import { YamlEditor } from "@/components/yaml-editor"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import {
   Dialog,
   DialogBody,
@@ -30,12 +37,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { cn } from "@/lib/class-names"
 import { checkField } from "@/lib/form"
 import { formErrorMessage, readFormError } from "@/lib/form-error"
 
 const FORM_KINDS = [
   "Deployment",
   "StatefulSet",
+  "DaemonSet",
   "Service",
   "ConfigMap",
   "Secret",
@@ -43,6 +52,17 @@ const FORM_KINDS = [
   "CronJob",
 ] as const
 type FormKind = (typeof FORM_KINDS)[number]
+
+const WORKLOAD_KINDS: readonly FormKind[] = ["Deployment", "StatefulSet", "DaemonSet"]
+const IMAGE_KINDS: readonly FormKind[] = ["Deployment", "StatefulSet", "DaemonSet", "CronJob"]
+const VOLUME_TYPES = ["emptyDir", "configMap", "secret", "persistentVolumeClaim", "hostPath"] as const
+type VolumeType = (typeof VOLUME_TYPES)[number]
+const PROBE_TYPES = ["httpGet", "tcpSocket", "exec"] as const
+type ProbeType = (typeof PROBE_TYPES)[number]
+const PATH_TYPES = ["Prefix", "Exact", "ImplementationSpecific"] as const
+type PathType = (typeof PATH_TYPES)[number]
+const IMAGE_PULL_POLICIES = ["IfNotPresent", "Always", "Never"] as const
+const INGRESS_CLASS_PRESETS = ["nginx", "traefik", "alb"] as const
 
 interface ApplicationResourceFormDialogProps {
   open: boolean
@@ -66,134 +86,367 @@ interface KeyValue {
   value: string
 }
 
+interface EnvRow {
+  name: string
+  value: string
+}
+
+interface VolumeRow {
+  name: string
+  type: VolumeType
+  source: string
+  mountPath: string
+}
+
+interface ProbeRow {
+  enabled: boolean
+  type: ProbeType
+  path: string
+  port: string
+  command: string
+  initialDelaySeconds: string
+  periodSeconds: string
+}
+
+interface ResourceLimits {
+  requestsCpu: string
+  requestsMemory: string
+  limitsCpu: string
+  limitsMemory: string
+}
+
+interface IngressPathRow {
+  path: string
+  pathType: PathType
+  service: string
+  port: string
+}
+
+interface IngressRuleRow {
+  host: string
+  paths: IngressPathRow[]
+}
+
 interface FormValues {
   kind: FormKind
   name: string
   replicas: string
   containerName: string
   image: string
+  imagePullPolicy: string
   port: string
   serviceType: string
   servicePort: string
   targetPort: string
   entries: KeyValue[]
-  ingressHost: string
-  ingressPath: string
-  ingressService: string
-  ingressPort: string
   schedule: string
   command: string
+  containerCommand: string
+  containerArgs: string
+  labels: KeyValue[]
+  annotations: KeyValue[]
+  env: EnvRow[]
+  volumes: VolumeRow[]
+  probes: {
+    liveness: ProbeRow
+    readiness: ProbeRow
+    startup: ProbeRow
+  }
+  resources: ResourceLimits
+  ingressClassName: string
+  ingressAnnotations: KeyValue[]
+  tlsEnabled: boolean
+  tlsSecretName: string
+  rules: IngressRuleRow[]
 }
 
-// 新增时保持空值，只有结构化默认项（副本数、Service 类型、Ingress 路径）。
+function emptyProbe(): ProbeRow {
+  return {
+    enabled: false,
+    type: "httpGet",
+    path: "/",
+    port: "",
+    command: "",
+    initialDelaySeconds: "",
+    periodSeconds: "",
+  }
+}
+
+function emptyPath(): IngressPathRow {
+  return { path: "/", pathType: "Prefix", service: "", port: "" }
+}
+
+// 新增时保持空值，只有结构化默认项：副本数、Service 类型、探针/规则的空壳。
 const EMPTY_VALUES: FormValues = {
   kind: "Deployment",
   name: "",
   replicas: "1",
   containerName: "",
   image: "",
+  imagePullPolicy: "IfNotPresent",
   port: "",
   serviceType: "ClusterIP",
   servicePort: "",
   targetPort: "",
   entries: [],
-  ingressHost: "",
-  ingressPath: "/",
-  ingressService: "",
-  ingressPort: "",
   schedule: "",
   command: "",
+  containerCommand: "",
+  containerArgs: "",
+  labels: [],
+  annotations: [],
+  env: [],
+  volumes: [],
+  probes: { liveness: emptyProbe(), readiness: emptyProbe(), startup: emptyProbe() },
+  resources: { requestsCpu: "", requestsMemory: "", limitsCpu: "", limitsMemory: "" },
+  ingressClassName: "",
+  ingressAnnotations: [],
+  tlsEnabled: false,
+  tlsSecretName: "",
+  rules: [{ host: "", paths: [emptyPath()] }],
 }
 
-function yamlValue(value: string): string {
-  return JSON.stringify(value)
-}
-
-function buildManifest(input: FormValues): string {
-  const { kind, name } = input
-  const metadata = `metadata:\n  name: ${yamlValue(name)}`
-  switch (kind) {
-    case "Deployment":
-    case "StatefulSet":
-      return `apiVersion: apps/v1
-kind: ${kind}
-${metadata}
-spec:
-  replicas: ${input.replicas || "1"}
-  selector:
-    matchLabels:
-      app: ${yamlValue(name)}
-  template:
-    metadata:
-      labels:
-        app: ${yamlValue(name)}
-    spec:
-      containers:
-        - name: ${yamlValue(input.containerName || name)}
-          image: ${yamlValue(input.image)}
-          ports:
-            - containerPort: ${input.port || "80"}
-`
-    case "Service":
-      return `apiVersion: v1
-kind: Service
-${metadata}
-spec:
-  type: ${input.serviceType || "ClusterIP"}
-  selector:
-    app: ${yamlValue(name)}
-  ports:
-    - port: ${input.servicePort || "80"}
-      targetPort: ${input.targetPort || input.servicePort || "80"}
-`
-    case "ConfigMap":
-    case "Secret": {
-      const body = input.entries
-        .filter((entry) => entry.key.trim() !== "")
-        .map((entry) => `  ${entry.key.trim()}: ${yamlValue(entry.value)}`)
-        .join("\n")
-      return `apiVersion: v1
-kind: ${kind}
-${metadata}
-${kind === "Secret" ? "stringData" : "data"}:
-${body || "  {}"}
-`
+function kvToObject(rows: KeyValue[]): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const row of rows) {
+    const key = row.key.trim()
+    if (key) {
+      out[key] = row.value
     }
-    case "Ingress":
-      return `apiVersion: networking.k8s.io/v1
-kind: Ingress
-${metadata}
-spec:
-  ingressClassName: nginx
-  rules:
-    - host: ${yamlValue(input.ingressHost)}
-      http:
-        paths:
-          - path: ${input.ingressPath || "/"}
-            pathType: Prefix
-            backend:
-              service:
-                name: ${yamlValue(input.ingressService || name)}
-                port:
-                  number: ${input.ingressPort || "80"}
-`
-    case "CronJob":
-      return `apiVersion: batch/v1
-kind: CronJob
-${metadata}
-spec:
-  schedule: ${yamlValue(input.schedule)}
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          restartPolicy: OnFailure
-          containers:
-            - name: ${yamlValue(input.containerName || name)}
-              image: ${yamlValue(input.image)}
-              command: ["/bin/sh", "-c", ${yamlValue(input.command)}]
-`
   }
+  return out
+}
+
+function splitTokens(value: string): string[] {
+  return value.trim() === "" ? [] : value.trim().split(/\s+/)
+}
+
+function numberOrString(value: string): number | string {
+  const trimmed = value.trim()
+  const parsed = Number(trimmed)
+  return trimmed !== "" && Number.isInteger(parsed) ? parsed : trimmed
+}
+
+function buildProbe(row: ProbeRow): Record<string, unknown> | undefined {
+  if (!row.enabled) {
+    return undefined
+  }
+  const probe: Record<string, unknown> = {}
+  if (row.type === "httpGet") {
+    probe.httpGet = { path: row.path.trim() || "/", port: numberOrString(row.port) }
+  } else if (row.type === "tcpSocket") {
+    probe.tcpSocket = { port: numberOrString(row.port) }
+  } else {
+    probe.exec = { command: splitTokens(row.command) }
+  }
+  if (row.initialDelaySeconds.trim() !== "") {
+    probe.initialDelaySeconds = Number(row.initialDelaySeconds)
+  }
+  if (row.periodSeconds.trim() !== "") {
+    probe.periodSeconds = Number(row.periodSeconds)
+  }
+  return probe
+}
+
+function buildResources(limits: ResourceLimits): Record<string, unknown> | undefined {
+  const requests: Record<string, string> = {}
+  const limitsMap: Record<string, string> = {}
+  if (limits.requestsCpu.trim()) requests.cpu = limits.requestsCpu.trim()
+  if (limits.requestsMemory.trim()) requests.memory = limits.requestsMemory.trim()
+  if (limits.limitsCpu.trim()) limitsMap.cpu = limits.limitsCpu.trim()
+  if (limits.limitsMemory.trim()) limitsMap.memory = limits.limitsMemory.trim()
+  if (Object.keys(requests).length === 0 && Object.keys(limitsMap).length === 0) {
+    return undefined
+  }
+  const resources: Record<string, unknown> = {}
+  if (Object.keys(requests).length > 0) resources.requests = requests
+  if (Object.keys(limitsMap).length > 0) resources.limits = limitsMap
+  return resources
+}
+
+function buildVolume(row: VolumeRow): Record<string, unknown> {
+  const name = row.name.trim()
+  const source = row.source.trim()
+  switch (row.type) {
+    case "emptyDir":
+      return { name, emptyDir: {} }
+    case "configMap":
+      return { name, configMap: { name: source } }
+    case "secret":
+      return { name, secret: { secretName: source } }
+    case "persistentVolumeClaim":
+      return { name, persistentVolumeClaim: { claimName: source } }
+    case "hostPath":
+      return { name, hostPath: { path: source } }
+  }
+}
+
+function buildWorkloadContainer(values: FormValues): Record<string, unknown> {
+  const container: Record<string, unknown> = {
+    name: values.containerName.trim() || values.name.trim(),
+    image: values.image.trim(),
+    imagePullPolicy: values.imagePullPolicy,
+  }
+  if (values.port.trim() !== "") {
+    container.ports = [{ containerPort: numberOrString(values.port) }]
+  }
+  const env = values.env
+    .filter((row) => row.name.trim() !== "")
+    .map((row) => ({ name: row.name.trim(), value: row.value }))
+  if (env.length > 0) {
+    container.env = env
+  }
+  const volumeMounts = values.volumes
+    .filter((row) => row.name.trim() !== "" && row.mountPath.trim() !== "")
+    .map((row) => ({ name: row.name.trim(), mountPath: row.mountPath.trim() }))
+  if (volumeMounts.length > 0) {
+    container.volumeMounts = volumeMounts
+  }
+  const command = splitTokens(values.containerCommand)
+  if (command.length > 0) {
+    container.command = command
+  }
+  const args = splitTokens(values.containerArgs)
+  if (args.length > 0) {
+    container.args = args
+  }
+  const resources = buildResources(values.resources)
+  if (resources) {
+    container.resources = resources
+  }
+  const livenessProbe = buildProbe(values.probes.liveness)
+  if (livenessProbe) container.livenessProbe = livenessProbe
+  const readinessProbe = buildProbe(values.probes.readiness)
+  if (readinessProbe) container.readinessProbe = readinessProbe
+  const startupProbe = buildProbe(values.probes.startup)
+  if (startupProbe) container.startupProbe = startupProbe
+  return container
+}
+
+function buildManifest(values: FormValues): string {
+  const kind = values.kind
+  const name = values.name.trim()
+  const labels = kvToObject(values.labels)
+  const annotations = kvToObject(values.annotations)
+  const metadata: Record<string, unknown> = { name }
+  if (Object.keys(labels).length > 0) metadata.labels = labels
+  if (Object.keys(annotations).length > 0) metadata.annotations = annotations
+
+  if (WORKLOAD_KINDS.includes(kind)) {
+    const selector = Object.keys(labels).length > 0 ? labels : { app: name }
+    const spec: Record<string, unknown> = {
+      selector: { matchLabels: selector },
+      template: {
+        metadata: { labels: selector },
+        spec: {
+          containers: [buildWorkloadContainer(values)],
+        },
+      },
+    }
+    if (kind !== "DaemonSet") {
+      spec.replicas = Number(values.replicas || "1")
+    }
+    const volumes = values.volumes
+      .filter((row) => row.name.trim() !== "")
+      .map(buildVolume)
+    if (volumes.length > 0) {
+      ;(spec.template as { spec: Record<string, unknown> }).spec.volumes = volumes
+    }
+    return stringifyYaml({ apiVersion: "apps/v1", kind, metadata, spec })
+  }
+
+  if (kind === "Service") {
+    return stringifyYaml({
+      apiVersion: "v1",
+      kind,
+      metadata,
+      spec: {
+        type: values.serviceType || "ClusterIP",
+        selector: Object.keys(labels).length > 0 ? labels : { app: name },
+        ports: [
+          {
+            port: numberOrString(values.servicePort) || 80,
+            targetPort: numberOrString(values.targetPort || values.servicePort) || 80,
+          },
+        ],
+      },
+    })
+  }
+
+  if (kind === "ConfigMap" || kind === "Secret") {
+    const data = kvToObject(values.entries)
+    return stringifyYaml({
+      apiVersion: "v1",
+      kind,
+      metadata,
+      ...(kind === "Secret" ? { stringData: data } : { data }),
+    })
+  }
+
+  if (kind === "Ingress") {
+    const ingressAnnotations = kvToObject(values.ingressAnnotations)
+    if (Object.keys(ingressAnnotations).length > 0) {
+      metadata.annotations = ingressAnnotations
+    }
+    const spec: Record<string, unknown> = {}
+    if (values.ingressClassName.trim() !== "") {
+      spec.ingressClassName = values.ingressClassName.trim()
+    }
+    if (values.tlsEnabled) {
+      const hosts = values.rules.map((rule) => rule.host.trim()).filter((host) => host !== "")
+      const tls: Record<string, unknown> = {}
+      if (hosts.length > 0) tls.hosts = hosts
+      if (values.tlsSecretName.trim() !== "") tls.secretName = values.tlsSecretName.trim()
+      spec.tls = [tls]
+    }
+    spec.rules = values.rules.map((rule) => ({
+      host: rule.host.trim(),
+      http: {
+        paths: rule.paths.map((path) => ({
+          path: path.path.trim() || "/",
+          pathType: path.pathType,
+          backend: {
+            service: {
+              name: path.service.trim(),
+              port: { number: numberOrString(path.port) || 80 },
+            },
+          },
+        })),
+      },
+    }))
+    return stringifyYaml({
+      apiVersion: "networking.k8s.io/v1",
+      kind,
+      metadata,
+      spec,
+    })
+  }
+
+  // CronJob
+  return stringifyYaml({
+    apiVersion: "batch/v1",
+    kind,
+    metadata,
+    spec: {
+      schedule: values.schedule,
+      jobTemplate: {
+        spec: {
+          template: {
+            spec: {
+              restartPolicy: "OnFailure",
+              containers: [
+                {
+                  name: values.containerName.trim() || name,
+                  image: values.image.trim(),
+                  command: ["/bin/sh", "-c", values.command],
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  })
 }
 
 function isFormKind(kind: string): kind is FormKind {
@@ -225,16 +478,112 @@ function readCommand(value: unknown): string {
   return parts.join(" ")
 }
 
-function parseEntries(value: unknown): KeyValue[] {
+function parseRows(value: unknown): KeyValue[] {
   const record = asRecord(value)
   if (!record) return []
   return Object.entries(record).map(([key, item]) => ({ key, value: readText(item) }))
 }
 
-/**
- * 用 yaml 包解析清单并回填表单字段。返回 null 表示无法解析或缺少 kind，
- * 此时界面保持 YAML 编辑并提示。
- */
+function parseProbe(value: unknown): ProbeRow {
+  const record = asRecord(value)
+  if (!record) {
+    return emptyProbe()
+  }
+  const common = {
+    enabled: true,
+    initialDelaySeconds: readText(record.initialDelaySeconds),
+    periodSeconds: readText(record.periodSeconds),
+  }
+  const httpGet = asRecord(record.httpGet)
+  if (httpGet) {
+    return { ...common, type: "httpGet", path: readText(httpGet.path) || "/", port: readText(httpGet.port), command: "" }
+  }
+  const tcpSocket = asRecord(record.tcpSocket)
+  if (tcpSocket) {
+    return { ...common, type: "tcpSocket", path: "", port: readText(tcpSocket.port), command: "" }
+  }
+  const exec = asRecord(record.exec)
+  return {
+    ...common,
+    type: "exec",
+    path: "",
+    port: "",
+    command: Array.isArray(exec?.command) ? exec.command.map((item) => readText(item)).join(" ") : "",
+  }
+}
+
+function parseVolumes(podSpec: Record<string, unknown> | null, container: Record<string, unknown> | null): VolumeRow[] {
+  if (!Array.isArray(podSpec?.volumes)) {
+    return []
+  }
+  const mounts = new Map<string, string>()
+  if (Array.isArray(container?.volumeMounts)) {
+    for (const item of container.volumeMounts) {
+      const mount = asRecord(item)
+      if (mount) mounts.set(readText(mount.name), readText(mount.mountPath))
+    }
+  }
+  const rows: VolumeRow[] = []
+  for (const item of podSpec.volumes) {
+    const volume = asRecord(item)
+    if (!volume) continue
+    const name = readText(volume.name)
+    const mountPath = mounts.get(name) ?? ""
+    const emptyDir = asRecord(volume.emptyDir)
+    if (emptyDir) {
+      rows.push({ name, type: "emptyDir", source: "", mountPath })
+      continue
+    }
+    const configMap = asRecord(volume.configMap)
+    if (configMap) {
+      rows.push({ name, type: "configMap", source: readText(configMap.name), mountPath })
+      continue
+    }
+    const secret = asRecord(volume.secret)
+    if (secret) {
+      rows.push({ name, type: "secret", source: readText(secret.secretName), mountPath })
+      continue
+    }
+    const pvc = asRecord(volume.persistentVolumeClaim)
+    if (pvc) {
+      rows.push({ name, type: "persistentVolumeClaim", source: readText(pvc.claimName), mountPath })
+      continue
+    }
+    const hostPath = asRecord(volume.hostPath)
+    if (hostPath) {
+      rows.push({ name, type: "hostPath", source: readText(hostPath.path), mountPath })
+    }
+  }
+  return rows
+}
+
+function parseRules(spec: Record<string, unknown> | null): IngressRuleRow[] {
+  if (!Array.isArray(spec?.rules)) {
+    return []
+  }
+  return spec.rules.map((item) => {
+    const rule = asRecord(item)
+    const paths = Array.isArray(asRecord(rule?.http)?.paths) ? (asRecord(rule?.http)?.paths as unknown[]) : []
+    return {
+      host: readText(rule?.host),
+      paths: paths.map((pathItem) => {
+        const path = asRecord(pathItem)
+        const backend = asRecord(asRecord(path?.backend)?.service)
+        const port = backend?.port
+        return {
+          path: readText(path?.path) || "/",
+          pathType: (PATH_TYPES as readonly string[]).includes(readText(path?.pathType))
+            ? (readText(path?.pathType) as PathType)
+            : "Prefix",
+          service: readText(backend?.name),
+          port: readText(asRecord(port)?.number) || readText(port),
+        }
+      }),
+    }
+  })
+}
+
+/** 用 yaml 包解析清单并回填表单字段；无法解析或缺少 kind 时返回 null。 */
 function parseManifest(manifest: string): { kind: string; values: FormValues } | null {
   let document: unknown
   try {
@@ -250,37 +599,68 @@ function parseManifest(manifest: string): { kind: string; values: FormValues } |
   if (!kind) {
     return null
   }
+  const metadata = asRecord(root.metadata)
   const values: FormValues = {
     ...EMPTY_VALUES,
     kind: isFormKind(kind) ? kind : "Deployment",
-    name: readText(asRecord(root.metadata)?.name),
+    name: readText(metadata?.name),
+    labels: parseRows(metadata?.labels),
+    annotations: parseRows(metadata?.annotations),
+    ingressAnnotations: parseRows(metadata?.annotations),
   }
   const spec = asRecord(root.spec)
 
-  if (kind === "Deployment" || kind === "StatefulSet") {
+  if (WORKLOAD_KINDS.includes(kind as FormKind)) {
     values.replicas = readText(spec?.replicas) || "1"
     const podSpec = asRecord(asRecord(spec?.template)?.spec)
     const container = firstRecord(podSpec?.containers)
     values.containerName = readText(container?.name)
     values.image = readText(container?.image)
+    values.imagePullPolicy = readText(container?.imagePullPolicy) || "IfNotPresent"
     values.port = readText(firstRecord(container?.ports)?.containerPort)
+    values.containerCommand = Array.isArray(container?.command)
+      ? container.command.map((item) => readText(item)).join(" ")
+      : ""
+    values.containerArgs = Array.isArray(container?.args)
+      ? container.args.map((item) => readText(item)).join(" ")
+      : ""
+    values.env = Array.isArray(container?.env)
+      ? container.env.flatMap((item) => {
+          const env = asRecord(item)
+          return env ? [{ name: readText(env.name), value: readText(env.value) }] : []
+        })
+      : []
+    values.volumes = parseVolumes(podSpec, container)
+    values.probes = {
+      liveness: parseProbe(container?.livenessProbe),
+      readiness: parseProbe(container?.readinessProbe),
+      startup: parseProbe(container?.startupProbe),
+    }
+    const resources = asRecord(container?.resources)
+    const requests = asRecord(resources?.requests)
+    const limits = asRecord(resources?.limits)
+    values.resources = {
+      requestsCpu: readText(requests?.cpu),
+      requestsMemory: readText(requests?.memory),
+      limitsCpu: readText(limits?.cpu),
+      limitsMemory: readText(limits?.memory),
+    }
   } else if (kind === "Service") {
     values.serviceType = readText(spec?.type) || "ClusterIP"
     const port = firstRecord(spec?.ports)
     values.servicePort = readText(port?.port)
     values.targetPort = readText(port?.targetPort)
   } else if (kind === "ConfigMap" || kind === "Secret") {
-    values.entries = parseEntries(root.stringData ?? root.data)
+    values.entries = parseRows(root.stringData ?? root.data)
   } else if (kind === "Ingress") {
-    const rule = firstRecord(spec?.rules)
-    values.ingressHost = readText(rule?.host)
-    const path = firstRecord(asRecord(rule?.http)?.paths)
-    values.ingressPath = readText(path?.path) || "/"
-    const backend = asRecord(asRecord(path?.backend)?.service)
-    values.ingressService = readText(backend?.name)
-    const backendPort = backend?.port
-    values.ingressPort =
-      readText(asRecord(backendPort)?.number) || readText(backendPort)
+    values.ingressClassName = readText(spec?.ingressClassName)
+    const tls = firstRecord(spec?.tls)
+    values.tlsEnabled = Boolean(tls)
+    values.tlsSecretName = readText(tls?.secretName)
+    const rules = parseRules(spec)
+    if (rules.length > 0) {
+      values.rules = rules
+    }
   } else if (kind === "CronJob") {
     values.schedule = readText(spec?.schedule)
     const jobSpec = asRecord(asRecord(spec?.jobTemplate)?.spec)
@@ -292,6 +672,109 @@ function parseManifest(manifest: string): { kind: string; values: FormValues } |
   }
 
   return { kind, values }
+}
+
+/** 折叠区：长表单按领域分组，默认折叠，编辑时按已有数据展开。 */
+function FormSection({
+  title,
+  hint,
+  defaultOpen = false,
+  children,
+}: {
+  title: string
+  hint?: string
+  defaultOpen?: boolean
+  children: ReactNode
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="min-w-0 rounded-lg border border-border/60">
+      <CollapsibleTrigger asChild>
+        <button
+          type="button"
+          className="flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium hover:bg-muted/40"
+        >
+          <span className="min-w-0 truncate">{title}</span>
+          <ChevronDown
+            aria-hidden
+            className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")}
+          />
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="grid min-w-0 gap-3 border-t border-border/60 p-3">
+        {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
+  )
+}
+
+function RowHeader({ labels }: { labels: string[] }) {
+  return (
+    <div
+      aria-hidden
+      className="hidden gap-2 px-0.5 text-xs leading-5 text-muted-foreground sm:grid"
+      style={{ gridTemplateColumns: `repeat(${labels.length}, minmax(0, 1fr)) auto` }}
+    >
+      {labels.map((label) => (
+        <span key={label} className="min-w-0 truncate">{label}</span>
+      ))}
+      <span className="w-[4.5rem]" />
+    </div>
+  )
+}
+
+interface ProbeEditorProps {
+  label: string
+  value: ProbeRow
+  onChange: (value: ProbeRow) => void
+}
+
+function ProbeEditor({ label, value, onChange }: ProbeEditorProps) {
+  const { t } = useTranslation()
+  return (
+    <div className="grid min-w-0 gap-2 rounded-lg border border-border/60 p-3">
+      <label className="flex items-center gap-2 text-sm font-medium">
+        <Checkbox
+          checked={value.enabled}
+          onCheckedChange={(checked) => onChange({ ...value, enabled: checked === true })}
+        />
+        {label}
+      </label>
+      {value.enabled ? (
+        <div className="grid gap-2 sm:grid-cols-2">
+          <FormField label={t("appStore.resourceForm.probeType")} hint={t("appStore.resourceForm.probeHint")}>
+            <Select value={value.type} onValueChange={(next) => onChange({ ...value, type: next as ProbeType })}>
+              <SelectTrigger aria-label={t("appStore.resourceForm.probeType")}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {PROBE_TYPES.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </FormField>
+          {value.type === "httpGet" ? (
+            <FormField label={t("appStore.resourceForm.probePath")} hint={t("appStore.resourceForm.probePathHint")}>
+              <Input aria-label={t("appStore.resourceForm.probePath")} className="font-mono" value={value.path} placeholder="/healthz" onChange={(event) => onChange({ ...value, path: event.target.value })} />
+            </FormField>
+          ) : null}
+          {value.type !== "exec" ? (
+            <FormField label={t("appStore.resourceForm.probePort")} hint={t("appStore.resourceForm.probePortHint")}>
+              <Input aria-label={t("appStore.resourceForm.probePort")} className="font-mono" type="number" min={1} max={65535} value={value.port} placeholder="8080" onChange={(event) => onChange({ ...value, port: event.target.value })} />
+            </FormField>
+          ) : (
+            <FormField label={t("appStore.resourceForm.probeCommand")} hint={t("appStore.resourceForm.probeCommandHint")} className="sm:col-span-full">
+              <Input aria-label={t("appStore.resourceForm.probeCommand")} className="font-mono" value={value.command} placeholder="/bin/sh -c true" onChange={(event) => onChange({ ...value, command: event.target.value })} />
+            </FormField>
+          )}
+          <FormField label={t("appStore.resourceForm.initialDelaySeconds")} hint={t("appStore.resourceForm.probeSecondsHint")}>
+            <Input aria-label={t("appStore.resourceForm.initialDelaySeconds")} type="number" min={0} value={value.initialDelaySeconds} placeholder="10" onChange={(event) => onChange({ ...value, initialDelaySeconds: event.target.value })} />
+          </FormField>
+          <FormField label={t("appStore.resourceForm.periodSeconds")} hint={t("appStore.resourceForm.probeSecondsHint")}>
+            <Input aria-label={t("appStore.resourceForm.periodSeconds")} type="number" min={0} value={value.periodSeconds} placeholder="10" onChange={(event) => onChange({ ...value, periodSeconds: event.target.value })} />
+          </FormField>
+        </div>
+      ) : null}
+    </div>
+  )
 }
 
 /**
@@ -329,22 +812,7 @@ export function ApplicationResourceFormDialog({
 
   const [tab, setTab] = useState(mode === "edit" && !initial.supported ? "yaml" : "form")
   const [componentName, setComponentName] = useState(initialComponent || resource?.component || "")
-  const [kind, setKind] = useState<FormKind>(initialValues.kind)
-  const [name, setName] = useState(initialValues.name)
-  const [replicas, setReplicas] = useState(initialValues.replicas)
-  const [containerName, setContainerName] = useState(initialValues.containerName)
-  const [image, setImage] = useState(initialValues.image)
-  const [port, setPort] = useState(initialValues.port)
-  const [serviceType, setServiceType] = useState(initialValues.serviceType)
-  const [servicePort, setServicePort] = useState(initialValues.servicePort)
-  const [targetPort, setTargetPort] = useState(initialValues.targetPort)
-  const [entries, setEntries] = useState<KeyValue[]>(initialValues.entries)
-  const [ingressHost, setIngressHost] = useState(initialValues.ingressHost)
-  const [ingressPath, setIngressPath] = useState(initialValues.ingressPath)
-  const [ingressService, setIngressService] = useState(initialValues.ingressService)
-  const [ingressPort, setIngressPort] = useState(initialValues.ingressPort)
-  const [schedule, setSchedule] = useState(initialValues.schedule)
-  const [command, setCommand] = useState(initialValues.command)
+  const [values, setValues] = useState<FormValues>(initialValues)
   const [yaml, setYaml] = useState(resource?.manifest ?? "")
   const [yamlOwned, setYamlOwned] = useState(mode === "edit")
   const [formTouched, setFormTouched] = useState(false)
@@ -356,39 +824,18 @@ export function ApplicationResourceFormDialog({
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [validationWarnings, setValidationWarnings] = useState<string[]>([])
 
-  const values: FormValues = {
-    kind, name, replicas, containerName, image, port, serviceType, servicePort,
-    targetPort, entries, ingressHost, ingressPath, ingressService, ingressPort,
-    schedule, command,
-  }
   const generated = buildManifest(values)
   const manifest = yamlOwned && !formTouched ? yaml : generated
-  const needsImage = kind === "Deployment" || kind === "StatefulSet" || kind === "CronJob"
+  const isWorkload = WORKLOAD_KINDS.includes(values.kind)
+  const needsImage = IMAGE_KINDS.includes(values.kind)
 
-  function touch<T>(setter: (value: T) => void): (value: T) => void {
-    return (value: T) => {
-      setFormTouched(true)
-      setter(value)
-    }
+  function update(patch: Partial<FormValues>) {
+    setFormTouched(true)
+    setValues((current) => ({ ...current, ...patch }))
   }
 
   function applyValues(next: FormValues) {
-    setKind(next.kind)
-    setName(next.name)
-    setReplicas(next.replicas)
-    setContainerName(next.containerName)
-    setImage(next.image)
-    setPort(next.port)
-    setServiceType(next.serviceType)
-    setServicePort(next.servicePort)
-    setTargetPort(next.targetPort)
-    setEntries(next.entries)
-    setIngressHost(next.ingressHost)
-    setIngressPath(next.ingressPath)
-    setIngressService(next.ingressService)
-    setIngressPort(next.ingressPort)
-    setSchedule(next.schedule)
-    setCommand(next.command)
+    setValues(next)
   }
 
   function changeTab(next: string) {
@@ -417,9 +864,27 @@ export function ApplicationResourceFormDialog({
   }
 
   function changeKind(next: FormKind) {
-    setKind(next)
-    setFormTouched(true)
+    update({ kind: next })
     setErrors({})
+  }
+
+  function changeClassName(next: string) {
+    const preset = (INGRESS_CLASS_PRESETS as readonly string[]).includes(next)
+    const presetAnnotations: Record<string, string> = {
+      nginx: { "kubernetes.io/ingress.class": "nginx" },
+      traefik: { "kubernetes.io/ingress.class": "traefik" },
+      alb: { "alb.ingress.kubernetes.io/scheme": "internet-facing" },
+    }[next] ?? {}
+    const emptyAnnotations = values.ingressAnnotations.every(
+      (row) => row.key.trim() === "" && row.value.trim() === "",
+    )
+    update({
+      ingressClassName: next,
+      ingressAnnotations:
+        preset && emptyAnnotations
+          ? Object.entries(presetAnnotations).map(([key, value]) => ({ key, value }))
+          : values.ingressAnnotations,
+    })
   }
 
   const componentOptions = [...new Set([componentName, ...components].filter(Boolean))].map((item) => ({
@@ -443,7 +908,7 @@ export function ApplicationResourceFormDialog({
     if (tab === "form") {
       const nameError = checkField({
         label: t("appStore.resourceForm.name"),
-        value: name,
+        value: values.name,
         required: true,
         max: 253,
         pattern: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/,
@@ -454,38 +919,96 @@ export function ApplicationResourceFormDialog({
       }
       const imageError = checkField({
         label: t("appStore.resourceForm.image"),
-        value: image,
+        value: values.image,
         required: needsImage,
       })
       if (imageError) {
         next.image = imageError
       }
-      const portError = (label: string, value: string) =>
-        checkField({ label, value, required: true, integerRange: [1, 65535] })
-      if (kind === "Deployment" || kind === "StatefulSet") {
-        const error = portError(t("appStore.resourceForm.containerPort"), port)
+      const portError = (label: string, value: string, required = true) =>
+        checkField({ label, value, required, integerRange: [1, 65535] })
+      if (isWorkload) {
+        const error = portError(t("appStore.resourceForm.containerPort"), values.port, false)
         if (error) next.port = error
+        for (const [index, row] of values.volumes.entries()) {
+          const hasAny = row.name.trim() || row.source.trim() || row.mountPath.trim()
+          if (!hasAny) continue
+          if (!row.name.trim()) {
+            next.volumes = t("appStore.resourceForm.volumeNameRequired", { index: index + 1 })
+            break
+          }
+          if (row.type !== "emptyDir" && !row.source.trim()) {
+            next.volumes = t("appStore.resourceForm.volumeSourceRequired", { index: index + 1 })
+            break
+          }
+        }
+        for (const key of ["liveness", "readiness", "startup"] as const) {
+          const probe = values.probes[key]
+          if (!probe.enabled) continue
+          const probeLabel = t(`appStore.resourceForm.probe.${key}`)
+          if (probe.type === "exec") {
+            if (!probe.command.trim()) {
+              next[`probe-${key}`] = t("appStore.resourceForm.probeCommandRequired", { name: probeLabel })
+              break
+            }
+          } else {
+            const probePortError = checkField({
+              label: t("appStore.resourceForm.probePort"),
+              value: probe.port,
+              required: true,
+              integerRange: [1, 65535],
+            })
+            if (probePortError) {
+              next[`probe-${key}`] = t("appStore.resourceForm.probePortRequired", { name: probeLabel })
+              break
+            }
+            if (probe.type === "httpGet" && !probe.path.trim().startsWith("/")) {
+              next[`probe-${key}`] = t("appStore.resourceForm.probePathInvalid", { name: probeLabel })
+              break
+            }
+          }
+        }
       }
-      if (kind === "Service") {
-        const servicePortError = portError(t("appStore.resourceForm.servicePort"), servicePort)
+      if (values.kind === "Service") {
+        const servicePortError = portError(t("appStore.resourceForm.servicePort"), values.servicePort)
         if (servicePortError) next.servicePort = servicePortError
-        const targetPortError = portError(t("appStore.resourceForm.targetPort"), targetPort)
+        const targetPortError = portError(t("appStore.resourceForm.targetPort"), values.targetPort)
         if (targetPortError) next.targetPort = targetPortError
       }
-      if (kind === "Ingress") {
-        const hostError = checkField({
-          label: t("appStore.resourceForm.host"),
-          value: ingressHost,
-          required: true,
-        })
-        if (hostError) next.ingressHost = hostError
-        const ingressPortError = portError(t("appStore.resourceForm.backendPort"), ingressPort)
-        if (ingressPortError) next.ingressPort = ingressPortError
+      if (values.kind === "Ingress") {
+        if (values.tlsEnabled && !values.tlsSecretName.trim()) {
+          next.tlsSecretName = t("appStore.resourceForm.tlsSecretRequired")
+        }
+        if (values.rules.length === 0) {
+          next.ingressRules = t("appStore.resourceForm.ingressNoRules")
+        } else {
+          ruleLoop: for (const [ruleIndex, rule] of values.rules.entries()) {
+            if (!rule.host.trim()) {
+              next.ingressRules = t("appStore.resourceForm.ingressHostRequired", { index: ruleIndex + 1 })
+              break
+            }
+            for (const path of rule.paths) {
+              if (!path.path.trim().startsWith("/")) {
+                next.ingressRules = t("appStore.resourceForm.ingressPathInvalid", { index: ruleIndex + 1 })
+                break ruleLoop
+              }
+              if (!path.service.trim()) {
+                next.ingressRules = t("appStore.resourceForm.ingressServiceRequired", { index: ruleIndex + 1 })
+                break ruleLoop
+              }
+              const pathPortError = portError(t("appStore.resourceForm.rulePort"), path.port)
+              if (pathPortError) {
+                next.ingressRules = t("appStore.resourceForm.ingressPortInvalid", { index: ruleIndex + 1 })
+                break ruleLoop
+              }
+            }
+          }
+        }
       }
-      if (kind === "CronJob") {
+      if (values.kind === "CronJob") {
         const scheduleError = checkField({
           label: t("appStore.resourceForm.schedule"),
-          value: schedule,
+          value: values.schedule,
           required: true,
           pattern: /^[0-9A-Za-z*/,-]+(?:\s+[0-9A-Za-z*/,-]+){4}$/,
           hint: t("field.hint.cron"),
@@ -550,7 +1073,7 @@ export function ApplicationResourceFormDialog({
             resource: {
               // item 是版本内的稳定标识；带上 kind 前缀，避免同名 Deployment 与
               // Service 共用 metadata.name 时被后端判成重复资源。
-              item: name.trim() ? `${kind.toLowerCase()}-${name.trim()}` : componentName.trim(),
+              item: values.name.trim() ? `${values.kind.toLowerCase()}-${values.name.trim()}` : componentName.trim(),
               manifest,
               component: componentName.trim(),
             },
@@ -566,6 +1089,13 @@ export function ApplicationResourceFormDialog({
       setSaving(false)
     }
   }
+
+  const hasInitialMetadata = initialValues.labels.length > 0 || initialValues.annotations.length > 0
+  const hasInitialEnv = initialValues.env.length > 0
+  const hasInitialVolumes = initialValues.volumes.length > 0
+  const hasInitialProbes = Object.values(initialValues.probes).some((probe) => probe.enabled)
+  const hasInitialResources = Object.values(initialValues.resources).some((value) => value !== "")
+  const hasInitialIngressAnnotations = initialValues.ingressAnnotations.length > 0
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -612,41 +1142,57 @@ export function ApplicationResourceFormDialog({
               ) : null}
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField label={t("appStore.resourceKind")} htmlFor="resource-form-kind" hint={t("appStore.resourceForm.kindHelp")}>
-                  <Select value={kind} onValueChange={(value) => changeKind(value as FormKind)}>
+                  <Select value={values.kind} onValueChange={(value) => changeKind(value as FormKind)}>
                     <SelectTrigger id="resource-form-kind"><SelectValue /></SelectTrigger>
                     <SelectContent>{FORM_KINDS.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
                   </Select>
                 </FormField>
                 <FormField label={t("appStore.resourceForm.name")} htmlFor="resource-form-name" required error={errors.name} hint={t("appStore.resourceForm.nameHelp")}>
-                  <Input id="resource-form-name" className="font-mono" value={name} placeholder="app" onChange={(event) => touch(setName)(event.target.value)} />
+                  <Input id="resource-form-name" className="font-mono" value={values.name} placeholder="app" onChange={(event) => update({ name: event.target.value })} />
                 </FormField>
 
-                {kind === "Deployment" || kind === "StatefulSet" ? (
+                {isWorkload ? (
                   <>
-                    <FormField label={t("appStore.resourceForm.replicas")} htmlFor="resource-form-replicas" hint={t("appStore.resourceForm.replicasHelp")}>
-                      <Input id="resource-form-replicas" type="number" min={0} max={100} value={replicas} placeholder="2" onChange={(event) => touch(setReplicas)(event.target.value)} />
-                    </FormField>
-                    <FormField label={t("appStore.resourceForm.containerName")} htmlFor="resource-form-container">
-                      <Input id="resource-form-container" className="font-mono" value={containerName} placeholder="app" onChange={(event) => touch(setContainerName)(event.target.value)} />
+                    {values.kind !== "DaemonSet" ? (
+                      <FormField label={t("appStore.resourceForm.replicas")} htmlFor="resource-form-replicas" hint={t("appStore.resourceForm.replicasHelp")}>
+                        <Input id="resource-form-replicas" type="number" min={0} max={200} value={values.replicas} placeholder="2" onChange={(event) => update({ replicas: event.target.value })} />
+                      </FormField>
+                    ) : null}
+                    <FormField label={t("appStore.resourceForm.containerName")} htmlFor="resource-form-container" hint={t("appStore.resourceForm.containerNameHint")}>
+                      <Input id="resource-form-container" className="font-mono" value={values.containerName} placeholder="app" onChange={(event) => update({ containerName: event.target.value })} />
                     </FormField>
                     <FormField label={t("appStore.resourceForm.image")} htmlFor="resource-form-image" required error={errors.image} hint={t("appStore.resourceForm.imageHelp")} className="sm:col-span-full">
                       <ImageReferencePicker
                         id="resource-form-image"
-                        value={image}
-                        onChange={touch(setImage)}
+                        value={values.image}
+                        onChange={(next) => update({ image: next })}
                         invalid={Boolean(errors.image)}
                       />
                     </FormField>
+                    <FormField label={t("appStore.resourceForm.imagePullPolicy")} hint={t("appStore.resourceForm.pullPolicyHint")}>
+                      <Select value={values.imagePullPolicy} onValueChange={(next) => update({ imagePullPolicy: next })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {IMAGE_PULL_POLICIES.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </FormField>
                     <FormField label={t("appStore.resourceForm.containerPort")} htmlFor="resource-form-port" hint={t("appStore.resourceForm.portHelp")} error={errors.port}>
-                      <Input id="resource-form-port" type="number" min={1} max={65535} value={port} placeholder="8080" onChange={(event) => touch(setPort)(event.target.value)} />
+                      <Input id="resource-form-port" type="number" min={1} max={65535} value={values.port} placeholder="8080" onChange={(event) => update({ port: event.target.value })} />
+                    </FormField>
+                    <FormField label={t("appStore.resourceForm.containerCommand")} htmlFor="resource-form-command" hint={t("appStore.resourceForm.tokensHint")}>
+                      <Input id="resource-form-command" className="font-mono" value={values.containerCommand} placeholder="/app/server --config /etc/app" onChange={(event) => update({ containerCommand: event.target.value })} />
+                    </FormField>
+                    <FormField label={t("appStore.resourceForm.containerArgs")} htmlFor="resource-form-args" hint={t("appStore.resourceForm.tokensHint")}>
+                      <Input id="resource-form-args" className="font-mono" value={values.containerArgs} placeholder="--verbose" onChange={(event) => update({ containerArgs: event.target.value })} />
                     </FormField>
                   </>
                 ) : null}
 
-                {kind === "Service" ? (
+                {values.kind === "Service" ? (
                   <>
                     <FormField label={t("appStore.resourceForm.serviceType")} htmlFor="resource-form-service-type">
-                      <Select value={serviceType} onValueChange={touch(setServiceType)}>
+                      <Select value={values.serviceType} onValueChange={(next) => update({ serviceType: next })}>
                         <SelectTrigger id="resource-form-service-type"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {["ClusterIP", "NodePort", "LoadBalancer"].map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
@@ -654,21 +1200,21 @@ export function ApplicationResourceFormDialog({
                       </Select>
                     </FormField>
                     <FormField label={t("appStore.resourceForm.servicePort")} htmlFor="resource-form-service-port" error={errors.servicePort}>
-                      <Input id="resource-form-service-port" type="number" min={1} max={65535} value={servicePort} placeholder="80" onChange={(event) => touch(setServicePort)(event.target.value)} />
+                      <Input id="resource-form-service-port" type="number" min={1} max={65535} value={values.servicePort} placeholder="80" onChange={(event) => update({ servicePort: event.target.value })} />
                     </FormField>
                     <FormField label={t("appStore.resourceForm.targetPort")} htmlFor="resource-form-target-port" error={errors.targetPort}>
-                      <Input id="resource-form-target-port" type="number" min={1} max={65535} value={targetPort} placeholder="80" onChange={(event) => touch(setTargetPort)(event.target.value)} />
+                      <Input id="resource-form-target-port" type="number" min={1} max={65535} value={values.targetPort} placeholder="80" onChange={(event) => update({ targetPort: event.target.value })} />
                     </FormField>
                   </>
                 ) : null}
 
-                {kind === "ConfigMap" || kind === "Secret" ? (
+                {values.kind === "ConfigMap" || values.kind === "Secret" ? (
                   <FormField
-                    label={kind === "Secret" ? t("appStore.resourceForm.secretData") : t("appStore.resourceForm.configData")}
-                    hint={kind === "Secret" ? t("appStore.resourceForm.secretHelp") : t("appStore.resourceForm.configHelp")}
+                    label={values.kind === "Secret" ? t("appStore.resourceForm.secretData") : t("appStore.resourceForm.configData")}
+                    hint={values.kind === "Secret" ? t("appStore.resourceForm.secretHelp") : t("appStore.resourceForm.configHelp")}
                     className="sm:col-span-full"
                     actions={
-                      <Button type="button" variant="outline" size="sm" onClick={() => touch(setEntries)([...entries, { key: "", value: "" }])}>{t("appStore.resourceForm.addKey")}</Button>
+                      <Button type="button" variant="outline" size="sm" onClick={() => update({ entries: [...values.entries, { key: "", value: "" }] })}>{t("appStore.resourceForm.addKey")}</Button>
                     }
                   >
                     <KeyValueRowLabels
@@ -677,52 +1223,372 @@ export function ApplicationResourceFormDialog({
                       className="sm:grid-cols-[1fr_1.4fr_auto]"
                       trailing={<span aria-hidden="true" className="hidden w-[4.5rem] sm:block" />}
                     />
-                    {entries.map((entry, index) => (
+                    {values.entries.map((entry, index) => (
                       <div key={index} className="grid gap-2 sm:grid-cols-[1fr_1.4fr_auto]">
-                        <Input aria-label={t("appStore.resourceForm.key")} className="font-mono" value={entry.key} placeholder="KEY" onChange={(event) => touch(setEntries)(entries.map((item, position) => position === index ? { ...item, key: event.target.value } : item))} />
-                        <Input aria-label={t("appStore.resourceForm.value")} className="font-mono" type={kind === "Secret" ? "password" : "text"} value={entry.value} placeholder={kind === "Secret" ? t("appStore.resourceForm.secretValuePlaceholder") : "value"} onChange={(event) => touch(setEntries)(entries.map((item, position) => position === index ? { ...item, value: event.target.value } : item))} />
-                        <Button type="button" variant="ghost" size="sm" className="w-[4.5rem]" onClick={() => touch(setEntries)(entries.filter((_, position) => position !== index))}>{t("action.delete")}</Button>
+                        <Input aria-label={t("appStore.resourceForm.key")} className="font-mono" value={entry.key} placeholder="KEY" onChange={(event) => update({ entries: values.entries.map((item, position) => position === index ? { ...item, key: event.target.value } : item) })} />
+                        <Input aria-label={t("appStore.resourceForm.value")} className="font-mono" type={values.kind === "Secret" ? "password" : "text"} value={entry.value} placeholder={values.kind === "Secret" ? t("appStore.resourceForm.secretValuePlaceholder") : "value"} onChange={(event) => update({ entries: values.entries.map((item, position) => position === index ? { ...item, value: event.target.value } : item) })} />
+                        <Button type="button" variant="ghost" size="sm" className="w-[4.5rem]" onClick={() => update({ entries: values.entries.filter((_, position) => position !== index) })}>{t("action.delete")}</Button>
                       </div>
                     ))}
                   </FormField>
                 ) : null}
 
-                {kind === "Ingress" ? (
+                {values.kind === "Ingress" ? (
                   <>
-                    <FormField label={t("appStore.resourceForm.host")} htmlFor="resource-form-host" required error={errors.ingressHost}>
-                      <Input id="resource-form-host" value={ingressHost} placeholder="app.example.com" onChange={(event) => touch(setIngressHost)(event.target.value)} />
+                    <FormField label={t("appStore.resourceForm.ingressClassName")} htmlFor="resource-form-ingress-class" hint={t("appStore.resourceForm.ingressClassNameHint")}>
+                      <Input
+                        id="resource-form-ingress-class"
+                        className="font-mono"
+                        value={values.ingressClassName}
+                        list="ingress-class-presets"
+                        placeholder="nginx"
+                        onChange={(event) => changeClassName(event.target.value)}
+                      />
+                      <datalist id="ingress-class-presets">
+                        {INGRESS_CLASS_PRESETS.map((item) => <option key={item} value={item} />)}
+                      </datalist>
                     </FormField>
-                    <FormField label={t("appStore.resourceForm.path")} htmlFor="resource-form-path">
-                      <Input id="resource-form-path" value={ingressPath} placeholder="/" onChange={(event) => touch(setIngressPath)(event.target.value)} />
-                    </FormField>
-                    <FormField label={t("appStore.resourceForm.backendService")} htmlFor="resource-form-backend">
-                      <Input id="resource-form-backend" className="font-mono" value={ingressService} placeholder="app" onChange={(event) => touch(setIngressService)(event.target.value)} />
-                    </FormField>
-                    <FormField label={t("appStore.resourceForm.backendPort")} htmlFor="resource-form-backend-port" error={errors.ingressPort}>
-                      <Input id="resource-form-backend-port" type="number" min={1} max={65535} value={ingressPort} placeholder="80" onChange={(event) => touch(setIngressPort)(event.target.value)} />
-                    </FormField>
+                    <div className="grid gap-2">
+                      <label className="flex items-center gap-2 self-end pb-1 text-sm">
+                        <Checkbox
+                          checked={values.tlsEnabled}
+                          onCheckedChange={(checked) => update({ tlsEnabled: checked === true })}
+                        />
+                        {t("appStore.resourceForm.tlsEnabled")}
+                      </label>
+                    </div>
+                    {values.tlsEnabled ? (
+                      <FormField label={t("appStore.resourceForm.tlsSecretName")} htmlFor="resource-form-tls-secret" error={errors.tlsSecretName} hint={t("appStore.resourceForm.tlsSecretHint")} className="sm:col-span-full">
+                        <Input id="resource-form-tls-secret" className="font-mono" value={values.tlsSecretName} placeholder="app-tls" onChange={(event) => update({ tlsSecretName: event.target.value })} />
+                      </FormField>
+                    ) : null}
                   </>
                 ) : null}
 
-                {kind === "CronJob" ? (
+                {values.kind === "CronJob" ? (
                   <>
                     <FormField label={t("appStore.resourceForm.schedule")} htmlFor="resource-form-schedule" required hint={t("appStore.resourceForm.scheduleHelp")} error={errors.schedule}>
-                      <Input id="resource-form-schedule" className="font-mono" value={schedule} placeholder="0 * * * *" onChange={(event) => touch(setSchedule)(event.target.value)} />
+                      <Input id="resource-form-schedule" className="font-mono" value={values.schedule} placeholder="0 * * * *" onChange={(event) => update({ schedule: event.target.value })} />
                     </FormField>
                     <FormField label={t("appStore.resourceForm.image")} htmlFor="resource-form-cron-image" required error={errors.image}>
                       <ImageReferencePicker
                         id="resource-form-cron-image"
-                        value={image}
-                        onChange={touch(setImage)}
+                        value={values.image}
+                        onChange={(next) => update({ image: next })}
                         invalid={Boolean(errors.image)}
                       />
                     </FormField>
                     <FormField label={t("appStore.resourceForm.command")} htmlFor="resource-form-command" className="sm:col-span-full">
-                      <Input id="resource-form-command" className="font-mono" value={command} placeholder="/bin/sh -c echo hello" onChange={(event) => touch(setCommand)(event.target.value)} />
+                      <Input id="resource-form-command" className="font-mono" value={values.command} placeholder="/bin/sh -c echo hello" onChange={(event) => update({ command: event.target.value })} />
                     </FormField>
                   </>
                 ) : null}
               </div>
+
+              {isWorkload ? (
+                <>
+                  <FormSection
+                    title={t("appStore.resourceForm.metadataSection")}
+                    hint={t("appStore.resourceForm.metadataHint")}
+                    defaultOpen={hasInitialMetadata}
+                  >
+                    <FormField
+                      label={t("appStore.resourceForm.labels")}
+                      hint={t("appStore.resourceForm.labelsHint")}
+                      actions={
+                        <Button type="button" variant="outline" size="sm" onClick={() => update({ labels: [...values.labels, { key: "", value: "" }] })}>
+                          {t("appStore.resourceForm.addLabel")}
+                        </Button>
+                      }
+                    >
+                      <KeyValueRowLabels
+                        keyLabel={t("appStore.resourceForm.key")}
+                        valueLabel={t("appStore.resourceForm.value")}
+                        className="sm:grid-cols-[1fr_1.4fr_auto]"
+                        trailing={<span aria-hidden="true" className="hidden w-[4.5rem] sm:block" />}
+                      />
+                      {values.labels.map((row, index) => (
+                        <div key={index} className="grid gap-2 sm:grid-cols-[1fr_1.4fr_auto]">
+                          <Input aria-label={t("appStore.resourceForm.labelKey")} className="font-mono" value={row.key} placeholder="app.kubernetes.io/name" onChange={(event) => update({ labels: values.labels.map((item, position) => position === index ? { ...item, key: event.target.value } : item) })} />
+                          <Input aria-label={t("appStore.resourceForm.labelValue")} className="font-mono" value={row.value} placeholder="app" onChange={(event) => update({ labels: values.labels.map((item, position) => position === index ? { ...item, value: event.target.value } : item) })} />
+                          <Button type="button" variant="ghost" size="sm" className="w-[4.5rem]" onClick={() => update({ labels: values.labels.filter((_, position) => position !== index) })}>{t("action.delete")}</Button>
+                        </div>
+                      ))}
+                    </FormField>
+                    <FormField
+                      label={t("appStore.resourceForm.annotations")}
+                      hint={t("appStore.resourceForm.annotationsHint")}
+                      actions={
+                        <Button type="button" variant="outline" size="sm" onClick={() => update({ annotations: [...values.annotations, { key: "", value: "" }] })}>
+                          {t("appStore.resourceForm.addAnnotation")}
+                        </Button>
+                      }
+                    >
+                      <KeyValueRowLabels
+                        keyLabel={t("appStore.resourceForm.key")}
+                        valueLabel={t("appStore.resourceForm.value")}
+                        className="sm:grid-cols-[1fr_1.4fr_auto]"
+                        trailing={<span aria-hidden="true" className="hidden w-[4.5rem] sm:block" />}
+                      />
+                      {values.annotations.map((row, index) => (
+                        <div key={index} className="grid gap-2 sm:grid-cols-[1fr_1.4fr_auto]">
+                          <Input aria-label={t("appStore.resourceForm.annotationKey")} className="font-mono" value={row.key} placeholder="prometheus.io/scrape" onChange={(event) => update({ annotations: values.annotations.map((item, position) => position === index ? { ...item, key: event.target.value } : item) })} />
+                          <Input aria-label={t("appStore.resourceForm.annotationValue")} className="font-mono" value={row.value} placeholder="true" onChange={(event) => update({ annotations: values.annotations.map((item, position) => position === index ? { ...item, value: event.target.value } : item) })} />
+                          <Button type="button" variant="ghost" size="sm" className="w-[4.5rem]" onClick={() => update({ annotations: values.annotations.filter((_, position) => position !== index) })}>{t("action.delete")}</Button>
+                        </div>
+                      ))}
+                    </FormField>
+                  </FormSection>
+
+                  <FormSection
+                    title={t("appStore.resourceForm.env")}
+                    hint={t("appStore.resourceForm.envHint")}
+                    defaultOpen={hasInitialEnv}
+                  >
+                    <FormField
+                      label={t("appStore.resourceForm.env")}
+                      hint={t("appStore.resourceForm.envHint")}
+                      actions={
+                        <Button type="button" variant="outline" size="sm" onClick={() => update({ env: [...values.env, { name: "", value: "" }] })}>
+                          {t("appStore.resourceForm.addEnv")}
+                        </Button>
+                      }
+                    >
+                      <KeyValueRowLabels
+                        keyLabel={t("appStore.resourceForm.envName")}
+                        valueLabel={t("appStore.resourceForm.envValue")}
+                        className="sm:grid-cols-[1fr_1.4fr_auto]"
+                        trailing={<span aria-hidden="true" className="hidden w-[4.5rem] sm:block" />}
+                      />
+                      {values.env.map((row, index) => (
+                        <div key={index} className="grid gap-2 sm:grid-cols-[1fr_1.4fr_auto]">
+                          <Input aria-label={t("appStore.resourceForm.envName")} className="font-mono" value={row.name} placeholder="LOG_LEVEL" onChange={(event) => update({ env: values.env.map((item, position) => position === index ? { ...item, name: event.target.value } : item) })} />
+                          <Input aria-label={t("appStore.resourceForm.envValue")} className="font-mono" value={row.value} placeholder="info" onChange={(event) => update({ env: values.env.map((item, position) => position === index ? { ...item, value: event.target.value } : item) })} />
+                          <Button type="button" variant="ghost" size="sm" className="w-[4.5rem]" onClick={() => update({ env: values.env.filter((_, position) => position !== index) })}>{t("action.delete")}</Button>
+                        </div>
+                      ))}
+                    </FormField>
+                  </FormSection>
+
+                  <FormSection
+                    title={t("appStore.resourceForm.volumes")}
+                    hint={t("appStore.resourceForm.volumesHint")}
+                    defaultOpen={hasInitialVolumes}
+                  >
+                    <FormField
+                      label={t("appStore.resourceForm.volumes")}
+                      hint={t("appStore.resourceForm.volumesHint")}
+                      error={errors.volumes}
+                      actions={
+                        <Button type="button" variant="outline" size="sm" onClick={() => update({ volumes: [...values.volumes, { name: "", type: "emptyDir", source: "", mountPath: "" }] })}>
+                          {t("appStore.resourceForm.addVolume")}
+                        </Button>
+                      }
+                    >
+                      <RowHeader labels={[
+                        t("appStore.resourceForm.volumeName"),
+                        t("appStore.resourceForm.volumeType"),
+                        t("appStore.resourceForm.volumeSource"),
+                        t("appStore.resourceForm.mountPath"),
+                      ]} />
+                      {values.volumes.map((row, index) => (
+                        <div key={index} className="grid gap-2 sm:grid-cols-[1fr_1fr_1.4fr_1.4fr_auto]">
+                          <Input aria-label={t("appStore.resourceForm.volumeName")} className="font-mono" value={row.name} placeholder="data" onChange={(event) => update({ volumes: values.volumes.map((item, position) => position === index ? { ...item, name: event.target.value } : item) })} />
+                          <Select value={row.type} onValueChange={(next) => update({ volumes: values.volumes.map((item, position) => position === index ? { ...item, type: next as VolumeType } : item) })}>
+                            <SelectTrigger aria-label={t("appStore.resourceForm.volumeType")}><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {VOLUME_TYPES.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <Input aria-label={t("appStore.resourceForm.volumeSource")} className="font-mono" value={row.source} placeholder={row.type === "hostPath" ? "/data" : "app-config"} disabled={row.type === "emptyDir"} onChange={(event) => update({ volumes: values.volumes.map((item, position) => position === index ? { ...item, source: event.target.value } : item) })} />
+                          <Input aria-label={t("appStore.resourceForm.mountPath")} className="font-mono" value={row.mountPath} placeholder="/data" onChange={(event) => update({ volumes: values.volumes.map((item, position) => position === index ? { ...item, mountPath: event.target.value } : item) })} />
+                          <Button type="button" variant="ghost" size="sm" className="w-[4.5rem]" onClick={() => update({ volumes: values.volumes.filter((_, position) => position !== index) })}>{t("action.delete")}</Button>
+                        </div>
+                      ))}
+                    </FormField>
+                  </FormSection>
+
+                  <FormSection
+                    title={t("appStore.resourceForm.probes")}
+                    hint={t("appStore.resourceForm.probesHint")}
+                    defaultOpen={hasInitialProbes}
+                  >
+                    {(["liveness", "readiness", "startup"] as const).map((key) => (
+                      <div key={key} className="grid gap-1">
+                        <ProbeEditor
+                          label={t(`appStore.resourceForm.probe.${key}`)}
+                          value={values.probes[key]}
+                          onChange={(next) => update({ probes: { ...values.probes, [key]: next } })}
+                        />
+                        {errors[`probe-${key}`] ? (
+                          <p role="alert" className="text-xs text-destructive">{errors[`probe-${key}`]}</p>
+                        ) : null}
+                      </div>
+                    ))}
+                  </FormSection>
+
+                  <FormSection
+                    title={t("appStore.resourceForm.resources")}
+                    hint={t("appStore.resourceForm.resourcesHint")}
+                    defaultOpen={hasInitialResources}
+                  >
+                    <FormField label={t("appStore.resourceForm.requests")} hint={t("appStore.resourceForm.resourcesHint")}>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <Input aria-label={`${t("appStore.resourceForm.requests")} ${t("appStore.resourceForm.cpu")}`} className="font-mono" value={values.resources.requestsCpu} placeholder="100m" onChange={(event) => update({ resources: { ...values.resources, requestsCpu: event.target.value } })} />
+                        <Input aria-label={`${t("appStore.resourceForm.requests")} ${t("appStore.resourceForm.memory")}`} className="font-mono" value={values.resources.requestsMemory} placeholder="128Mi" onChange={(event) => update({ resources: { ...values.resources, requestsMemory: event.target.value } })} />
+                      </div>
+                    </FormField>
+                    <FormField label={t("appStore.resourceForm.limits")} hint={t("appStore.resourceForm.resourcesHint")}>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <Input aria-label={`${t("appStore.resourceForm.limits")} ${t("appStore.resourceForm.cpu")}`} className="font-mono" value={values.resources.limitsCpu} placeholder="500m" onChange={(event) => update({ resources: { ...values.resources, limitsCpu: event.target.value } })} />
+                        <Input aria-label={`${t("appStore.resourceForm.limits")} ${t("appStore.resourceForm.memory")}`} className="font-mono" value={values.resources.limitsMemory} placeholder="512Mi" onChange={(event) => update({ resources: { ...values.resources, limitsMemory: event.target.value } })} />
+                      </div>
+                    </FormField>
+                  </FormSection>
+                </>
+              ) : null}
+
+              {values.kind === "Ingress" ? (
+                <>
+                  <FormSection
+                    title={t("appStore.resourceForm.ingressAnnotations")}
+                    hint={t("appStore.resourceForm.ingressAnnotationsHint")}
+                    defaultOpen={hasInitialIngressAnnotations}
+                  >
+                    <FormField
+                      label={t("appStore.resourceForm.ingressAnnotations")}
+                      hint={t("appStore.resourceForm.ingressAnnotationsHint")}
+                      actions={
+                        <Button type="button" variant="outline" size="sm" onClick={() => update({ ingressAnnotations: [...values.ingressAnnotations, { key: "", value: "" }] })}>
+                          {t("appStore.resourceForm.addAnnotation")}
+                        </Button>
+                      }
+                    >
+                      <KeyValueRowLabels
+                        keyLabel={t("appStore.resourceForm.key")}
+                        valueLabel={t("appStore.resourceForm.value")}
+                        className="sm:grid-cols-[1fr_1.4fr_auto]"
+                        trailing={<span aria-hidden="true" className="hidden w-[4.5rem] sm:block" />}
+                      />
+                      {values.ingressAnnotations.map((row, index) => (
+                        <div key={index} className="grid gap-2 sm:grid-cols-[1fr_1.4fr_auto]">
+                          <Input aria-label={t("appStore.resourceForm.annotationKey")} className="font-mono" value={row.key} placeholder="nginx.ingress.kubernetes.io/proxy-body-size" onChange={(event) => update({ ingressAnnotations: values.ingressAnnotations.map((item, position) => position === index ? { ...item, key: event.target.value } : item) })} />
+                          <Input aria-label={t("appStore.resourceForm.annotationValue")} className="font-mono" value={row.value} placeholder="10m" onChange={(event) => update({ ingressAnnotations: values.ingressAnnotations.map((item, position) => position === index ? { ...item, value: event.target.value } : item) })} />
+                          <Button type="button" variant="ghost" size="sm" className="w-[4.5rem]" onClick={() => update({ ingressAnnotations: values.ingressAnnotations.filter((_, position) => position !== index) })}>{t("action.delete")}</Button>
+                        </div>
+                      ))}
+                    </FormField>
+                  </FormSection>
+
+                  <FormField
+                    label={t("appStore.resourceForm.ingressRules")}
+                    hint={t("appStore.resourceForm.ingressRulesHint")}
+                    error={errors.ingressRules}
+                    actions={
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => update({ rules: [...values.rules, { host: "", paths: [emptyPath()] }] })}
+                      >
+                        {t("appStore.resourceForm.addRule")}
+                      </Button>
+                    }
+                  >
+                    <div className="grid gap-3">
+                      {values.rules.map((rule, ruleIndex) => (
+                        <div key={ruleIndex} className="grid gap-3 rounded-lg border border-border/60 p-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-sm font-medium">{t("appStore.resourceForm.rule", { index: ruleIndex + 1 })}</span>
+                            {values.rules.length > 1 ? (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive"
+                                onClick={() => update({ rules: values.rules.filter((_, position) => position !== ruleIndex) })}
+                              >
+                                {t("appStore.resourceForm.removeRule")}
+                              </Button>
+                            ) : null}
+                          </div>
+                          <Input
+                            aria-label={t("appStore.resourceForm.ruleHost")}
+                            className="font-mono"
+                            value={rule.host}
+                            placeholder="app.example.com"
+                            onChange={(event) => update({ rules: values.rules.map((item, position) => position === ruleIndex ? { ...item, host: event.target.value } : item) })}
+                          />
+                          <RowHeader labels={[
+                            t("appStore.resourceForm.rulePath"),
+                            t("appStore.resourceForm.pathType"),
+                            t("appStore.resourceForm.ruleService"),
+                            t("appStore.resourceForm.rulePort"),
+                          ]} />
+                          {rule.paths.map((path, pathIndex) => (
+                            <div key={pathIndex} className="grid gap-2 sm:grid-cols-[1.2fr_0.9fr_1.2fr_0.7fr_auto]">
+                              <Input
+                                aria-label={t("appStore.resourceForm.rulePath")}
+                                className="font-mono"
+                                value={path.path}
+                                placeholder="/api"
+                                onChange={(event) => update({ rules: values.rules.map((item, position) => position === ruleIndex ? { ...item, paths: item.paths.map((entry, pathPosition) => pathPosition === pathIndex ? { ...entry, path: event.target.value } : entry) } : item) })}
+                              />
+                              <Select
+                                value={path.pathType}
+                                onValueChange={(next) => update({ rules: values.rules.map((item, position) => position === ruleIndex ? { ...item, paths: item.paths.map((entry, pathPosition) => pathPosition === pathIndex ? { ...entry, pathType: next as PathType } : entry) } : item) })}
+                              >
+                                <SelectTrigger aria-label={t("appStore.resourceForm.pathType")}><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {PATH_TYPES.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
+                                </SelectContent>
+                              </Select>
+                              <Input
+                                aria-label={t("appStore.resourceForm.ruleService")}
+                                className="font-mono"
+                                value={path.service}
+                                placeholder="app"
+                                onChange={(event) => update({ rules: values.rules.map((item, position) => position === ruleIndex ? { ...item, paths: item.paths.map((entry, pathPosition) => pathPosition === pathIndex ? { ...entry, service: event.target.value } : entry) } : item) })}
+                              />
+                              <Input
+                                aria-label={t("appStore.resourceForm.rulePort")}
+                                className="font-mono"
+                                type="number"
+                                min={1}
+                                max={65535}
+                                value={path.port}
+                                placeholder="80"
+                                onChange={(event) => update({ rules: values.rules.map((item, position) => position === ruleIndex ? { ...item, paths: item.paths.map((entry, pathPosition) => pathPosition === pathIndex ? { ...entry, port: event.target.value } : entry) } : item) })}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="w-[4.5rem]"
+                                disabled={rule.paths.length <= 1}
+                                onClick={() => update({ rules: values.rules.map((item, position) => position === ruleIndex ? { ...item, paths: item.paths.filter((_, pathPosition) => pathPosition !== pathIndex) } : item) })}
+                              >
+                                {t("appStore.resourceForm.removePath")}
+                              </Button>
+                            </div>
+                          ))}
+                          <div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => update({ rules: values.rules.map((item, position) => position === ruleIndex ? { ...item, paths: [...item.paths, emptyPath()] } : item) })}
+                            >
+                              {t("appStore.resourceForm.addPath")}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </FormField>
+                </>
+              ) : null}
+
               <p className="text-xs text-muted-foreground">{t("appStore.resourceForm.yamlFallbackHint")}</p>
             </TabsContent>
             <TabsContent value="yaml" className="grid gap-2 pt-2">
