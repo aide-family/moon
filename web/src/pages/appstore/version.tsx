@@ -5,11 +5,12 @@ import { toast } from "sonner"
 
 import {
   deleteApplicationVersion,
+  deleteApplicationVersionComponent,
   deleteApplicationVersionResource,
   deprecateApplicationVersion,
   getApplicationVersion,
   publishApplicationVersion,
-  saveApplicationVersionResource,
+  saveApplicationVersionComponent,
   validateApplicationVersion,
 } from "@/api/application"
 import type {
@@ -84,7 +85,10 @@ export function ApplicationVersionPage() {
   const [deleteVersionOpen, setDeleteVersionOpen] = useState(false)
   const [duplicateOpen, setDuplicateOpen] = useState(false)
   const [releaseOpen, setReleaseOpen] = useState(false)
-  const [renameComponent, setRenameComponent] = useState<ApplicationVersionComponent | null>(null)
+  const [componentDialog, setComponentDialog] = useState<{
+    mode: "create" | "edit"
+    component: ApplicationVersionComponent | null
+  } | null>(null)
   const [deleteComponent, setDeleteComponent] = useState<ApplicationVersionComponent | null>(null)
   const [componentPending, setComponentPending] = useState(false)
   const [componentError, setComponentError] = useState("")
@@ -167,7 +171,7 @@ export function ApplicationVersionPage() {
 
   function openEditResource(resource: ApplicationResource) {
     setDetailResource(null)
-    setResourceDialog({ mode: "edit", component: resource.component || "default", resource })
+    setResourceDialog({ mode: "edit", component: resource.component || "", resource })
   }
 
   function applyVersion(next: ApplicationVersionItem) {
@@ -239,27 +243,23 @@ export function ApplicationVersionPage() {
     }
   }
 
-  async function renameService(nextName: string) {
-    if (!renameComponent || !version) return
-    const target = renameComponent
+  async function saveComponent(name: string, description: string) {
+    if (!componentDialog || !version) return
+    const target = componentDialog.component
     setComponentPending(true)
     setComponentError("")
     try {
-      let current = version
-      for (const resource of target.resources) {
-        const result = await saveApplicationVersionResource({
-          applicationUid: uid,
-          uid: versionUid,
-          resourceUid: resource.uid,
-          component: nextName,
-          manifest: resource.manifest,
-          expectedRevision: current.revision,
-        })
-        current = result.version
-      }
-      setVersion(current)
-      setRenameComponent(null)
-      toast.success(t("appStore.services.renamed"))
+      const result = await saveApplicationVersionComponent({
+        applicationUid: uid,
+        uid: versionUid,
+        componentUid: target?.uid ?? "",
+        name,
+        description,
+        expectedRevision: version.revision,
+      })
+      setVersion(result.version)
+      setComponentDialog(null)
+      toast.success(target ? t("appStore.services.renamed") : t("appStore.services.created"))
     } catch (err) {
       setComponentError(formErrorMessage(err, t("state.failed")))
     } finally {
@@ -273,17 +273,13 @@ export function ApplicationVersionPage() {
     setComponentPending(true)
     setComponentError("")
     try {
-      let current = version
-      for (const resource of target.resources) {
-        const result = await deleteApplicationVersionResource({
-          applicationUid: uid,
-          uid: versionUid,
-          resourceUid: resource.uid,
-          expectedRevision: current.revision,
-        })
-        current = result.version
-      }
-      setVersion(current)
+      const result = await deleteApplicationVersionComponent({
+        applicationUid: uid,
+        uid: versionUid,
+        componentUid: target.uid,
+        expectedRevision: version.revision,
+      })
+      setVersion(result.version)
       setDeleteComponent(null)
       toast.success(t("appStore.services.deleted"))
     } catch (err) {
@@ -346,16 +342,25 @@ export function ApplicationVersionPage() {
             components={components}
             editable={editable}
             readOnlyHint={readOnlyHint}
-            onAddResource={(component) => openCreateResource(component)}
+            onCreateService={() => {
+              setComponentError("")
+              setComponentDialog({ mode: "create", component: null })
+            }}
             onEditService={(component) => {
               setComponentError("")
-              setRenameComponent(component)
+              setComponentDialog({ mode: "edit", component })
             }}
             onDeleteService={(component) => {
               setComponentError("")
               setDeleteComponent(component)
             }}
+            onAddResource={(component) => openCreateResource(component.name)}
             onOpenResource={(resource) => setDetailResource(resource)}
+            onEditResource={openEditResource}
+            onDeleteResource={(resource) => {
+              setDeleteResourceError("")
+              setDeletingResource(resource)
+            }}
           />
         </TabsContent>
 
@@ -363,7 +368,17 @@ export function ApplicationVersionPage() {
           <div className="grid gap-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-heading text-base font-semibold">{t("appStore.resourceList")}</h2>
-              {editable ? <Button variant="outline" size="sm" onClick={() => openCreateResource()}>{t("appStore.addResource")}</Button> : null}
+              {editable ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={components.length === 0}
+                  title={components.length === 0 ? t("appStore.services.createFirstHint") : undefined}
+                  onClick={() => openCreateResource(components[0]?.name)}
+                >
+                  {t("appStore.addResource")}
+                </Button>
+              ) : null}
             </div>
             <div className="overflow-hidden rounded-xl border border-border/60 bg-card">
               <Table className={TABLE_MIN_WIDTH.wide}>
@@ -446,9 +461,11 @@ export function ApplicationVersionPage() {
                               label={image.external || image.source === "EXTERNAL" ? t("appStore.services.externalImage") : image.registryName || [image.project, image.repository].filter(Boolean).join("/") || t("enum.REGISTRY")}
                             />
                           </div>
-                          <p className="font-mono text-xs text-muted-foreground break-all">
-                            {image.resolvedImage || image.image}
-                          </p>
+                          {image.resolvedImage && image.resolvedImage !== image.image ? (
+                            <p className="font-mono text-xs text-muted-foreground break-all">
+                              {t("appStore.actualImage")}：{image.resolvedImage}
+                            </p>
+                          ) : null}
                           <p className="font-mono text-xs text-muted-foreground">
                             {image.digest || t("appStore.imagePicker.digestUnpinned")} · {image.platforms.join(" · ") || "—"}
                           </p>
@@ -529,14 +546,15 @@ export function ApplicationVersionPage() {
       />
 
       <ApplicationComponentDialog
-        key={renameComponent ? `rename-${renameComponent.uid || renameComponent.name}` : "rename"}
-        open={renameComponent !== null}
-        mode="rename"
-        initialName={renameComponent?.name ?? ""}
+        key={componentDialog ? `${componentDialog.mode}-${componentDialog.component?.uid ?? "new"}` : "component-closed"}
+        open={componentDialog !== null}
+        mode={componentDialog?.mode ?? "create"}
+        initialName={componentDialog?.component?.name ?? ""}
+        initialDescription={componentDialog?.component?.description ?? ""}
         pending={componentPending}
         error={componentError}
-        onOpenChange={(open) => { if (!open) setRenameComponent(null) }}
-        onSave={(next) => void renameService(next)}
+        onOpenChange={(open) => { if (!open) setComponentDialog(null) }}
+        onSave={(name, description) => void saveComponent(name, description)}
       />
 
       <ConfirmAction

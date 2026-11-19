@@ -1,10 +1,13 @@
-import { Boxes, KeyRound, Layers } from "lucide-react"
+import { Boxes, Info, KeyRound, Layers } from "lucide-react"
+import ReactMarkdown from "react-markdown"
 import { useTranslation } from "react-i18next"
+import remarkGfm from "remark-gfm"
 
 import type {
   ApplicationVersionComponent,
   ApplicationVersionItem,
 } from "@/api/application/types"
+import { HeaderActionsMenu } from "@/components/header-actions-menu"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,6 +17,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import {
   componentImageLabels,
   componentSecretKeys,
@@ -25,6 +33,7 @@ interface ApplicationServiceCardProps {
   version: ApplicationVersionItem
   editable: boolean
   onViewResources: () => void
+  onAddResource: () => void
   onEdit: () => void
   onDelete: () => void
 }
@@ -35,6 +44,7 @@ export function ApplicationServiceCard({
   version,
   editable,
   onViewResources,
+  onAddResource,
   onEdit,
   onDelete,
 }: ApplicationServiceCardProps) {
@@ -46,6 +56,7 @@ export function ApplicationServiceCard({
     (resource) => resource.clusterScoped || resource.scope === "CLUSTER",
   )
   const resources = component.resources ?? []
+  const hasDescription = Boolean(component.description?.trim())
 
   return (
     <Card className="min-w-0">
@@ -56,6 +67,24 @@ export function ApplicationServiceCard({
             <span className="min-w-0 truncate text-sm font-normal text-muted-foreground">
               {component.displayName}
             </span>
+          ) : null}
+          {hasDescription ? (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="ml-auto size-6 shrink-0 text-muted-foreground"
+                  aria-label={t("appStore.services.descriptionLabel")}
+                >
+                  <Info className="size-3.5" aria-hidden />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="max-h-72 w-80 overflow-y-auto text-sm">
+                <ServiceDescriptionMarkdown content={component.description} />
+              </PopoverContent>
+            </Popover>
           ) : null}
         </CardTitle>
       </CardHeader>
@@ -113,16 +142,25 @@ export function ApplicationServiceCard({
           {t("appStore.services.viewResources")}
         </Button>
         {editable ? (
-          <>
-            <Button variant="ghost" size="sm" onClick={onEdit}>
-              {t("appStore.services.editService")}
-            </Button>
-            <Button variant="ghost" size="sm" className="text-destructive" onClick={onDelete}>
-              {t("action.delete")}
-            </Button>
-          </>
+          <HeaderActionsMenu
+            label={t("action.more")}
+            actions={[
+              { key: "add-resource", label: t("appStore.addResource"), onSelect: onAddResource },
+              { key: "edit-service", label: t("appStore.services.editService"), onSelect: onEdit },
+              { key: "delete-service", label: t("action.delete"), destructive: true, onSelect: onDelete },
+            ]}
+          />
         ) : null}
       </CardFooter>
     </Card>
+  )
+}
+
+/** 服务备注以 Markdown 渲染（不启用 raw HTML），与通知模板的 markdown 口径一致。 */
+function ServiceDescriptionMarkdown({ content }: { content: string }) {
+  return (
+    <div className="grid min-w-0 gap-2 break-words [&_a]:text-primary-ink [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-3 [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-mono [&_code]:text-xs [&_h1]:font-heading [&_h1]:text-base [&_h1]:font-semibold [&_h2]:font-heading [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:font-semibold [&_li]:ml-4 [&_li]:list-disc [&_ol_li]:list-decimal [&_p]:m-0 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-muted [&_pre]:p-2">
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+    </div>
   )
 }

@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { usePagedList } from "@/hooks/use-paged-list"
+import { applicationCategoryLabel } from "@/lib/application-category"
 import { canRunVersionAction } from "@/lib/application-version"
 import { formatUnixDateTime } from "@/lib/date-time"
 import { checkField } from "@/lib/form"
@@ -216,7 +217,7 @@ export function ApplicationDetailPage() {
     <section className="flex min-h-0 flex-1 flex-col gap-6">
       <PageHeader
         title={app?.displayName || app?.name || uid}
-        description={app ? `${app.name} · ${t(`appStore.categories.${app.category}`)}${app.description ? ` · ${app.description}` : ""}` : t("state.loading")}
+        description={app ? `${app.name} · ${applicationCategoryLabel(t, app.category)}${app.description ? ` · ${app.description}` : ""}` : t("state.loading")}
       >
         <Button variant="outline" onClick={() => navigate("/appstore")}>{t("action.goBack")}</Button>
         {releasable ? (
@@ -317,10 +318,10 @@ export function ApplicationDetailPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>{t("appStore.newVersion")}</DialogTitle></DialogHeader>
           <DialogBody className="grid gap-4">
-            <FormField label={t("appStore.version")} htmlFor="new-version" required error={createError} description={t("appStore.versionHelp")}>
+            <FormField label={t("appStore.version")} htmlFor="new-version" required error={createError} hint={t("appStore.versionHelp")}>
               <Input id="new-version" className="font-mono" value={version} placeholder={t("appStore.versionPlaceholder")} onChange={(event) => setVersion(event.target.value)} />
             </FormField>
-            <FormField label={t("appStore.changelog")} htmlFor="new-changelog" description={t("appStore.changelogHelp")}>
+            <FormField label={t("appStore.changelog")} htmlFor="new-changelog" hint={t("appStore.changelogHelp")}>
               <Textarea id="new-changelog" value={changelog} placeholder={t("appStore.changelogPlaceholder")} onChange={(event) => setChangelog(event.target.value)} />
             </FormField>
           </DialogBody>

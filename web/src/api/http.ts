@@ -690,7 +690,8 @@ async function refreshAccessToken(): Promise<boolean> {
 export async function request(
   path: string,
   init: RequestInit = {},
-  retry = true
+  retry = true,
+  allowForbidden = false
 ): Promise<Response> {
   const headers = new Headers(init.headers)
   const token = localStorage.getItem("token") ?? ""
@@ -736,6 +737,7 @@ export async function request(
   }
   if (
     response.status === 403 &&
+    !allowForbidden &&
     !path.startsWith("/invitation/") &&
     window.location.pathname !== "/forbidden"
   ) {
@@ -747,6 +749,8 @@ export async function request(
 export interface RequestOptions {
   // 后台轮询和列表加载由页面自己展示错误，不弹全局 toast。
   silent?: boolean
+  // 可选能力（例如应用商店里的镜像仓库）未开通时由调用方就地降级，不跳转 403 页。
+  allowForbidden?: boolean
 }
 
 export async function send<T>(
@@ -754,7 +758,7 @@ export async function send<T>(
   init: RequestInit = {},
   options: RequestOptions = {}
 ): Promise<T> {
-  const response = await request(path, init)
+  const response = await request(path, init, true, options.allowForbidden)
   const text = await response.text()
   if (!response.ok) {
     return throwResponseError(response, text, options)

@@ -388,7 +388,7 @@ export function ApplicationDeploymentPage() {
               label={t("appStore.version")}
               htmlFor="target-version"
               required
-              description={actionOpen === "upgrade" ? t("appStore.upgradeVersionHelp") : t("appStore.rollbackVersionHelp")}
+              hint={actionOpen === "upgrade" ? t("appStore.upgradeVersionHelp") : t("appStore.rollbackVersionHelp")}
             >
               <Select value={selectedVersion} onValueChange={setSelectedVersion}>
                 <SelectTrigger id="target-version"><SelectValue placeholder={t("appStore.selectVersion")} /></SelectTrigger>

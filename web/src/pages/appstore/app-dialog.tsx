@@ -2,11 +2,7 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { createApplication, updateApplication } from "@/api/application"
-import type {
-  ApplicationCategory,
-  ApplicationItem,
-  SaveApplicationParams,
-} from "@/api/application/types"
+import type { ApplicationItem, SaveApplicationParams } from "@/api/application/types"
 import { FormField } from "@/components/form-field"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,14 +14,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  APPLICATION_CATEGORY_MAX,
+  APPLICATION_CATEGORY_PRESETS,
+  normalizeApplicationCategory,
+} from "@/lib/application-category"
 import { checkField } from "@/lib/form"
 import { readFormError } from "@/lib/form-error"
 
@@ -33,14 +27,6 @@ const NAME_MAX = 64
 const DISPLAY_MAX = 128
 const DESCRIPTION_MAX = 1024
 const README_MAX = 65536
-
-const CATEGORIES: ApplicationCategory[] = [
-  "DATABASE",
-  "MIDDLEWARE",
-  "OBSERVABILITY",
-  "TOOLING",
-  "OTHER",
-]
 
 interface ApplicationDialogProps {
   open: boolean
@@ -58,12 +44,13 @@ export function ApplicationDialog({
   const { t } = useTranslation()
   const [name, setName] = useState(() => application?.name ?? "")
   const [displayName, setDisplayName] = useState(() => application?.displayName ?? "")
-  const [category, setCategory] = useState<ApplicationCategory>(() => application?.category ?? "TOOLING")
+  const [category, setCategory] = useState(() => application?.category ?? "")
   const [description, setDescription] = useState(() => application?.description ?? "")
   const [readme, setReadme] = useState(() => application?.readme ?? "")
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const [fieldError, setFieldError] = useState("")
+  const [categoryError, setCategoryError] = useState("")
 
   async function save() {
     const nameError = checkField({
@@ -76,14 +63,25 @@ export function ApplicationDialog({
       setFieldError(nameError)
       return
     }
+    const nextCategoryError = checkField({
+      label: t("appStore.category"),
+      value: category,
+      max: APPLICATION_CATEGORY_MAX,
+    })
+    if (nextCategoryError) {
+      setCategoryError(nextCategoryError)
+      return
+    }
     setSaving(true)
     setError("")
     setFieldError("")
+    setCategoryError("")
     try {
       const body: SaveApplicationParams = {
         name: name.trim(),
         displayName: displayName.trim(),
-        category,
+        // 空分类回退 OTHER；自定义分类原样提交（≤32）。
+        category: normalizeApplicationCategory(category),
         description: description.trim(),
         readme,
       }
@@ -95,6 +93,9 @@ export function ApplicationDialog({
       const failure = readFormError(err, t("state.failed"))
       if (failure.fields.name) {
         setFieldError(failure.fields.name)
+        setError("")
+      } else if (failure.fields.category) {
+        setCategoryError(failure.fields.category)
         setError("")
       } else {
         setFieldError("")
@@ -119,8 +120,7 @@ export function ApplicationDialog({
             htmlFor="app-name"
             required={!application}
             error={fieldError}
-            hint={application ? t("appStore.appNameImmutable") : undefined}
-            description={t("appStore.appNameHelp")}
+            hint={application ? t("appStore.appNameImmutable") : t("appStore.appNameHelp")}
             counter={{ value: name.length, max: NAME_MAX }}
           >
             <Input
@@ -133,7 +133,7 @@ export function ApplicationDialog({
               onChange={(event) => setName(event.target.value)}
             />
           </FormField>
-          <FormField label={t("appStore.displayName")} htmlFor="app-display-name" description={t("appStore.displayNameHelp")}>
+          <FormField label={t("appStore.displayName")} htmlFor="app-display-name" hint={t("appStore.displayNameHelp")}>
             <Input
               id="app-display-name"
               value={displayName}
@@ -142,17 +142,28 @@ export function ApplicationDialog({
               onChange={(event) => setDisplayName(event.target.value)}
             />
           </FormField>
-          <FormField label={t("appStore.category")} htmlFor="app-category" description={t("appStore.categoryHelp")}>
-            <Select value={category} onValueChange={(value) => setCategory(value as ApplicationCategory)}>
-              <SelectTrigger id="app-category"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {CATEGORIES.map((item) => (
-                  <SelectItem key={item} value={item}>{t(`appStore.categories.${item}`)}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <FormField
+            label={t("appStore.category")}
+            htmlFor="app-category"
+            hint={t("appStore.categoryHelp")}
+            error={categoryError}
+            counter={{ value: category.length, max: APPLICATION_CATEGORY_MAX }}
+          >
+            <Input
+              id="app-category"
+              value={category}
+              list="app-category-presets"
+              maxLength={APPLICATION_CATEGORY_MAX}
+              placeholder={t("appStore.categoryPlaceholder")}
+              onChange={(event) => setCategory(event.target.value)}
+            />
+            <datalist id="app-category-presets">
+              {APPLICATION_CATEGORY_PRESETS.map((preset) => (
+                <option key={preset} value={preset}>{t(`appStore.categories.${preset}`)}</option>
+              ))}
+            </datalist>
           </FormField>
-          <FormField label={t("appStore.descriptionLabel")} htmlFor="app-description" description={t("appStore.descriptionHelp")}>
+          <FormField label={t("appStore.descriptionLabel")} htmlFor="app-description" hint={t("appStore.descriptionHelp")}>
             <Input
               id="app-description"
               value={description}
@@ -161,7 +172,7 @@ export function ApplicationDialog({
               onChange={(event) => setDescription(event.target.value)}
             />
           </FormField>
-          <FormField label={t("appStore.readme")} htmlFor="app-readme" className="sm:col-span-full" description={t("appStore.readmeHelp")}>
+          <FormField label={t("appStore.readme")} htmlFor="app-readme" className="sm:col-span-full" hint={t("appStore.readmeHelp")}>
             <Textarea
               id="app-readme"
               className="min-h-32"

@@ -1,4 +1,8 @@
-export type ApplicationCategory = "DATABASE" | "MIDDLEWARE" | "OBSERVABILITY" | "TOOLING" | "OTHER"
+/**
+ * 应用分类是自由字符串（proto 只限制长度 ≤32）。界面用内置分类做提示，
+ * 自定义值原样展示；空值按 OTHER 处理。
+ */
+export type ApplicationCategory = string
 export type ApplicationVersionStatus = "DRAFT" | "PUBLISHED" | "DEPRECATED"
 
 /** 服务端按版本状态计算的可执行动作，前端不自行推断。 */
@@ -103,6 +107,8 @@ export interface ApplicationVersionComponent {
   sortOrder: number
   resources: ApplicationResource[]
   resourceCount: number
+  /** 服务备注，支持 Markdown。 */
+  description: string
 }
 
 export interface ApplicationVersionItem {
@@ -186,6 +192,24 @@ export interface DeleteApplicationVersionResourceParams {
   applicationUid: string
   uid: string
   resourceUid: string
+  expectedRevision: number
+}
+
+export interface SaveApplicationVersionComponentParams {
+  applicationUid: string
+  uid: string
+  /** 为空表示新增服务，否则更新对应服务。 */
+  componentUid: string
+  name: string
+  /** 服务备注，支持 Markdown，最多 2048 字符。 */
+  description: string
+  expectedRevision: number
+}
+
+export interface DeleteApplicationVersionComponentParams {
+  applicationUid: string
+  uid: string
+  componentUid: string
   expectedRevision: number
 }
 

@@ -11,6 +11,7 @@ import type {
   CreateApplicationVersionParams,
   CreateApplicationVersionResourceParams,
   CreateDeploymentParams,
+  DeleteApplicationVersionComponentParams,
   DeleteApplicationVersionResourceParams,
   DuplicateApplicationVersionParams,
   ListApplicationReleasesParams,
@@ -23,6 +24,7 @@ import type {
   ListDeploymentsResult,
   ListOperationsResult,
   SaveApplicationParams,
+  SaveApplicationVersionComponentParams,
   SaveApplicationVersionResourceParams,
   UpdateApplicationParams,
   UpdateApplicationVersionParams,
@@ -113,6 +115,20 @@ export function deleteApplicationVersionResource(body: DeleteApplicationVersionR
   // DELETE 没有请求体：expectedRevision 按查询参数绑定（与 proto 字段名一致）。
   return del<{ version: ApplicationVersionItem }>(
     `/application/${segment(body.applicationUid)}/version/${segment(body.uid)}/resource/${segment(body.resourceUid)}?expectedRevision=${body.expectedRevision}`,
+  )
+}
+/** POST /v1/application/{uid}/version/{versionUid}/component */
+export function saveApplicationVersionComponent(body: SaveApplicationVersionComponentParams): Promise<{ version: ApplicationVersionItem }> {
+  return post<{ version: ApplicationVersionItem }>(
+    `/application/${segment(body.applicationUid)}/version/${segment(body.uid)}/component`,
+    body,
+  )
+}
+/** DELETE /v1/application/{uid}/version/{versionUid}/component/{componentUid} */
+export function deleteApplicationVersionComponent(body: DeleteApplicationVersionComponentParams): Promise<{ version: ApplicationVersionItem }> {
+  // DELETE 没有请求体：expectedRevision 按查询参数绑定。
+  return del<{ version: ApplicationVersionItem }>(
+    `/application/${segment(body.applicationUid)}/version/${segment(body.uid)}/component/${segment(body.componentUid)}?expectedRevision=${body.expectedRevision}`,
   )
 }
 /** POST /v1/application/{uid}/version/{versionUid}/resource/validate */

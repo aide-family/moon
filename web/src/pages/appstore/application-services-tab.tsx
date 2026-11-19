@@ -7,10 +7,10 @@ import type {
   ApplicationVersionItem,
 } from "@/api/application/types"
 import { DetailSheet } from "@/components/detail-sheet"
-import { Button } from "@/components/ui/button"
+import { RowActions } from "@/components/row-actions"
 import { StatusBadge } from "@/components/status-badge"
+import { Button } from "@/components/ui/button"
 
-import { ApplicationComponentDialog } from "./application-component-dialog"
 import { ApplicationServiceCard } from "./application-service-card"
 
 interface ApplicationServicesTabProps {
@@ -18,29 +18,34 @@ interface ApplicationServicesTabProps {
   components: ApplicationVersionComponent[]
   editable: boolean
   readOnlyHint?: string
-  onAddResource: (component?: string) => void
+  onCreateService: () => void
   onEditService: (component: ApplicationVersionComponent) => void
   onDeleteService: (component: ApplicationVersionComponent) => void
+  onAddResource: (component: ApplicationVersionComponent) => void
   onOpenResource: (resource: ApplicationResource) => void
+  onEditResource: (resource: ApplicationResource) => void
+  onDeleteResource: (resource: ApplicationResource) => void
 }
 
 /**
  * 版本内容默认 Tab：把版本按服务（component）呈现成卡片网格。
- * 新增服务时先输入组件名，再在该服务下添加第一个资源；组件随资源存在。
+ * 服务是独立实体（可先建空服务），资源在服务卡片「更多 → 添加资源」里维护。
  */
 export function ApplicationServicesTab({
   version,
   components,
   editable,
   readOnlyHint,
-  onAddResource,
+  onCreateService,
   onEditService,
   onDeleteService,
+  onAddResource,
   onOpenResource,
+  onEditResource,
+  onDeleteResource,
 }: ApplicationServicesTabProps) {
   const { t } = useTranslation()
   const [sheetComponent, setSheetComponent] = useState<ApplicationVersionComponent | null>(null)
-  const [createOpen, setCreateOpen] = useState(false)
 
   return (
     <div className="grid min-w-0 gap-4">
@@ -54,15 +59,10 @@ export function ApplicationServicesTab({
             })}
           </p>
         </div>
-        {editable ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setCreateOpen(true)}>
-              {t("appStore.services.createService")}
-            </Button>
-            <Button size="sm" onClick={() => onAddResource()}>
-              {t("appStore.addResource")}
-            </Button>
-          </div>
+        {editable && components.length > 0 ? (
+          <Button variant="outline" size="sm" onClick={onCreateService}>
+            {t("appStore.services.createService")}
+          </Button>
         ) : null}
       </div>
 
@@ -77,12 +77,9 @@ export function ApplicationServicesTab({
           <p className="font-medium">{t("appStore.services.emptyTitle")}</p>
           <p className="text-sm text-muted-foreground">{t("appStore.services.emptyHint")}</p>
           {editable ? (
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => setCreateOpen(true)}>
+            <div className="flex justify-center">
+              <Button variant="outline" size="sm" onClick={onCreateService}>
                 {t("appStore.services.createService")}
-              </Button>
-              <Button size="sm" onClick={() => onAddResource()}>
-                {t("appStore.addResource")}
               </Button>
             </div>
           ) : null}
@@ -96,23 +93,13 @@ export function ApplicationServicesTab({
               version={version}
               editable={editable}
               onViewResources={() => setSheetComponent(component)}
+              onAddResource={() => onAddResource(component)}
               onEdit={() => onEditService(component)}
               onDelete={() => onDeleteService(component)}
             />
           ))}
         </div>
       )}
-
-      <ApplicationComponentDialog
-        key={createOpen ? "create-open" : "create-closed"}
-        open={createOpen}
-        mode="create"
-        onOpenChange={setCreateOpen}
-        onSave={(name) => {
-          setCreateOpen(false)
-          onAddResource(name)
-        }}
-      />
 
       <DetailSheet
         open={sheetComponent !== null}
@@ -128,9 +115,9 @@ export function ApplicationServicesTab({
             <div className="flex justify-end">
               <Button
                 onClick={() => {
-                  const name = sheetComponent.name
+                  const target = sheetComponent
                   setSheetComponent(null)
-                  onAddResource(name)
+                  onAddResource(target)
                 }}
               >
                 {t("appStore.services.addResourceToService")}
@@ -157,17 +144,19 @@ export function ApplicationServicesTab({
                       </span>
                       <span className="min-w-0 truncate font-mono text-xs text-muted-foreground">{resource.name}</span>
                     </span>
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className="h-auto shrink-0 px-0"
-                      onClick={() => {
+                    <RowActions
+                      nowrap
+                      detailLabel={t("action.detail")}
+                      moreLabel={t("action.more")}
+                      onDetail={() => {
                         setSheetComponent(null)
                         onOpenResource(resource)
                       }}
-                    >
-                      {t("appStore.services.viewResource")}
-                    </Button>
+                      actions={editable ? [
+                        { key: "edit", label: t("appStore.editResource"), onSelect: () => { setSheetComponent(null); onEditResource(resource) } },
+                        { key: "delete", label: t("action.delete"), destructive: true, onSelect: () => { setSheetComponent(null); onDeleteResource(resource) } },
+                      ] : []}
+                    />
                   </li>
                 ))}
               </ul>

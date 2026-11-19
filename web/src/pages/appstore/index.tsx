@@ -37,6 +37,11 @@ import {
 } from "@/components/ui/table"
 import { useListQuery } from "@/hooks/use-list-query"
 import { usePagedList } from "@/hooks/use-paged-list"
+import {
+  APPLICATION_CATEGORY_MAX,
+  APPLICATION_CATEGORY_PRESETS,
+  applicationCategoryLabel,
+} from "@/lib/application-category"
 import { formatUnixDateTime } from "@/lib/date-time"
 import { enumLabel } from "@/lib/enum-label"
 import { TABLE_MIN_WIDTH, TABLE_NOWRAP } from "@/lib/table-layout"
@@ -115,7 +120,7 @@ function AppsView({ navigate }: { navigate: (path: string) => void }) {
     page: query.page,
     pageSize: query.pageSize,
     filterKey: `${session.namespaceUid}|${query.name}|${query.type}`,
-    fetch: (page, pageSize) => listApplications({ page, pageSize, name: query.name, category: query.type as never }),
+    fetch: (page, pageSize) => listApplications({ page, pageSize, name: query.name, category: query.type }),
   })
   return (
     <>
@@ -124,6 +129,20 @@ function AppsView({ navigate }: { navigate: (path: string) => void }) {
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input className="pl-9" value={query.name} placeholder={t("appStore.searchApps")} onChange={(event) => query.update({ name: event.target.value })} />
         </div>
+        <Input
+          className="w-44"
+          value={query.type}
+          list="app-category-filter"
+          maxLength={APPLICATION_CATEGORY_MAX}
+          placeholder={t("appStore.categoryFilterPlaceholder")}
+          aria-label={t("appStore.categoryFilter")}
+          onChange={(event) => query.update({ type: event.target.value })}
+        />
+        <datalist id="app-category-filter">
+          {APPLICATION_CATEGORY_PRESETS.map((preset) => (
+            <option key={preset} value={preset}>{t(`appStore.categories.${preset}`)}</option>
+          ))}
+        </datalist>
       </div>
       <ListFrame total={total} page={query.page} pageSize={query.pageSize} showPager={!loading && !failed && items.length > 0} onPrev={() => query.update({ page: Math.max(1, query.page - 1) })} onNext={() => query.update({ page: query.page + 1 })}>
         {loading ? <p className="text-sm text-muted-foreground">{t("state.loading")}</p> : null}
@@ -140,7 +159,7 @@ function AppsView({ navigate }: { navigate: (path: string) => void }) {
               {items.map((item) => (
                 <TableRow key={item.uid}>
                   <TableCell><div className="grid gap-1"><button type="button" className="text-left font-medium underline-offset-4 hover:underline" onClick={() => navigate(`/appstore/apps/${item.uid}`)}>{item.name}</button>{item.displayName ? <span className="text-xs text-muted-foreground">{item.displayName}</span> : null}</div></TableCell>
-                  <TableCell><Badge variant="outline">{t(`appStore.categories.${item.category}`)}</Badge></TableCell>
+                  <TableCell><Badge variant="outline">{applicationCategoryLabel(t, item.category)}</Badge></TableCell>
                   <TableCell className={`font-mono text-xs ${TABLE_NOWRAP}`}>{item.versionCount}</TableCell>
                   <TableCell className="font-mono text-xs">{item.latestVersion || "—"}</TableCell>
                   <TableCell className={`font-mono text-xs ${TABLE_NOWRAP}`}>{formatUnixDateTime(item.createdAt) || "—"}</TableCell>

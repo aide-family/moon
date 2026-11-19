@@ -223,7 +223,7 @@ export function ApplicationReleaseDialog({
             htmlFor="release-version"
             required
             error={fieldErrors.versionUid}
-            description={t("appStore.releaseVersionHelp")}
+            hint={t("appStore.releaseVersionHelp")}
           >
             <Select value={versionUid} onValueChange={setVersionUid}>
               <SelectTrigger id="release-version">
@@ -246,8 +246,7 @@ export function ApplicationReleaseDialog({
             label={t("appStore.targetClusters")}
             required
             error={fieldErrors.clusterUids}
-            hint={t("appStore.clusterSelectionHint", { count: selected.length })}
-            description={t("appStore.releaseClusterHint")}
+            hint={t("appStore.releaseClusterHint")}
           >
             <div className="grid max-h-64 gap-1 overflow-auto rounded-lg border border-border/60 p-2">
               {targets.map((target) => {
@@ -278,7 +277,7 @@ export function ApplicationReleaseDialog({
             htmlFor="release-name"
             required={needsDeployment}
             error={fieldErrors.name}
-            description={needsDeployment ? t("appStore.deploymentNameHelp") : t("appStore.releaseNoCreateHint")}
+            hint={needsDeployment ? t("appStore.deploymentNameHelp") : t("appStore.releaseNoCreateHint")}
           >
             <Input id="release-name" className="font-mono" value={name} placeholder="app-prod" onChange={(event) => setName(event.target.value)} />
           </FormField>
@@ -287,7 +286,7 @@ export function ApplicationReleaseDialog({
             htmlFor="release-namespace"
             required={needsDeployment}
             error={fieldErrors.namespace}
-            description={t("appStore.targetNamespaceHelp")}
+            hint={t("appStore.targetNamespaceHelp")}
           >
             <Input id="release-namespace" className="font-mono" value={namespace} placeholder="default" onChange={(event) => setNamespace(event.target.value)} />
           </FormField>

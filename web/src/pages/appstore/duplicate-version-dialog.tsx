@@ -100,7 +100,7 @@ export function ApplicationDuplicateVersionDialog({
               htmlFor="duplicate-version"
               required
               error={versionError}
-              description={t("appStore.versionHelp")}
+              hint={t("appStore.versionHelp")}
             >
               <Input
                 id="duplicate-version"
@@ -113,7 +113,7 @@ export function ApplicationDuplicateVersionDialog({
             <FormField
               label={t("appStore.changelog")}
               htmlFor="duplicate-changelog"
-              description={t("appStore.duplicateChangelogHelp")}
+              hint={t("appStore.duplicateChangelogHelp")}
             >
               <Textarea
                 id="duplicate-changelog"

@@ -1,4 +1,4 @@
-import { del, get, post, put } from "@/api/http"
+import { del, get, post, put, type RequestOptions } from "@/api/http"
 
 import type {
   CopyRegistryTagParams,
@@ -32,9 +32,10 @@ function segment(value: string): string {
 
 /** GET /v1/registries */
 export function listRegistries(
-  params: ListRegistriesParams = {}
+  params: ListRegistriesParams = {},
+  options?: RequestOptions
 ): Promise<ListRegistriesResult> {
-  return get<ListRegistriesResult>("/registries", params)
+  return get<ListRegistriesResult>("/registries", params, undefined, options)
 }
 
 /** GET /v1/registry/{uid} */

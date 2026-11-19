@@ -43,6 +43,7 @@ export function buildVersionComponents(version: ApplicationVersionItem | null): 
       sortOrder: index,
       resources: [...resources].sort(compareResources),
       resourceCount: resources.length,
+      description: "",
     }))
 }
 

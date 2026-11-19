@@ -13,17 +13,30 @@ const stringMap: JSONSchema = {
 
 const labels: JSONSchema = { type: "object", additionalProperties: { type: "string" } }
 
+const metadataProperties: Record<string, JSONSchema> = {
+  name: { type: "string", description: "资源名（DNS 子域名）" },
+  namespace: { type: "string", description: "命名空间；集群级资源不填" },
+  labels,
+  annotations: labels,
+  generateName: { type: "string" },
+  finalizers: { type: "array", items: { type: "string" } },
+}
+
+/** 资源根级 metadata：name 必填。 */
 const metadata: JSONSchema = {
   type: "object",
-  properties: {
-    name: { type: "string", description: "资源名（DNS 子域名）" },
-    namespace: { type: "string", description: "命名空间；集群级资源不填" },
-    labels,
-    annotations: labels,
-    generateName: { type: "string" },
-    finalizers: { type: "array", items: { type: "string" } },
-  },
+  properties: metadataProperties,
   required: ["name"],
+  additionalProperties: true,
+}
+
+/**
+ * Pod template / jobTemplate 内嵌的 metadata：只允许 labels/annotations 等，
+ * 不要求 name（由上层控制器生成），因此不能复用根级 metadata 的 required。
+ */
+const podMetadata: JSONSchema = {
+  type: "object",
+  properties: metadataProperties,
   additionalProperties: true,
 }
 
@@ -123,7 +136,7 @@ const workloadSpec = (extra: Record<string, JSONSchema>): JSONSchema => ({
       properties: { matchLabels: labels, matchExpressions: { type: "array", items: { type: "object", additionalProperties: true } } },
       additionalProperties: true,
     },
-    template: { type: "object", properties: { metadata, spec: podSpec }, additionalProperties: true },
+    template: { type: "object", properties: { metadata: podMetadata, spec: podSpec }, additionalProperties: true },
     strategy: { type: "object", additionalProperties: true },
     minReadySeconds: { type: "integer", minimum: 0 },
     revisionHistoryLimit: { type: "integer", minimum: 0 },
@@ -196,8 +209,8 @@ const cronJobSpec: JSONSchema = {
     jobTemplate: {
       type: "object",
       properties: {
-        metadata,
-        spec: { type: "object", properties: { template: { type: "object", properties: { metadata, spec: podSpec }, additionalProperties: true } }, additionalProperties: true },
+        metadata: podMetadata,
+        spec: { type: "object", properties: { template: { type: "object", properties: { metadata: podMetadata, spec: podSpec }, additionalProperties: true } }, additionalProperties: true },
       },
       additionalProperties: true,
     },
@@ -399,7 +412,7 @@ export const KUBERNETES_YAML_SCHEMAS: KubernetesYamlSchema[] = [
             parallelism: { type: "integer", minimum: 0 },
             ttlSecondsAfterFinished: { type: "integer", minimum: 0 },
             suspend: { type: "boolean" },
-            template: { type: "object", properties: { metadata, spec: podSpec }, additionalProperties: true },
+            template: { type: "object", properties: { metadata: podMetadata, spec: podSpec }, additionalProperties: true },
           },
           required: ["template"],
           additionalProperties: true,

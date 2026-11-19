@@ -122,9 +122,11 @@ export function ApplicationResourceDetailSheet({
                     label={image.external || image.source === "EXTERNAL" ? t("appStore.services.externalImage") : image.registryName || t("enum.REGISTRY")}
                   />
                 </div>
-                <p className="font-mono text-xs text-muted-foreground break-all">
-                  {image.resolvedImage || image.image}
-                </p>
+                {image.resolvedImage && image.resolvedImage !== image.image ? (
+                  <p className="font-mono text-xs text-muted-foreground break-all">
+                    {t("appStore.actualImage")}：{image.resolvedImage}
+                  </p>
+                ) : null}
                 <p className="font-mono text-xs text-muted-foreground">
                   {image.digest || t("appStore.imagePicker.digestUnpinned")} · {image.platforms.join(" · ") || "—"}
                 </p>

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 
+import { useSession } from "@/auth/session"
+
 import {
   listRegistries,
   listRegistryProjects,
@@ -67,6 +69,8 @@ export function ImageReferencePicker({
   "aria-describedby": ariaDescribedBy,
 }: ImageReferencePickerProps) {
   const { t } = useTranslation()
+  const session = useSession()
+  const registryAllowed = session.can("registry:read")
   const [registries, setRegistries] = useState<RegistryItem[]>([])
   const [registryUid, setRegistryUid] = useState("")
   const [projects, setProjects] = useState<RegistryProjectItem[]>([])
@@ -82,10 +86,14 @@ export function ImageReferencePicker({
     () => registries.find((item) => item.uid === registryUid),
     [registries, registryUid],
   )
+  const displayError = registryAllowed ? error : t("appStore.imagePicker.registryUnavailable")
 
   useEffect(() => {
+    if (!registryAllowed) {
+      return
+    }
     let active = true
-    void listRegistries({ page: 1, pageSize: 100 })
+    void listRegistries({ page: 1, pageSize: 100 }, { allowForbidden: true, silent: true })
       .then((result) => {
         if (!active) return
         setRegistries(result.items)
@@ -101,9 +109,9 @@ export function ImageReferencePicker({
     return () => {
       active = false
     }
-    // 只在首次加载；value 的变化由用户选择驱动。
+    // 只在仓库能力与首次加载变化时刷新；value 的变化由用户选择驱动。
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [registryAllowed])
 
   useEffect(() => {
     if (!registryUid) {
@@ -213,7 +221,7 @@ export function ImageReferencePicker({
           searchPlaceholder={t("appStore.imagePicker.search")}
           emptyText={t("appStore.imagePicker.emptyRegistries")}
           clearLabel={t("appStore.imagePicker.clear")}
-          disabled={disabled}
+          disabled={disabled || !registryAllowed}
           invalid={invalid}
           ariaLabel={t("appStore.imagePicker.registry")}
           aria-describedby={ariaDescribedBy}
@@ -299,8 +307,8 @@ export function ImageReferencePicker({
         {external ? (
           <p className="text-warning">{t("appStore.imagePicker.externalHint")}</p>
         ) : null}
-        {error ? <p className="text-destructive">{error}</p> : null}
-        {!selection && !external && !error ? (
+        {displayError ? <p className="text-destructive">{displayError}</p> : null}
+        {!selection && !external && !displayError ? (
           <p className="text-muted-foreground">{t("appStore.imagePicker.manualHint")}</p>
         ) : null}
       </div>
