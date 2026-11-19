@@ -94,7 +94,7 @@ export function MessageLogPage() {
     item: NotificationTaskItem
   } | null>(null)
   const [confirmError, setConfirmError] = useState("")
-  // 筛选条件同样以 URL 为唯一来源：面板里编辑的是草稿，点“应用筛选”才生效。
+  // 筛选条件同样以 URL 为唯一来源：面板里编辑的是草稿，点“搜索”才生效。
   const appliedFilters = {
     status: params.get("status") ?? "",
     taskUid: params.get("taskUid") ?? "",
