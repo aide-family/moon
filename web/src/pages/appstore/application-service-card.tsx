@@ -52,7 +52,7 @@ export function ApplicationServiceCard({
       <CardHeader className="border-b border-border/60">
         <CardTitle className="flex min-w-0 flex-wrap items-center gap-2">
           <span className="min-w-0 truncate font-mono">{component.name}</span>
-          {component.displayName ? (
+          {component.displayName && component.displayName !== component.name ? (
             <span className="min-w-0 truncate text-sm font-normal text-muted-foreground">
               {component.displayName}
             </span>
