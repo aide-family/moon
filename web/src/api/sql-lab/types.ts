@@ -122,6 +122,24 @@ export interface ListSqlTableIndexesResult {
   items: SqlIndexItem[]
 }
 
+export interface QuerySqlTableDataParams {
+  uid: string
+  database?: string
+  schema?: string
+  table: string
+  page?: number
+  pageSize?: number
+}
+
+export interface SqlTableDataResult {
+  columns: string[]
+  rows: SqlQueryRow[]
+  rowCount: number
+  hasMore: boolean
+  /** int64 在 protojson 里是字符串。 */
+  elapsedMs: string
+}
+
 export interface QuerySqlParams {
   uid: string
   database?: string

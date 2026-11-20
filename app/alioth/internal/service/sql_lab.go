@@ -79,6 +79,21 @@ func (s *SqlLabService) ListSqlTableIndexes(ctx context.Context, req *v1.ListSql
 	return &v1.ListSqlTableIndexesResponse{Items: items}, nil
 }
 
+func (s *SqlLabService) QuerySqlTableData(ctx context.Context, req *v1.QuerySqlTableDataRequest) (*v1.QuerySqlTableDataResponse, error) {
+	result, err := s.gateway.SqlTableData(ctx, req.GetUid(), req.GetDatabase(), req.GetSchema(), req.GetTable(), req.GetPage(), req.GetPageSize())
+	if err != nil {
+		return nil, err
+	}
+	rows := make([]*v1.SqlRow, 0, len(result.Rows))
+	for _, row := range result.Rows {
+		rows = append(rows, &v1.SqlRow{Cells: row})
+	}
+	return &v1.QuerySqlTableDataResponse{
+		Columns: result.Columns, Rows: rows, RowCount: int32(len(result.Rows)),
+		HasMore: result.HasMore, ElapsedMs: result.ElapsedMS,
+	}, nil
+}
+
 func (s *SqlLabService) QuerySql(ctx context.Context, req *v1.QuerySqlRequest) (*v1.QuerySqlResponse, error) {
 	result, err := s.gateway.QuerySql(ctx, req.GetUid(), req.GetDatabase(), req.GetStatement(), req.GetMaxRows())
 	if err != nil {

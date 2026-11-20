@@ -39,6 +39,8 @@ type DatasourceRepo interface {
 	SqlTableIndexes(ctx context.Context, item bo.Datasource, database, schema, table string) ([]bo.SqlIndex, error)
 	// QuerySql 在只读事务里执行一条查询，最多返回 maxRows 行。
 	QuerySql(ctx context.Context, item bo.Datasource, database, statement string, maxRows int) (*bo.SqlQueryResult, error)
+	// SqlTableData 分页读取一张表的数据。按主键排序，没有主键时按物理行号排序。
+	SqlTableData(ctx context.Context, item bo.Datasource, database, schema, table string, page, pageSize int) (*bo.SqlTableRows, error)
 	// CreateSqlTable、AlterSqlTable 和 DropSqlTable 在事务里执行结构变更，
 	// 成功和失败都写一条审计，operatorUID 是操作人。
 	CreateSqlTable(ctx context.Context, item bo.Datasource, in bo.CreateSqlTableInput, operatorUID string) (string, error)

@@ -41,6 +41,14 @@ type SqlQueryResult struct {
 	Truncated bool
 }
 
+// SqlTableRows 是表数据的一页。HasMore 表示还有下一页。
+type SqlTableRows struct {
+	Columns   []string
+	Rows      [][]string
+	HasMore   bool
+	ElapsedMS int64
+}
+
 // SqlColumnDefinition 是建表或加字段时的一列。
 type SqlColumnDefinition struct {
 	Name string

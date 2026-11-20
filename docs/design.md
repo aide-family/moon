@@ -297,7 +297,7 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 
 指标数据源保留 Moon 已有的能力：状态、指标列表、指标详情、`query`、`query_range`、代理查询。Prometheus 的指标列表取 `/api/v1/metadata`；VictoriaMetrics 的 `/api/v1/metadata` 只是空的兼容占位，指标名改取最近 24 小时的 `/api/v1/label/__name__/values`，指标详情取 `/api/v1/series`。两者共用 `/api/v1/query`、`/api/v1/query_range`，VictoriaMetrics 查询语句为 MetricsQL（兼容 PromQL）。数据源地址可以带路径前缀，例如 VictoriaMetrics 集群的 `/select/<accountID>/prometheus`，管理端查询和 `megrez` 评测都保留该前缀。Loki 日志数据源的连通检查走 `/ready`，日志查询走 `/loki/api/v1/query_range`，查询语句为 LogQL。VictoriaLogs 的连通检查走 `/health`，日志查询走 `/select/logsql/query`，查询语句为 LogsQL。Elasticsearch 日志数据源的连通检查走根路径，日志查询走 `/_search`，查询语句为 Query DSL 或普通检索语句，索引模式和时间字段随数据源保存。数据源列表和详情展示驱动对应的产品图标；元数据页对 Prometheus 和 VictoriaMetrics 展示指标元数据，对 Loki 展示构建信息，对 VictoriaLogs 展示健康状态，对 Elasticsearch 展示 `_cluster/health` 集群状态和 `_cat/allocation` 节点分配。
 
-PostgreSQL 数据源（类型 `SQL`、驱动 `SQL_POSTGRESQL`）的连接地址是 `postgres://` 或 `postgresql://` 连接串，用户名和密码既可以写在连接串里，也可以放在数据源的用户名和密码字段（后者优先，密码加密入库）。连通检查是打开连接并执行一次 `SELECT 1`。库表浏览、只读查询和结构变更由 SQL 实验室接口提供：`GET /v1/datasource/{uid}/sql/{databases,schemas,tables,columns,indexes}` 读取库、模式、表/视图、字段和索引，`POST /v1/datasource/{uid}/sql/query` 执行只读查询，`POST|PUT|DELETE /v1/datasource/{uid}/sql/tables` 建表、改表和删表，`GET /v1/datasource/{uid}/sql/audits` 查看 DDL 审计。只读查询只接受 `SELECT`、`WITH`、`SHOW`、`EXPLAIN`、`VALUES` 和 `TABLE` 开头，并在只读事务里执行，即使关键字检查被绕过也不能写库；结果行数默认 100、上限 1000，超出时标记截断。库名、模式名、表名和字段名只接受不加引号也安全的标识符，字段类型与默认值各有一套白名单，语句在事务里执行，标识符统一加双引号后拼接。建表、改表和删表无论成功失败都写一条 `datasource_sql_audits`，记录操作人、实际语句、结果和失败原因；审计属于运行数据，不随迁移包搬。这个驱动暂不参与规则评测，因此也不会由评测产生可用性事件。
+PostgreSQL 数据源（类型 `SQL`、驱动 `SQL_POSTGRESQL`）的连接地址是 `postgres://` 或 `postgresql://` 连接串，用户名和密码既可以写在连接串里，也可以放在数据源的用户名和密码字段（后者优先，密码加密入库）。连通检查是打开连接并执行一次 `SELECT 1`。库表浏览、只读查询和结构变更由 SQL 实验室接口提供：`GET /v1/datasource/{uid}/sql/{databases,schemas,tables,columns,indexes}` 读取库、模式、表/视图、字段和索引，`POST /v1/datasource/{uid}/sql/table-data` 分页读取表数据（默认每页 100 行，按主键排序，没有主键时按物理行号排序），`POST /v1/datasource/{uid}/sql/query` 执行只读查询，`POST|PUT|DELETE /v1/datasource/{uid}/sql/tables` 建表、改表和删表，`GET /v1/datasource/{uid}/sql/audits` 查看 DDL 审计。只读查询只接受 `SELECT`、`WITH`、`SHOW`、`EXPLAIN`、`VALUES` 和 `TABLE` 开头，并在只读事务里执行，即使关键字检查被绕过也不能写库；结果行数默认 100、上限 1000，超出时标记截断。库名、模式名、表名和字段名只接受不加引号也安全的标识符，字段类型与默认值各有一套白名单，语句在事务里执行，标识符统一加双引号后拼接。建表、改表和删表无论成功失败都写一条 `datasource_sql_audits`，记录操作人、实际语句、结果和失败原因；审计属于运行数据，不随迁移包搬。这个驱动暂不参与规则评测，因此也不会由评测产生可用性事件。
 
 ### 4.2 规则
 
@@ -565,7 +565,7 @@ nginx 只做两件事：托管静态文件，把 `/v1` 反代到 `alioth:8000`�
 | 邀请消息       | `GET /v1/self/invitations`、`GET /v1/invitation/{token}`、`POST /v1/invitation/accept`、`POST /v1/invitation/decline`                                |
 | 系统消息       | `GET /v1/self/messages`、`GET /v1/self/messages/unread-count`、`PUT /v1/self/messages/{uid}/read`、`PUT /v1/self/messages/read-all`                |
 | 数据源        | `/v1/datasource`、`/v1/datasources`、状态、元数据、指标列表与详情                                           |
-| SQL 实验室     | `/v1/datasource/{uid}/sql/{databases,schemas,tables,columns,indexes,query,audits}`。PostgreSQL 库表浏览、只读查询与建表/改表/删表 |
+| SQL 实验室     | `/v1/datasource/{uid}/sql/{databases,schemas,tables,columns,indexes,table-data,query,audits}`。PostgreSQL 库表浏览、表数据分页、只读查询与建表/改表/删表 |
 | 指标查询       | `POST /v1/metric-query/query`、`query-range`、`proxy`                                     |
 | 日志查询       | `POST /v1/logs-query/query`。Loki、VictoriaLogs 与 Elasticsearch 的日志区间查询，返回驱动原始 JSON                |
 | 规则组 / 规则   | Moon 的 `/v1/strategy-group` 与 `/v1/strategy`。Alioth 资源名为 AlertRuleGroup、AlertRule       |

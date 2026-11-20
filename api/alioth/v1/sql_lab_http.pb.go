@@ -27,6 +27,7 @@ const OperationSqlLabServiceListSqlTableColumns = "/alioth.v1.SqlLabService/List
 const OperationSqlLabServiceListSqlTableIndexes = "/alioth.v1.SqlLabService/ListSqlTableIndexes"
 const OperationSqlLabServiceListSqlTables = "/alioth.v1.SqlLabService/ListSqlTables"
 const OperationSqlLabServiceQuerySql = "/alioth.v1.SqlLabService/QuerySql"
+const OperationSqlLabServiceQuerySqlTableData = "/alioth.v1.SqlLabService/QuerySqlTableData"
 
 type SqlLabServiceHTTPServer interface {
 	// AlterSqlTable 改表：改名、加字段、删字段、改类型或可空与默认值。
@@ -49,6 +50,8 @@ type SqlLabServiceHTTPServer interface {
 	ListSqlTables(context.Context, *ListSqlTablesRequest) (*ListSqlTablesResponse, error)
 	// QuerySql 执行一条只读查询，返回列名和字符串化的行。超过 max_rows 的部分截断。
 	QuerySql(context.Context, *QuerySqlRequest) (*QuerySqlResponse, error)
+	// QuerySqlTableData 分页读取一张表的数据。默认每页 100 行，按主键排序；没有主键时按物理行号排序。
+	QuerySqlTableData(context.Context, *QuerySqlTableDataRequest) (*QuerySqlTableDataResponse, error)
 }
 
 func RegisterSqlLabServiceHTTPServer(s *http.Server, srv SqlLabServiceHTTPServer) {
@@ -58,6 +61,7 @@ func RegisterSqlLabServiceHTTPServer(s *http.Server, srv SqlLabServiceHTTPServer
 	r.Handle("GET", "/v1/datasource/{uid}/sql/tables", _SqlLabService_ListSqlTables0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/datasource/{uid}/sql/columns", _SqlLabService_ListSqlTableColumns0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/datasource/{uid}/sql/indexes", _SqlLabService_ListSqlTableIndexes0_HTTP_Handler(srv))
+	r.Handle("POST", "/v1/datasource/{uid}/sql/table-data", _SqlLabService_QuerySqlTableData0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/datasource/{uid}/sql/query", _SqlLabService_QuerySql0_HTTP_Handler(srv))
 	r.Handle("POST", "/v1/datasource/{uid}/sql/tables", _SqlLabService_CreateSqlTable0_HTTP_Handler(srv))
 	r.Handle("PUT", "/v1/datasource/{uid}/sql/tables", _SqlLabService_AlterSqlTable0_HTTP_Handler(srv))
@@ -171,6 +175,28 @@ func _SqlLabService_ListSqlTableIndexes0_HTTP_Handler(srv SqlLabServiceHTTPServe
 			return err
 		}
 		reply := out.(*ListSqlTableIndexesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SqlLabService_QuerySqlTableData0_HTTP_Handler(srv SqlLabServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in QuerySqlTableDataRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSqlLabServiceQuerySqlTableData)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.QuerySqlTableData(ctx, req.(*QuerySqlTableDataRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*QuerySqlTableDataResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -306,6 +332,8 @@ type SqlLabServiceHTTPClient interface {
 	ListSqlTables(ctx context.Context, req *ListSqlTablesRequest, opts ...http.CallOption) (rsp *ListSqlTablesResponse, err error)
 	// QuerySql 执行一条只读查询，返回列名和字符串化的行。超过 max_rows 的部分截断。
 	QuerySql(ctx context.Context, req *QuerySqlRequest, opts ...http.CallOption) (rsp *QuerySqlResponse, err error)
+	// QuerySqlTableData 分页读取一张表的数据。默认每页 100 行，按主键排序；没有主键时按物理行号排序。
+	QuerySqlTableData(ctx context.Context, req *QuerySqlTableDataRequest, opts ...http.CallOption) (rsp *QuerySqlTableDataResponse, err error)
 }
 
 type SqlLabServiceHTTPClientImpl struct {
@@ -480,6 +508,24 @@ func (c *SqlLabServiceHTTPClientImpl) QuerySql(ctx context.Context, in *QuerySql
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSqlLabServiceQuerySql),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// QuerySqlTableData 分页读取一张表的数据。默认每页 100 行，按主键排序；没有主键时按物理行号排序。
+func (c *SqlLabServiceHTTPClientImpl) QuerySqlTableData(ctx context.Context, in *QuerySqlTableDataRequest, opts ...http.CallOption) (*QuerySqlTableDataResponse, error) {
+	var out QuerySqlTableDataResponse
+	pattern := "/v1/datasource/{uid}/sql/table-data"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSqlLabServiceQuerySqlTableData),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

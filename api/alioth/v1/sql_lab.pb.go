@@ -837,6 +837,179 @@ func (x *ListSqlTableIndexesResponse) GetItems() []*SqlIndexItem {
 	return nil
 }
 
+// 分页读取表数据。
+type QuerySqlTableDataRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 数据源标识。
+	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	// 库名。留空表示数据源连接串里的库。
+	Database string `protobuf:"bytes,2,opt,name=database,proto3" json:"database,omitempty"`
+	// 模式名。留空表示 public。
+	Schema string `protobuf:"bytes,3,opt,name=schema,proto3" json:"schema,omitempty"`
+	// 表名。
+	Table string `protobuf:"bytes,4,opt,name=table,proto3" json:"table,omitempty"`
+	// 页码，从 1 开始。0 表示第一页。
+	Page int32 `protobuf:"varint,5,opt,name=page,proto3" json:"page,omitempty"`
+	// 每页行数。0 表示默认 100，上限 500。
+	PageSize      int32 `protobuf:"varint,6,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *QuerySqlTableDataRequest) Reset() {
+	*x = QuerySqlTableDataRequest{}
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *QuerySqlTableDataRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QuerySqlTableDataRequest) ProtoMessage() {}
+
+func (x *QuerySqlTableDataRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use QuerySqlTableDataRequest.ProtoReflect.Descriptor instead.
+func (*QuerySqlTableDataRequest) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *QuerySqlTableDataRequest) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *QuerySqlTableDataRequest) GetDatabase() string {
+	if x != nil {
+		return x.Database
+	}
+	return ""
+}
+
+func (x *QuerySqlTableDataRequest) GetSchema() string {
+	if x != nil {
+		return x.Schema
+	}
+	return ""
+}
+
+func (x *QuerySqlTableDataRequest) GetTable() string {
+	if x != nil {
+		return x.Table
+	}
+	return ""
+}
+
+func (x *QuerySqlTableDataRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *QuerySqlTableDataRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+// 表数据的一页。
+type QuerySqlTableDataResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 列名。
+	Columns []string `protobuf:"bytes,1,rep,name=columns,proto3" json:"columns,omitempty"`
+	// 行，每个元素按列顺序排列。
+	Rows []*SqlRow `protobuf:"bytes,2,rep,name=rows,proto3" json:"rows,omitempty"`
+	// 本页行数。
+	RowCount int32 `protobuf:"varint,3,opt,name=row_count,json=rowCount,proto3" json:"row_count,omitempty"`
+	// 后面是否还有数据。为真表示可以翻到下一页。
+	HasMore bool `protobuf:"varint,4,opt,name=has_more,json=hasMore,proto3" json:"has_more,omitempty"`
+	// 服务端耗时，单位毫秒。
+	ElapsedMs     int64 `protobuf:"varint,5,opt,name=elapsed_ms,json=elapsedMs,proto3" json:"elapsed_ms,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *QuerySqlTableDataResponse) Reset() {
+	*x = QuerySqlTableDataResponse{}
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *QuerySqlTableDataResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QuerySqlTableDataResponse) ProtoMessage() {}
+
+func (x *QuerySqlTableDataResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use QuerySqlTableDataResponse.ProtoReflect.Descriptor instead.
+func (*QuerySqlTableDataResponse) Descriptor() ([]byte, []int) {
+	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *QuerySqlTableDataResponse) GetColumns() []string {
+	if x != nil {
+		return x.Columns
+	}
+	return nil
+}
+
+func (x *QuerySqlTableDataResponse) GetRows() []*SqlRow {
+	if x != nil {
+		return x.Rows
+	}
+	return nil
+}
+
+func (x *QuerySqlTableDataResponse) GetRowCount() int32 {
+	if x != nil {
+		return x.RowCount
+	}
+	return 0
+}
+
+func (x *QuerySqlTableDataResponse) GetHasMore() bool {
+	if x != nil {
+		return x.HasMore
+	}
+	return false
+}
+
+func (x *QuerySqlTableDataResponse) GetElapsedMs() int64 {
+	if x != nil {
+		return x.ElapsedMs
+	}
+	return 0
+}
+
 // 执行只读查询。
 type QuerySqlRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -854,7 +1027,7 @@ type QuerySqlRequest struct {
 
 func (x *QuerySqlRequest) Reset() {
 	*x = QuerySqlRequest{}
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[13]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -866,7 +1039,7 @@ func (x *QuerySqlRequest) String() string {
 func (*QuerySqlRequest) ProtoMessage() {}
 
 func (x *QuerySqlRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[13]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -879,7 +1052,7 @@ func (x *QuerySqlRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QuerySqlRequest.ProtoReflect.Descriptor instead.
 func (*QuerySqlRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{13}
+	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *QuerySqlRequest) GetUid() string {
@@ -929,7 +1102,7 @@ type QuerySqlResponse struct {
 
 func (x *QuerySqlResponse) Reset() {
 	*x = QuerySqlResponse{}
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[14]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -941,7 +1114,7 @@ func (x *QuerySqlResponse) String() string {
 func (*QuerySqlResponse) ProtoMessage() {}
 
 func (x *QuerySqlResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[14]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -954,7 +1127,7 @@ func (x *QuerySqlResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QuerySqlResponse.ProtoReflect.Descriptor instead.
 func (*QuerySqlResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{14}
+	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *QuerySqlResponse) GetColumns() []string {
@@ -1003,7 +1176,7 @@ type SqlRow struct {
 
 func (x *SqlRow) Reset() {
 	*x = SqlRow{}
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[15]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1015,7 +1188,7 @@ func (x *SqlRow) String() string {
 func (*SqlRow) ProtoMessage() {}
 
 func (x *SqlRow) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[15]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1028,7 +1201,7 @@ func (x *SqlRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SqlRow.ProtoReflect.Descriptor instead.
 func (*SqlRow) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{15}
+	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *SqlRow) GetCells() []string {
@@ -1061,7 +1234,7 @@ type SqlColumnDefinition struct {
 
 func (x *SqlColumnDefinition) Reset() {
 	*x = SqlColumnDefinition{}
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[16]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1073,7 +1246,7 @@ func (x *SqlColumnDefinition) String() string {
 func (*SqlColumnDefinition) ProtoMessage() {}
 
 func (x *SqlColumnDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[16]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1086,7 +1259,7 @@ func (x *SqlColumnDefinition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SqlColumnDefinition.ProtoReflect.Descriptor instead.
 func (*SqlColumnDefinition) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{16}
+	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *SqlColumnDefinition) GetName() string {
@@ -1161,7 +1334,7 @@ type CreateSqlTableRequest struct {
 
 func (x *CreateSqlTableRequest) Reset() {
 	*x = CreateSqlTableRequest{}
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[17]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1173,7 +1346,7 @@ func (x *CreateSqlTableRequest) String() string {
 func (*CreateSqlTableRequest) ProtoMessage() {}
 
 func (x *CreateSqlTableRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[17]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1186,7 +1359,7 @@ func (x *CreateSqlTableRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSqlTableRequest.ProtoReflect.Descriptor instead.
 func (*CreateSqlTableRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{17}
+	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *CreateSqlTableRequest) GetUid() string {
@@ -1249,7 +1422,7 @@ type CreateSqlTableResponse struct {
 
 func (x *CreateSqlTableResponse) Reset() {
 	*x = CreateSqlTableResponse{}
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[18]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1261,7 +1434,7 @@ func (x *CreateSqlTableResponse) String() string {
 func (*CreateSqlTableResponse) ProtoMessage() {}
 
 func (x *CreateSqlTableResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[18]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1274,7 +1447,7 @@ func (x *CreateSqlTableResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSqlTableResponse.ProtoReflect.Descriptor instead.
 func (*CreateSqlTableResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{18}
+	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *CreateSqlTableResponse) GetStatement() string {
@@ -1303,7 +1476,7 @@ type SqlAlterColumn struct {
 
 func (x *SqlAlterColumn) Reset() {
 	*x = SqlAlterColumn{}
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[19]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1315,7 +1488,7 @@ func (x *SqlAlterColumn) String() string {
 func (*SqlAlterColumn) ProtoMessage() {}
 
 func (x *SqlAlterColumn) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[19]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1328,7 +1501,7 @@ func (x *SqlAlterColumn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SqlAlterColumn.ProtoReflect.Descriptor instead.
 func (*SqlAlterColumn) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{19}
+	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *SqlAlterColumn) GetName() string {
@@ -1391,7 +1564,7 @@ type AlterSqlTableRequest struct {
 
 func (x *AlterSqlTableRequest) Reset() {
 	*x = AlterSqlTableRequest{}
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[20]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1403,7 +1576,7 @@ func (x *AlterSqlTableRequest) String() string {
 func (*AlterSqlTableRequest) ProtoMessage() {}
 
 func (x *AlterSqlTableRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[20]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1416,7 +1589,7 @@ func (x *AlterSqlTableRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AlterSqlTableRequest.ProtoReflect.Descriptor instead.
 func (*AlterSqlTableRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{20}
+	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *AlterSqlTableRequest) GetUid() string {
@@ -1486,7 +1659,7 @@ type AlterSqlTableResponse struct {
 
 func (x *AlterSqlTableResponse) Reset() {
 	*x = AlterSqlTableResponse{}
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[21]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1498,7 +1671,7 @@ func (x *AlterSqlTableResponse) String() string {
 func (*AlterSqlTableResponse) ProtoMessage() {}
 
 func (x *AlterSqlTableResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[21]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1511,7 +1684,7 @@ func (x *AlterSqlTableResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AlterSqlTableResponse.ProtoReflect.Descriptor instead.
 func (*AlterSqlTableResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{21}
+	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *AlterSqlTableResponse) GetStatements() []string {
@@ -1540,7 +1713,7 @@ type DropSqlTableRequest struct {
 
 func (x *DropSqlTableRequest) Reset() {
 	*x = DropSqlTableRequest{}
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[22]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1552,7 +1725,7 @@ func (x *DropSqlTableRequest) String() string {
 func (*DropSqlTableRequest) ProtoMessage() {}
 
 func (x *DropSqlTableRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[22]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1565,7 +1738,7 @@ func (x *DropSqlTableRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DropSqlTableRequest.ProtoReflect.Descriptor instead.
 func (*DropSqlTableRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{22}
+	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *DropSqlTableRequest) GetUid() string {
@@ -1614,7 +1787,7 @@ type DropSqlTableResponse struct {
 
 func (x *DropSqlTableResponse) Reset() {
 	*x = DropSqlTableResponse{}
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[23]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1626,7 +1799,7 @@ func (x *DropSqlTableResponse) String() string {
 func (*DropSqlTableResponse) ProtoMessage() {}
 
 func (x *DropSqlTableResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[23]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1639,7 +1812,7 @@ func (x *DropSqlTableResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DropSqlTableResponse.ProtoReflect.Descriptor instead.
 func (*DropSqlTableResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{23}
+	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *DropSqlTableResponse) GetStatement() string {
@@ -1664,7 +1837,7 @@ type ListSqlAuditsRequest struct {
 
 func (x *ListSqlAuditsRequest) Reset() {
 	*x = ListSqlAuditsRequest{}
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[24]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1676,7 +1849,7 @@ func (x *ListSqlAuditsRequest) String() string {
 func (*ListSqlAuditsRequest) ProtoMessage() {}
 
 func (x *ListSqlAuditsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[24]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1689,7 +1862,7 @@ func (x *ListSqlAuditsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSqlAuditsRequest.ProtoReflect.Descriptor instead.
 func (*ListSqlAuditsRequest) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{24}
+	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ListSqlAuditsRequest) GetUid() string {
@@ -1744,7 +1917,7 @@ type SqlAuditItem struct {
 
 func (x *SqlAuditItem) Reset() {
 	*x = SqlAuditItem{}
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[25]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1756,7 +1929,7 @@ func (x *SqlAuditItem) String() string {
 func (*SqlAuditItem) ProtoMessage() {}
 
 func (x *SqlAuditItem) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[25]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1769,7 +1942,7 @@ func (x *SqlAuditItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SqlAuditItem.ProtoReflect.Descriptor instead.
 func (*SqlAuditItem) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{25}
+	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *SqlAuditItem) GetUid() string {
@@ -1866,7 +2039,7 @@ type ListSqlAuditsResponse struct {
 
 func (x *ListSqlAuditsResponse) Reset() {
 	*x = ListSqlAuditsResponse{}
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[26]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1878,7 +2051,7 @@ func (x *ListSqlAuditsResponse) String() string {
 func (*ListSqlAuditsResponse) ProtoMessage() {}
 
 func (x *ListSqlAuditsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_alioth_v1_sql_lab_proto_msgTypes[26]
+	mi := &file_alioth_v1_sql_lab_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1891,7 +2064,7 @@ func (x *ListSqlAuditsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSqlAuditsResponse.ProtoReflect.Descriptor instead.
 func (*ListSqlAuditsResponse) Descriptor() ([]byte, []int) {
-	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{26}
+	return file_alioth_v1_sql_lab_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListSqlAuditsResponse) GetItems() []*SqlAuditItem {
@@ -1980,7 +2153,22 @@ const file_alioth_v1_sql_lab_proto_rawDesc = "" +
 	"definition\x18\x05 \x01(\tR\n" +
 	"definition\"L\n" +
 	"\x1bListSqlTableIndexesResponse\x12-\n" +
-	"\x05items\x18\x01 \x03(\v2\x17.alioth.v1.SqlIndexItemR\x05items\"\xa3\x01\n" +
+	"\x05items\x18\x01 \x03(\v2\x17.alioth.v1.SqlIndexItemR\x05items\"\xe2\x01\n" +
+	"\x18QuerySqlTableDataRequest\x12\x19\n" +
+	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12#\n" +
+	"\bdatabase\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x18?R\bdatabase\x12\x1f\n" +
+	"\x06schema\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x18?R\x06schema\x12\x1f\n" +
+	"\x05table\x18\x04 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18?R\x05table\x12\x1b\n" +
+	"\x04page\x18\x05 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\x04page\x12'\n" +
+	"\tpage_size\x18\x06 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xf4\x03(\x00R\bpageSize\"\xb3\x01\n" +
+	"\x19QuerySqlTableDataResponse\x12\x18\n" +
+	"\acolumns\x18\x01 \x03(\tR\acolumns\x12%\n" +
+	"\x04rows\x18\x02 \x03(\v2\x11.alioth.v1.SqlRowR\x04rows\x12\x1b\n" +
+	"\trow_count\x18\x03 \x01(\x05R\browCount\x12\x19\n" +
+	"\bhas_more\x18\x04 \x01(\bR\ahasMore\x12\x1d\n" +
+	"\n" +
+	"elapsed_ms\x18\x05 \x01(\x03R\telapsedMs\"\xa3\x01\n" +
 	"\x0fQuerySqlRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12#\n" +
 	"\bdatabase\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x18?R\bdatabase\x12)\n" +
@@ -2067,14 +2255,14 @@ const file_alioth_v1_sql_lab_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2\x17.alioth.v1.SqlAuditItemR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize2\xa4\n" +
-	"\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize2\xb5\v\n" +
 	"\rSqlLabService\x12\x87\x01\n" +
 	"\x10ListSqlDatabases\x12\".alioth.v1.ListSqlDatabasesRequest\x1a#.alioth.v1.ListSqlDatabasesResponse\"*\x82\xd3\xe4\x93\x02$\x12\"/v1/datasource/{uid}/sql/databases\x12\x7f\n" +
 	"\x0eListSqlSchemas\x12 .alioth.v1.ListSqlSchemasRequest\x1a!.alioth.v1.ListSqlSchemasResponse\"(\x82\xd3\xe4\x93\x02\"\x12 /v1/datasource/{uid}/sql/schemas\x12{\n" +
 	"\rListSqlTables\x12\x1f.alioth.v1.ListSqlTablesRequest\x1a .alioth.v1.ListSqlTablesResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/v1/datasource/{uid}/sql/tables\x12\x8e\x01\n" +
 	"\x13ListSqlTableColumns\x12%.alioth.v1.ListSqlTableColumnsRequest\x1a&.alioth.v1.ListSqlTableColumnsResponse\"(\x82\xd3\xe4\x93\x02\"\x12 /v1/datasource/{uid}/sql/columns\x12\x8e\x01\n" +
-	"\x13ListSqlTableIndexes\x12%.alioth.v1.ListSqlTableIndexesRequest\x1a&.alioth.v1.ListSqlTableIndexesResponse\"(\x82\xd3\xe4\x93\x02\"\x12 /v1/datasource/{uid}/sql/indexes\x12n\n" +
+	"\x13ListSqlTableIndexes\x12%.alioth.v1.ListSqlTableIndexesRequest\x1a&.alioth.v1.ListSqlTableIndexesResponse\"(\x82\xd3\xe4\x93\x02\"\x12 /v1/datasource/{uid}/sql/indexes\x12\x8e\x01\n" +
+	"\x11QuerySqlTableData\x12#.alioth.v1.QuerySqlTableDataRequest\x1a$.alioth.v1.QuerySqlTableDataResponse\".\x82\xd3\xe4\x93\x02(:\x01*\"#/v1/datasource/{uid}/sql/table-data\x12n\n" +
 	"\bQuerySql\x12\x1a.alioth.v1.QuerySqlRequest\x1a\x1b.alioth.v1.QuerySqlResponse\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/v1/datasource/{uid}/sql/query\x12\x81\x01\n" +
 	"\x0eCreateSqlTable\x12 .alioth.v1.CreateSqlTableRequest\x1a!.alioth.v1.CreateSqlTableResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/v1/datasource/{uid}/sql/tables\x12~\n" +
 	"\rAlterSqlTable\x12\x1f.alioth.v1.AlterSqlTableRequest\x1a .alioth.v1.AlterSqlTableResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\x1a\x1f/v1/datasource/{uid}/sql/tables\x12x\n" +
@@ -2093,7 +2281,7 @@ func file_alioth_v1_sql_lab_proto_rawDescGZIP() []byte {
 	return file_alioth_v1_sql_lab_proto_rawDescData
 }
 
-var file_alioth_v1_sql_lab_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_alioth_v1_sql_lab_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_alioth_v1_sql_lab_proto_goTypes = []any{
 	(*ListSqlDatabasesRequest)(nil),     // 0: alioth.v1.ListSqlDatabasesRequest
 	(*ListSqlDatabasesResponse)(nil),    // 1: alioth.v1.ListSqlDatabasesResponse
@@ -2108,55 +2296,60 @@ var file_alioth_v1_sql_lab_proto_goTypes = []any{
 	(*ListSqlTableIndexesRequest)(nil),  // 10: alioth.v1.ListSqlTableIndexesRequest
 	(*SqlIndexItem)(nil),                // 11: alioth.v1.SqlIndexItem
 	(*ListSqlTableIndexesResponse)(nil), // 12: alioth.v1.ListSqlTableIndexesResponse
-	(*QuerySqlRequest)(nil),             // 13: alioth.v1.QuerySqlRequest
-	(*QuerySqlResponse)(nil),            // 14: alioth.v1.QuerySqlResponse
-	(*SqlRow)(nil),                      // 15: alioth.v1.SqlRow
-	(*SqlColumnDefinition)(nil),         // 16: alioth.v1.SqlColumnDefinition
-	(*CreateSqlTableRequest)(nil),       // 17: alioth.v1.CreateSqlTableRequest
-	(*CreateSqlTableResponse)(nil),      // 18: alioth.v1.CreateSqlTableResponse
-	(*SqlAlterColumn)(nil),              // 19: alioth.v1.SqlAlterColumn
-	(*AlterSqlTableRequest)(nil),        // 20: alioth.v1.AlterSqlTableRequest
-	(*AlterSqlTableResponse)(nil),       // 21: alioth.v1.AlterSqlTableResponse
-	(*DropSqlTableRequest)(nil),         // 22: alioth.v1.DropSqlTableRequest
-	(*DropSqlTableResponse)(nil),        // 23: alioth.v1.DropSqlTableResponse
-	(*ListSqlAuditsRequest)(nil),        // 24: alioth.v1.ListSqlAuditsRequest
-	(*SqlAuditItem)(nil),                // 25: alioth.v1.SqlAuditItem
-	(*ListSqlAuditsResponse)(nil),       // 26: alioth.v1.ListSqlAuditsResponse
+	(*QuerySqlTableDataRequest)(nil),    // 13: alioth.v1.QuerySqlTableDataRequest
+	(*QuerySqlTableDataResponse)(nil),   // 14: alioth.v1.QuerySqlTableDataResponse
+	(*QuerySqlRequest)(nil),             // 15: alioth.v1.QuerySqlRequest
+	(*QuerySqlResponse)(nil),            // 16: alioth.v1.QuerySqlResponse
+	(*SqlRow)(nil),                      // 17: alioth.v1.SqlRow
+	(*SqlColumnDefinition)(nil),         // 18: alioth.v1.SqlColumnDefinition
+	(*CreateSqlTableRequest)(nil),       // 19: alioth.v1.CreateSqlTableRequest
+	(*CreateSqlTableResponse)(nil),      // 20: alioth.v1.CreateSqlTableResponse
+	(*SqlAlterColumn)(nil),              // 21: alioth.v1.SqlAlterColumn
+	(*AlterSqlTableRequest)(nil),        // 22: alioth.v1.AlterSqlTableRequest
+	(*AlterSqlTableResponse)(nil),       // 23: alioth.v1.AlterSqlTableResponse
+	(*DropSqlTableRequest)(nil),         // 24: alioth.v1.DropSqlTableRequest
+	(*DropSqlTableResponse)(nil),        // 25: alioth.v1.DropSqlTableResponse
+	(*ListSqlAuditsRequest)(nil),        // 26: alioth.v1.ListSqlAuditsRequest
+	(*SqlAuditItem)(nil),                // 27: alioth.v1.SqlAuditItem
+	(*ListSqlAuditsResponse)(nil),       // 28: alioth.v1.ListSqlAuditsResponse
 }
 var file_alioth_v1_sql_lab_proto_depIdxs = []int32{
 	5,  // 0: alioth.v1.ListSqlTablesResponse.items:type_name -> alioth.v1.SqlTableItem
 	8,  // 1: alioth.v1.ListSqlTableColumnsResponse.items:type_name -> alioth.v1.SqlColumnItem
 	11, // 2: alioth.v1.ListSqlTableIndexesResponse.items:type_name -> alioth.v1.SqlIndexItem
-	15, // 3: alioth.v1.QuerySqlResponse.rows:type_name -> alioth.v1.SqlRow
-	16, // 4: alioth.v1.CreateSqlTableRequest.columns:type_name -> alioth.v1.SqlColumnDefinition
-	16, // 5: alioth.v1.AlterSqlTableRequest.add_columns:type_name -> alioth.v1.SqlColumnDefinition
-	19, // 6: alioth.v1.AlterSqlTableRequest.alter_columns:type_name -> alioth.v1.SqlAlterColumn
-	25, // 7: alioth.v1.ListSqlAuditsResponse.items:type_name -> alioth.v1.SqlAuditItem
-	0,  // 8: alioth.v1.SqlLabService.ListSqlDatabases:input_type -> alioth.v1.ListSqlDatabasesRequest
-	2,  // 9: alioth.v1.SqlLabService.ListSqlSchemas:input_type -> alioth.v1.ListSqlSchemasRequest
-	4,  // 10: alioth.v1.SqlLabService.ListSqlTables:input_type -> alioth.v1.ListSqlTablesRequest
-	7,  // 11: alioth.v1.SqlLabService.ListSqlTableColumns:input_type -> alioth.v1.ListSqlTableColumnsRequest
-	10, // 12: alioth.v1.SqlLabService.ListSqlTableIndexes:input_type -> alioth.v1.ListSqlTableIndexesRequest
-	13, // 13: alioth.v1.SqlLabService.QuerySql:input_type -> alioth.v1.QuerySqlRequest
-	17, // 14: alioth.v1.SqlLabService.CreateSqlTable:input_type -> alioth.v1.CreateSqlTableRequest
-	20, // 15: alioth.v1.SqlLabService.AlterSqlTable:input_type -> alioth.v1.AlterSqlTableRequest
-	22, // 16: alioth.v1.SqlLabService.DropSqlTable:input_type -> alioth.v1.DropSqlTableRequest
-	24, // 17: alioth.v1.SqlLabService.ListSqlAudits:input_type -> alioth.v1.ListSqlAuditsRequest
-	1,  // 18: alioth.v1.SqlLabService.ListSqlDatabases:output_type -> alioth.v1.ListSqlDatabasesResponse
-	3,  // 19: alioth.v1.SqlLabService.ListSqlSchemas:output_type -> alioth.v1.ListSqlSchemasResponse
-	6,  // 20: alioth.v1.SqlLabService.ListSqlTables:output_type -> alioth.v1.ListSqlTablesResponse
-	9,  // 21: alioth.v1.SqlLabService.ListSqlTableColumns:output_type -> alioth.v1.ListSqlTableColumnsResponse
-	12, // 22: alioth.v1.SqlLabService.ListSqlTableIndexes:output_type -> alioth.v1.ListSqlTableIndexesResponse
-	14, // 23: alioth.v1.SqlLabService.QuerySql:output_type -> alioth.v1.QuerySqlResponse
-	18, // 24: alioth.v1.SqlLabService.CreateSqlTable:output_type -> alioth.v1.CreateSqlTableResponse
-	21, // 25: alioth.v1.SqlLabService.AlterSqlTable:output_type -> alioth.v1.AlterSqlTableResponse
-	23, // 26: alioth.v1.SqlLabService.DropSqlTable:output_type -> alioth.v1.DropSqlTableResponse
-	26, // 27: alioth.v1.SqlLabService.ListSqlAudits:output_type -> alioth.v1.ListSqlAuditsResponse
-	18, // [18:28] is the sub-list for method output_type
-	8,  // [8:18] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	17, // 3: alioth.v1.QuerySqlTableDataResponse.rows:type_name -> alioth.v1.SqlRow
+	17, // 4: alioth.v1.QuerySqlResponse.rows:type_name -> alioth.v1.SqlRow
+	18, // 5: alioth.v1.CreateSqlTableRequest.columns:type_name -> alioth.v1.SqlColumnDefinition
+	18, // 6: alioth.v1.AlterSqlTableRequest.add_columns:type_name -> alioth.v1.SqlColumnDefinition
+	21, // 7: alioth.v1.AlterSqlTableRequest.alter_columns:type_name -> alioth.v1.SqlAlterColumn
+	27, // 8: alioth.v1.ListSqlAuditsResponse.items:type_name -> alioth.v1.SqlAuditItem
+	0,  // 9: alioth.v1.SqlLabService.ListSqlDatabases:input_type -> alioth.v1.ListSqlDatabasesRequest
+	2,  // 10: alioth.v1.SqlLabService.ListSqlSchemas:input_type -> alioth.v1.ListSqlSchemasRequest
+	4,  // 11: alioth.v1.SqlLabService.ListSqlTables:input_type -> alioth.v1.ListSqlTablesRequest
+	7,  // 12: alioth.v1.SqlLabService.ListSqlTableColumns:input_type -> alioth.v1.ListSqlTableColumnsRequest
+	10, // 13: alioth.v1.SqlLabService.ListSqlTableIndexes:input_type -> alioth.v1.ListSqlTableIndexesRequest
+	13, // 14: alioth.v1.SqlLabService.QuerySqlTableData:input_type -> alioth.v1.QuerySqlTableDataRequest
+	15, // 15: alioth.v1.SqlLabService.QuerySql:input_type -> alioth.v1.QuerySqlRequest
+	19, // 16: alioth.v1.SqlLabService.CreateSqlTable:input_type -> alioth.v1.CreateSqlTableRequest
+	22, // 17: alioth.v1.SqlLabService.AlterSqlTable:input_type -> alioth.v1.AlterSqlTableRequest
+	24, // 18: alioth.v1.SqlLabService.DropSqlTable:input_type -> alioth.v1.DropSqlTableRequest
+	26, // 19: alioth.v1.SqlLabService.ListSqlAudits:input_type -> alioth.v1.ListSqlAuditsRequest
+	1,  // 20: alioth.v1.SqlLabService.ListSqlDatabases:output_type -> alioth.v1.ListSqlDatabasesResponse
+	3,  // 21: alioth.v1.SqlLabService.ListSqlSchemas:output_type -> alioth.v1.ListSqlSchemasResponse
+	6,  // 22: alioth.v1.SqlLabService.ListSqlTables:output_type -> alioth.v1.ListSqlTablesResponse
+	9,  // 23: alioth.v1.SqlLabService.ListSqlTableColumns:output_type -> alioth.v1.ListSqlTableColumnsResponse
+	12, // 24: alioth.v1.SqlLabService.ListSqlTableIndexes:output_type -> alioth.v1.ListSqlTableIndexesResponse
+	14, // 25: alioth.v1.SqlLabService.QuerySqlTableData:output_type -> alioth.v1.QuerySqlTableDataResponse
+	16, // 26: alioth.v1.SqlLabService.QuerySql:output_type -> alioth.v1.QuerySqlResponse
+	20, // 27: alioth.v1.SqlLabService.CreateSqlTable:output_type -> alioth.v1.CreateSqlTableResponse
+	23, // 28: alioth.v1.SqlLabService.AlterSqlTable:output_type -> alioth.v1.AlterSqlTableResponse
+	25, // 29: alioth.v1.SqlLabService.DropSqlTable:output_type -> alioth.v1.DropSqlTableResponse
+	28, // 30: alioth.v1.SqlLabService.ListSqlAudits:output_type -> alioth.v1.ListSqlAuditsResponse
+	20, // [20:31] is the sub-list for method output_type
+	9,  // [9:20] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_alioth_v1_sql_lab_proto_init() }
@@ -2164,14 +2357,14 @@ func file_alioth_v1_sql_lab_proto_init() {
 	if File_alioth_v1_sql_lab_proto != nil {
 		return
 	}
-	file_alioth_v1_sql_lab_proto_msgTypes[19].OneofWrappers = []any{}
+	file_alioth_v1_sql_lab_proto_msgTypes[21].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alioth_v1_sql_lab_proto_rawDesc), len(file_alioth_v1_sql_lab_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   27,
+			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

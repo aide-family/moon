@@ -19,7 +19,9 @@ import type {
   ListSqlTablesParams,
   ListSqlTablesResult,
   QuerySqlParams,
+  QuerySqlTableDataParams,
   SqlQueryResult,
+  SqlTableDataResult,
 } from "./types"
 
 /** 拼出 DELETE 查询串；空字符串和 false 表示使用默认值，不发送。 */
@@ -87,6 +89,14 @@ export function listSqlTableIndexes(
       table: params.table,
     }
   )
+}
+
+/** 分页读取表数据 POST /v1/datasource/{uid}/sql/table-data */
+export function querySqlTableData(
+  params: QuerySqlTableDataParams
+): Promise<SqlTableDataResult> {
+  const { uid, ...body } = params
+  return post<SqlTableDataResult>(`/datasource/${uid}/sql/table-data`, body)
 }
 
 /** 执行只读查询 POST /v1/datasource/{uid}/sql/query */

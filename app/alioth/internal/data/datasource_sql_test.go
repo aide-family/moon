@@ -183,3 +183,17 @@ func TestSqlCellText(t *testing.T) {
 		}
 	}
 }
+
+func TestBuildSqlTableDataStatement(t *testing.T) {
+	got := buildSqlTableDataStatement("public", "devices", []string{"id", "region"}, 101, 200)
+	want := `SELECT * FROM "public"."devices" ORDER BY "id", "region" LIMIT 101 OFFSET 200`
+	if got != want {
+		t.Fatalf("statement = %s, want %s", got, want)
+	}
+	// 没有主键时按物理行号排序，保证翻页有确定的顺序。
+	got = buildSqlTableDataStatement("ops", "events", nil, 100, 0)
+	want = `SELECT * FROM "ops"."events" ORDER BY ctid LIMIT 100 OFFSET 0`
+	if got != want {
+		t.Fatalf("statement = %s, want %s", got, want)
+	}
+}

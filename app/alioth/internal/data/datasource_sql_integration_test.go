@@ -113,6 +113,32 @@ func TestSqlLabBrowsesAndManagesTables(t *testing.T) {
 	if result.Rows[0][2] == "" || result.Truncated {
 		t.Fatalf("timestamp cell = %q truncated = %v", result.Rows[0][2], result.Truncated)
 	}
+	// 表数据分页：默认按主键排序，每页取一行，最后一页 hasMore 为 false。
+	firstPage, err := repo.SqlTableData(ctx, item, "", "public", table, 1, 1)
+	if err != nil {
+		t.Fatalf("SqlTableData page 1: %v", err)
+	}
+	if len(firstPage.Columns) != 3 || len(firstPage.Rows) != 1 || !firstPage.HasMore {
+		t.Fatalf("page 1 = %+v", firstPage)
+	}
+	if firstPage.Rows[0][0] != "1" || firstPage.Rows[0][1] != "alpha" {
+		t.Fatalf("page 1 rows = %v", firstPage.Rows)
+	}
+	secondPage, err := repo.SqlTableData(ctx, item, "", "public", table, 2, 1)
+	if err != nil {
+		t.Fatalf("SqlTableData page 2: %v", err)
+	}
+	if len(secondPage.Rows) != 1 || secondPage.HasMore || secondPage.Rows[0][1] != "beta" {
+		t.Fatalf("page 2 = %+v", secondPage)
+	}
+	emptyPage, err := repo.SqlTableData(ctx, item, "", "public", table, 3, 1)
+	if err != nil {
+		t.Fatalf("SqlTableData page 3: %v", err)
+	}
+	if len(emptyPage.Rows) != 0 || emptyPage.HasMore {
+		t.Fatalf("page 3 = %+v", emptyPage)
+	}
+
 	// 行数上限截断时标记 truncated。
 	truncated, err := repo.QuerySql(ctx, item, "", fmt.Sprintf(`SELECT id FROM %s ORDER BY id`, quoteSqlIdentifier(table)), 1)
 	if err != nil {

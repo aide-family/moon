@@ -30,6 +30,13 @@ service SqlLabService {
   rpc ListSqlTableIndexes(ListSqlTableIndexesRequest) returns (ListSqlTableIndexesResponse) {
     option (google.api.http) = {get: "/v1/datasource/{uid}/sql/indexes"};
   }
+  // 分页读取一张表的数据。默认每页 100 行，按主键排序；没有主键时按物理行号排序。
+  rpc QuerySqlTableData(QuerySqlTableDataRequest) returns (QuerySqlTableDataResponse) {
+    option (google.api.http) = {
+      post: "/v1/datasource/{uid}/sql/table-data"
+      body: "*"
+    };
+  }
   // 执行一条只读查询，返回列名和字符串化的行。超过 max_rows 的部分截断。
   rpc QuerySql(QuerySqlRequest) returns (QuerySqlResponse) {
     option (google.api.http) = {
@@ -185,6 +192,36 @@ message SqlIndexItem {
 message ListSqlTableIndexesResponse {
   // 索引。
   repeated SqlIndexItem items = 1;
+}
+
+// 分页读取表数据。
+message QuerySqlTableDataRequest {
+  // 数据源标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 库名。留空表示数据源连接串里的库。
+  string database = 2 [(buf.validate.field).string.max_len = 63];
+  // 模式名。留空表示 public。
+  string schema = 3 [(buf.validate.field).string.max_len = 63];
+  // 表名。
+  string table = 4 [(buf.validate.field).string = {min_len: 1, max_len: 63}];
+  // 页码，从 1 开始。0 表示第一页。
+  int32 page = 5 [(buf.validate.field).int32.gte = 0];
+  // 每页行数。0 表示默认 100，上限 500。
+  int32 page_size = 6 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 500}];
+}
+
+// 表数据的一页。
+message QuerySqlTableDataResponse {
+  // 列名。
+  repeated string columns = 1;
+  // 行，每个元素按列顺序排列。
+  repeated SqlRow rows = 2;
+  // 本页行数。
+  int32 row_count = 3 [json_name = "rowCount"];
+  // 后面是否还有数据。为真表示可以翻到下一页。
+  bool has_more = 4 [json_name = "hasMore"];
+  // 服务端耗时，单位毫秒。
+  int64 elapsed_ms = 5 [json_name = "elapsedMs"];
 }
 
 // 执行只读查询。

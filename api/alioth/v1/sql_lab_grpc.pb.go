@@ -24,6 +24,7 @@ const (
 	SqlLabService_ListSqlTables_FullMethodName       = "/alioth.v1.SqlLabService/ListSqlTables"
 	SqlLabService_ListSqlTableColumns_FullMethodName = "/alioth.v1.SqlLabService/ListSqlTableColumns"
 	SqlLabService_ListSqlTableIndexes_FullMethodName = "/alioth.v1.SqlLabService/ListSqlTableIndexes"
+	SqlLabService_QuerySqlTableData_FullMethodName   = "/alioth.v1.SqlLabService/QuerySqlTableData"
 	SqlLabService_QuerySql_FullMethodName            = "/alioth.v1.SqlLabService/QuerySql"
 	SqlLabService_CreateSqlTable_FullMethodName      = "/alioth.v1.SqlLabService/CreateSqlTable"
 	SqlLabService_AlterSqlTable_FullMethodName       = "/alioth.v1.SqlLabService/AlterSqlTable"
@@ -48,6 +49,8 @@ type SqlLabServiceClient interface {
 	ListSqlTableColumns(ctx context.Context, in *ListSqlTableColumnsRequest, opts ...grpc.CallOption) (*ListSqlTableColumnsResponse, error)
 	// 列出一张表的索引。
 	ListSqlTableIndexes(ctx context.Context, in *ListSqlTableIndexesRequest, opts ...grpc.CallOption) (*ListSqlTableIndexesResponse, error)
+	// 分页读取一张表的数据。默认每页 100 行，按主键排序；没有主键时按物理行号排序。
+	QuerySqlTableData(ctx context.Context, in *QuerySqlTableDataRequest, opts ...grpc.CallOption) (*QuerySqlTableDataResponse, error)
 	// 执行一条只读查询，返回列名和字符串化的行。超过 max_rows 的部分截断。
 	QuerySql(ctx context.Context, in *QuerySqlRequest, opts ...grpc.CallOption) (*QuerySqlResponse, error)
 	// 建表。语句在事务里执行，成功后写一条审计。
@@ -112,6 +115,16 @@ func (c *sqlLabServiceClient) ListSqlTableIndexes(ctx context.Context, in *ListS
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListSqlTableIndexesResponse)
 	err := c.cc.Invoke(ctx, SqlLabService_ListSqlTableIndexes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sqlLabServiceClient) QuerySqlTableData(ctx context.Context, in *QuerySqlTableDataRequest, opts ...grpc.CallOption) (*QuerySqlTableDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QuerySqlTableDataResponse)
+	err := c.cc.Invoke(ctx, SqlLabService_QuerySqlTableData_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -185,6 +198,8 @@ type SqlLabServiceServer interface {
 	ListSqlTableColumns(context.Context, *ListSqlTableColumnsRequest) (*ListSqlTableColumnsResponse, error)
 	// 列出一张表的索引。
 	ListSqlTableIndexes(context.Context, *ListSqlTableIndexesRequest) (*ListSqlTableIndexesResponse, error)
+	// 分页读取一张表的数据。默认每页 100 行，按主键排序；没有主键时按物理行号排序。
+	QuerySqlTableData(context.Context, *QuerySqlTableDataRequest) (*QuerySqlTableDataResponse, error)
 	// 执行一条只读查询，返回列名和字符串化的行。超过 max_rows 的部分截断。
 	QuerySql(context.Context, *QuerySqlRequest) (*QuerySqlResponse, error)
 	// 建表。语句在事务里执行，成功后写一条审计。
@@ -219,6 +234,9 @@ func (UnimplementedSqlLabServiceServer) ListSqlTableColumns(context.Context, *Li
 }
 func (UnimplementedSqlLabServiceServer) ListSqlTableIndexes(context.Context, *ListSqlTableIndexesRequest) (*ListSqlTableIndexesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListSqlTableIndexes not implemented")
+}
+func (UnimplementedSqlLabServiceServer) QuerySqlTableData(context.Context, *QuerySqlTableDataRequest) (*QuerySqlTableDataResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method QuerySqlTableData not implemented")
 }
 func (UnimplementedSqlLabServiceServer) QuerySql(context.Context, *QuerySqlRequest) (*QuerySqlResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method QuerySql not implemented")
@@ -346,6 +364,24 @@ func _SqlLabService_ListSqlTableIndexes_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SqlLabService_QuerySqlTableData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QuerySqlTableDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SqlLabServiceServer).QuerySqlTableData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SqlLabService_QuerySqlTableData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SqlLabServiceServer).QuerySqlTableData(ctx, req.(*QuerySqlTableDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SqlLabService_QuerySql_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QuerySqlRequest)
 	if err := dec(in); err != nil {
@@ -462,6 +498,10 @@ var SqlLabService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListSqlTableIndexes",
 			Handler:    _SqlLabService_ListSqlTableIndexes_Handler,
+		},
+		{
+			MethodName: "QuerySqlTableData",
+			Handler:    _SqlLabService_QuerySqlTableData_Handler,
 		},
 		{
 			MethodName: "QuerySql",

@@ -77,6 +77,19 @@ func (gateway *Gateway) QuerySql(ctx context.Context, uid, database, statement s
 	return result, gateway.access.Wrap(err)
 }
 
+// SqlTableData 分页读取表数据。和只读查询一样只要求数据源读权限。
+func (gateway *Gateway) SqlTableData(ctx context.Context, uid, database, schema, table string, pageNo, pageSize int32) (*bo.SqlTableRows, error) {
+	item, err := gateway.sqlSource(ctx, uid, perm.DatasourceRead)
+	if err != nil {
+		return nil, err
+	}
+	if table == "" {
+		return nil, merr.Invalid("invalid request")
+	}
+	rows, err := gateway.datasources.SqlTableData(ctx, *item, database, schema, table, int(pageNo), int(pageSize))
+	return rows, gateway.access.Wrap(err)
+}
+
 // CreateSqlTable 建表。结构变更要求数据源写权限，成功后由数据层写审计。
 func (gateway *Gateway) CreateSqlTable(ctx context.Context, uid string, in bo.CreateSqlTableInput) (string, error) {
 	item, err := gateway.sqlSource(ctx, uid, perm.DatasourceWrite)

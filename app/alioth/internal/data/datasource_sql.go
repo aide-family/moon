@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -32,6 +33,8 @@ const (
 	sqlMaxRows     = 1000
 	// sqlMaxAuditError 是审计里保存的失败原因长度。
 	sqlMaxAuditError = 300
+	// sqlMaxTablePageRows 是表数据分页的每页上限。
+	sqlMaxTablePageRows = 500
 )
 
 // sqlNamePattern 限定库名、模式名、表名和字段名。只接受 PostgreSQL
@@ -323,35 +326,143 @@ func (r *datasourceRepo) QuerySql(ctx context.Context, item bo.Datasource, datab
 		return nil, sqlClientError(err)
 	}
 	defer rows.Close()
+	names, values, truncated, err := readSqlRows(rows, maxRows)
+	if err != nil {
+		return nil, err
+	}
+	return &bo.SqlQueryResult{
+		Columns: names, Rows: values, Truncated: truncated,
+		ElapsedMS: time.Since(started).Milliseconds(),
+	}, nil
+}
+
+// readSqlRows 把结果集按列顺序读成字符串单元格。超过 maxRows 时停在 maxRows 并标记截断。
+func readSqlRows(rows *sql.Rows, maxRows int) ([]string, [][]string, bool, error) {
 	names, err := rows.Columns()
 	if err != nil {
-		return nil, sqlClientError(err)
+		return nil, nil, false, sqlClientError(err)
 	}
-	result := &bo.SqlQueryResult{Columns: names, Rows: make([][]string, 0, 16)}
+	values := make([][]string, 0, 16)
 	cells := make([]any, len(names))
 	for index := range cells {
 		var value any
 		cells[index] = &value
 	}
+	truncated := false
 	for rows.Next() {
-		if len(result.Rows) >= maxRows {
-			result.Truncated = true
+		if len(values) >= maxRows {
+			truncated = true
 			break
 		}
 		if err := rows.Scan(cells...); err != nil {
-			return nil, sqlClientError(err)
+			return nil, nil, false, sqlClientError(err)
 		}
 		row := make([]string, len(names))
 		for index, cell := range cells {
 			row[index] = sqlCellText(*(cell.(*any)))
 		}
-		result.Rows = append(result.Rows, row)
+		values = append(values, row)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, nil, false, sqlClientError(err)
+	}
+	return names, values, truncated, nil
+}
+
+// SqlTableData 分页读取表数据。排序用主键，没有主键时用物理行号 ctid，
+// 让翻页在同一时刻的物理顺序上保持稳定。
+func (r *datasourceRepo) SqlTableData(ctx context.Context, item bo.Datasource, database, schema, table string, page, pageSize int) (*bo.SqlTableRows, error) {
+	if err := requireSqlName(table); err != nil {
+		return nil, err
+	}
+	if page < 1 {
+		page = 1
+	}
+	if pageSize <= 0 {
+		pageSize = sqlDefaultRows
+	}
+	if pageSize > sqlMaxTablePageRows {
+		pageSize = sqlMaxTablePageRows
+	}
+	db, err := r.sqlDataSourceFor(ctx, item, database)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+	// 多取一行用来判断是否还有下一页。
+	statement := buildSqlTableDataStatement(schema, table, nil, pageSize+1, (page-1)*pageSize)
+	primaryKeys, err := r.sqlPrimaryKeys(ctx, db, sqlSchema(schema), table)
+	if err != nil {
+		return nil, err
+	}
+	if len(primaryKeys) > 0 {
+		statement = buildSqlTableDataStatement(schema, table, primaryKeys, pageSize+1, (page-1)*pageSize)
+	}
+	queryCtx, cancel := context.WithTimeout(ctx, sqlQueryTimeout)
+	defer cancel()
+	started := time.Now()
+	rows, err := db.QueryContext(queryCtx, statement)
+	if err != nil {
+		return nil, sqlClientError(err)
+	}
+	defer rows.Close()
+	names, values, _, err := readSqlRows(rows, pageSize+1)
+	if err != nil {
+		return nil, err
+	}
+	result := &bo.SqlTableRows{Columns: names}
+	if len(values) > pageSize {
+		result.HasMore = true
+		values = values[:pageSize]
+	}
+	result.Rows = values
+	result.ElapsedMS = time.Since(started).Milliseconds()
+	return result, nil
+}
+
+// sqlPrimaryKeys 读取表的主键字段，按主键定义顺序返回。
+func (r *datasourceRepo) sqlPrimaryKeys(ctx context.Context, db *sql.DB, schema, table string) ([]string, error) {
+	queryCtx, cancel := context.WithTimeout(ctx, sqlQueryTimeout)
+	defer cancel()
+	rows, err := db.QueryContext(queryCtx,
+		`SELECT a.attname
+		   FROM pg_index i
+		   JOIN pg_class c ON c.oid = i.indrelid
+		   JOIN pg_namespace n ON n.oid = c.relnamespace
+		   JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY (i.indkey)
+		  WHERE n.nspname = $1 AND c.relname = $2 AND i.indisprimary
+		  ORDER BY array_position(i.indkey, a.attnum)`, schema, table)
+	if err != nil {
+		return nil, sqlClientError(err)
+	}
+	defer rows.Close()
+	keys := make([]string, 0, 2)
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, sqlClientError(err)
+		}
+		keys = append(keys, name)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, sqlClientError(err)
 	}
-	result.ElapsedMS = time.Since(started).Milliseconds()
-	return result, nil
+	return keys, nil
+}
+
+// buildSqlTableDataStatement 生成分页读取表数据的语句。表名和字段名都加引号，
+// limit 和 offset 由调用方计算，不拼接任何用户输入。
+func buildSqlTableDataStatement(schema, table string, primaryKeys []string, limit, offset int) string {
+	order := "ctid"
+	if len(primaryKeys) > 0 {
+		quoted := make([]string, 0, len(primaryKeys))
+		for _, column := range primaryKeys {
+			quoted = append(quoted, quoteSqlIdentifier(column))
+		}
+		order = strings.Join(quoted, ", ")
+	}
+	return "SELECT * FROM " + sqlTableName(schema, table) + " ORDER BY " + order +
+		" LIMIT " + strconv.Itoa(limit) + " OFFSET " + strconv.Itoa(offset)
 }
 
 // CreateSqlTable 建表并写审计。表注释和字段注释作为同一次事务里的后续语句。

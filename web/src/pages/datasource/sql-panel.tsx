@@ -16,6 +16,7 @@ import {
   listSqlTableIndexes,
   listSqlTables,
   querySql,
+  querySqlTableData,
 } from "@/api/sql-lab"
 import type {
   SqlAlterColumn,
@@ -24,6 +25,7 @@ import type {
   SqlColumnItem,
   SqlIndexItem,
   SqlQueryResult,
+  SqlTableDataResult,
   SqlTableItem,
 } from "@/api/sql-lab/types"
 import { CodeBlock } from "@/components/code-block"
@@ -77,9 +79,12 @@ import {
 } from "@/lib/table-layout"
 
 type SqlTab = "query" | "browse" | "audits"
+type BrowseTab = "data" | "columns" | "indexes"
 type NullableChoice = "keep" | "true" | "false"
 
 const AUDIT_PAGE_SIZE = 20
+// 表数据默认每页 100 行，翻页时只换 offset。
+const TABLE_DATA_PAGE_SIZE = 100
 const CONNECTION_DATABASE = "__connection__"
 const MAX_ROWS_OPTIONS = [100, 500, 1000]
 const SQL_IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]{0,62}$/
@@ -501,6 +506,55 @@ function QueryResultTable({ result }: { result: SqlQueryResult }) {
   )
 }
 
+/** 表数据预览：按页展示，NULL 单元格显示为占位符。 */
+function TableDataTable({ result }: { result: SqlTableDataResult }) {
+  const { t } = useTranslation()
+  return (
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-lg border">
+      <Table className="w-max min-w-full">
+        <TableHeader>
+          <TableRow>
+            {result.columns.map((column) => (
+              <TableHead
+                key={column}
+                className="sticky top-0 z-10 whitespace-nowrap bg-background font-mono text-xs"
+              >
+                {column}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {result.rows.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={Math.max(result.columns.length, 1)}
+                className="text-muted-foreground"
+              >
+                {t("sqlLab.dataEmpty")}
+              </TableCell>
+            </TableRow>
+          ) : (
+            result.rows.map((row, rowIndex) => (
+              <TableRow key={rowIndex}>
+                {row.cells.map((cell, cellIndex) => (
+                  <TableCell
+                    key={cellIndex}
+                    className="max-w-[24rem] truncate font-mono text-xs"
+                    title={cell || undefined}
+                  >
+                    {cell || "—"}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
 export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
   const { t } = useTranslation()
   const [tab, setTab] = useState<SqlTab>("query")
@@ -520,6 +574,7 @@ export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
   const [queryError, setQueryError] = useState("")
 
   // 库表页
+  const [browseTab, setBrowseTab] = useState<BrowseTab>("data")
   const [tables, setTables] = useState<SqlTableItem[]>([])
   const [tablesLoading, setTablesLoading] = useState(false)
   const [tablesError, setTablesError] = useState("")
@@ -531,6 +586,10 @@ export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
   const [detailError, setDetailError] = useState("")
   const [actionStatement, setActionStatement] = useState("")
   const [browseVersion, setBrowseVersion] = useState(0)
+  const [tableData, setTableData] = useState<SqlTableDataResult | null>(null)
+  const [dataPage, setDataPage] = useState(1)
+  const [dataLoading, setDataLoading] = useState(false)
+  const [dataError, setDataError] = useState("")
 
   // 新建表
   const [createOpen, setCreateOpen] = useState(false)
@@ -720,6 +779,53 @@ export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
     }
   }, [browseVersion, database, datasource.uid, schema, selectedTable, t])
 
+  // 表数据按页读取；切表、切库、切模式和 DDL 之后由调用方把页码重置到第一页。
+  useEffect(() => {
+    if (!selectedTable || tab !== "browse") {
+      return
+    }
+    let active = true
+    async function load() {
+      setDataLoading(true)
+      setDataError("")
+      try {
+        const result = await querySqlTableData({
+          uid: datasource.uid,
+          database: database || undefined,
+          schema: schema || undefined,
+          table: selectedTable,
+          page: dataPage,
+          pageSize: TABLE_DATA_PAGE_SIZE,
+        })
+        if (active) {
+          setTableData(result)
+        }
+      } catch (err) {
+        if (active) {
+          setTableData(null)
+          setDataError(failureMessage(err, t("state.failed")))
+        }
+      } finally {
+        if (active) {
+          setDataLoading(false)
+        }
+      }
+    }
+    void load()
+    return () => {
+      active = false
+    }
+  }, [
+    browseVersion,
+    dataPage,
+    database,
+    datasource.uid,
+    schema,
+    selectedTable,
+    t,
+    tab,
+  ])
+
   // 审计页分页加载。
   useEffect(() => {
     if (tab !== "audits") {
@@ -764,6 +870,8 @@ export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
     setSelectedTable("")
     setColumns([])
     setIndexes([])
+    setTableData(null)
+    setDataPage(1)
     setActionStatement("")
     setQueryResult(null)
     setQueryError("")
@@ -775,18 +883,23 @@ export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
     setSelectedTable("")
     setColumns([])
     setIndexes([])
+    setTableData(null)
+    setDataPage(1)
     setActionStatement("")
   }
 
   function selectTable(item: SqlTableItem) {
     setSelectedTable(item.name)
     setActionStatement("")
+    setTableData(null)
+    setDataPage(1)
   }
 
   function refreshPanel() {
     setCatalogVersion((value) => value + 1)
     setBrowseVersion((value) => value + 1)
     setAuditVersion((value) => value + 1)
+    setDataPage(1)
   }
 
   async function runQuery() {
@@ -877,6 +990,7 @@ export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
       })
       setActionStatement(result.statement)
       setBrowseVersion((value) => value + 1)
+      setDataPage(1)
       setAuditVersion((value) => value + 1)
       setCreateOpen(false)
       setTab("browse")
@@ -1005,6 +1119,7 @@ export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
       setSelectedTable(renameChanged ? renameValue : selectedTable)
       setBrowseVersion((value) => value + 1)
       setAuditVersion((value) => value + 1)
+      setDataPage(1)
       setAlterOpen(false)
     } catch (err) {
       setAlterError(failureMessage(err, t("state.failed")))
@@ -1041,6 +1156,8 @@ export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
       setSelectedTable("")
       setColumns([])
       setIndexes([])
+      setTableData(null)
+      setDataPage(1)
       setBrowseVersion((value) => value + 1)
       setAuditVersion((value) => value + 1)
       setDropOpen(false)
@@ -1121,7 +1238,7 @@ export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
           value="query"
           className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden"
         >
-          <div className="shrink-0">
+          <div className="shrink-0 p-1.5 -m-1.5">
             <FormField
               label={t("sqlLab.statement")}
               htmlFor="sql-statement"
@@ -1313,7 +1430,79 @@ export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
                 />
               ) : null}
               {selectedTable ? (
-                <>
+                <Tabs
+                  value={browseTab}
+                  onValueChange={(value) => setBrowseTab(value as BrowseTab)}
+                  className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-hidden"
+                >
+                  <TabsList className="shrink-0 self-start">
+                    <TabsTrigger value="data">{t("sqlLab.data")}</TabsTrigger>
+                    <TabsTrigger value="columns">
+                      {t("sqlLab.columns")}
+                    </TabsTrigger>
+                    <TabsTrigger value="indexes">
+                      {t("sqlLab.indexes")}
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent
+                    value="data"
+                    className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-hidden"
+                  >
+                    <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                      <span className="font-mono">
+                        {tableData
+                          ? t("sqlLab.dataSummary", {
+                              rows: tableData.rowCount,
+                              ms: Number(tableData.elapsedMs),
+                            })
+                          : t("sqlLab.pageLabel", { page: dataPage })}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={dataLoading || dataPage <= 1}
+                          onClick={() =>
+                            setDataPage((value) => Math.max(1, value - 1))
+                          }
+                        >
+                          {t("action.prev")}
+                        </Button>
+                        <span className="font-mono">
+                          {t("sqlLab.pageLabel", { page: dataPage })}
+                        </span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={dataLoading || !tableData?.hasMore}
+                          onClick={() => setDataPage((value) => value + 1)}
+                        >
+                          {t("action.next")}
+                        </Button>
+                      </div>
+                    </div>
+                    {dataLoading ? (
+                      <p className="p-3 text-sm text-muted-foreground">
+                        {t("state.loading")}
+                      </p>
+                    ) : dataError ? (
+                      <p className="p-3 text-sm text-destructive">
+                        {dataError}
+                      </p>
+                    ) : tableData ? (
+                      <TableDataTable result={tableData} />
+                    ) : (
+                      <div className="flex min-h-0 flex-1 items-center justify-center rounded-lg border bg-muted/10 p-6 text-center text-sm text-muted-foreground">
+                        {t("sqlLab.dataEmpty")}
+                      </div>
+                    )}
+                  </TabsContent>
+                  <TabsContent
+                    value="columns"
+                    className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-hidden"
+                  >
                   <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">
                     <div className="flex shrink-0 items-center justify-between gap-2">
                       <h3 className="text-sm font-medium">
@@ -1394,6 +1583,11 @@ export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
                       )}
                     </div>
                   </section>
+                  </TabsContent>
+                  <TabsContent
+                    value="indexes"
+                    className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-hidden"
+                  >
                   <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">
                     <div className="flex shrink-0 items-center justify-between gap-2">
                       <h3 className="text-sm font-medium">
@@ -1468,7 +1662,8 @@ export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
                       )}
                     </div>
                   </section>
-                </>
+                  </TabsContent>
+                </Tabs>
               ) : (
                 <div className="flex min-h-0 flex-1 items-center justify-center rounded-lg border bg-muted/10 p-6 text-center text-sm text-muted-foreground">
                   {t("sqlLab.pickTable")}
