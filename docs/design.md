@@ -237,6 +237,7 @@ PostgreSQL 用唯一约束托住锁失效窗口内的重复写入，例如评测
 - `role.Authority` 的权限目录、角色授权写入和 `/self/permissions` 都按有效能力与菜单权限过滤；未开通能力的权限不能授给角色。
 - 新租户创建时写入基础套餐与到期时间，预置角色权限取基础能力范围。
 - seed 在基础套餐上只补能力不删（旧模块编码展开成能力），把 `package_uid` 为空的存量租户迁到基础套餐并加开 cluster/agent/ssh 的全部能力，给已持有能力权限的角色补菜单权限；所有迁移幂等。
+- 新增能力（例如新的数据源驱动）发布后的存量租户：基础套餐由 seed 的 `compensateBaseTenantCapabilities` 补齐；自定义套餐按购买时的能力快照授权、不会自动扩展，超级管理员需要先在套餐里勾选新能力，再用 `POST /v1/system/package/{uid}/sync` 同步给使用该套餐的租户，或者在租户能力页单独加开。驱动能力没开通时，数据源新建弹窗不会出现该类型。
 - `/v1/self/permissions` 返回 `permissions`（含菜单权限）、`features`（有效能力）和 `readOnly`，前端据此决定菜单入口。
 - 租户生命周期由平台管理：`PUT /v1/system/namespace/{uid}/status` 停用/启用（停用必填原因并邮件通知负责人），`PUT /v1/system/namespace/{uid}/archive` 归档。停用和归档租户不出现在成员租户列表，也不能只读切入。
 
