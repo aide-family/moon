@@ -43,6 +43,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/captcha"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/cluster"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasourcesqlaudit"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
@@ -136,6 +137,7 @@ const (
 	TypeCaptcha                       = "Captcha"
 	TypeCluster                       = "Cluster"
 	TypeDatasource                    = "Datasource"
+	TypeDatasourceSQLAudit            = "DatasourceSQLAudit"
 	TypeEmailLoginCode                = "EmailLoginCode"
 	TypeFeaturePackage                = "FeaturePackage"
 	TypeFeaturePackageItem            = "FeaturePackageItem"
@@ -32654,6 +32656,980 @@ func (m *DatasourceMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *DatasourceMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Datasource edge %s", name)
+}
+
+// DatasourceSQLAuditMutation represents an operation that mutates the DatasourceSQLAudit nodes in the graph.
+type DatasourceSQLAuditMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	created_at     *time.Time
+	updated_at     *time.Time
+	uid            *string
+	namespace_uid  *string
+	datasource_uid *string
+	operator_uid   *string
+	action         *datasourcesqlaudit.Action
+	status         *datasourcesqlaudit.Status
+	database       *string
+	schema         *string
+	table          *string
+	statement      *string
+	error_message  *string
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*DatasourceSQLAudit, error)
+	predicates     []predicate.DatasourceSQLAudit
+}
+
+var _ ent.Mutation = (*DatasourceSQLAuditMutation)(nil)
+
+// datasourcesqlauditOption allows management of the mutation configuration using functional options.
+type datasourcesqlauditOption func(*DatasourceSQLAuditMutation)
+
+// newDatasourceSQLAuditMutation creates new mutation for the DatasourceSQLAudit entity.
+func newDatasourceSQLAuditMutation(c config, op Op, opts ...datasourcesqlauditOption) *DatasourceSQLAuditMutation {
+	m := &DatasourceSQLAuditMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDatasourceSQLAudit,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDatasourceSQLAuditID sets the ID field of the mutation.
+func withDatasourceSQLAuditID(id int) datasourcesqlauditOption {
+	return func(m *DatasourceSQLAuditMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DatasourceSQLAudit
+		)
+		m.oldValue = func(ctx context.Context) (*DatasourceSQLAudit, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DatasourceSQLAudit.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDatasourceSQLAudit sets the old DatasourceSQLAudit of the mutation.
+func withDatasourceSQLAudit(node *DatasourceSQLAudit) datasourcesqlauditOption {
+	return func(m *DatasourceSQLAuditMutation) {
+		m.oldValue = func(context.Context) (*DatasourceSQLAudit, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DatasourceSQLAuditMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DatasourceSQLAuditMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DatasourceSQLAuditMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DatasourceSQLAuditMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().DatasourceSQLAudit.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *DatasourceSQLAuditMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *DatasourceSQLAuditMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the DatasourceSQLAudit entity.
+// If the DatasourceSQLAudit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceSQLAuditMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *DatasourceSQLAuditMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *DatasourceSQLAuditMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *DatasourceSQLAuditMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the DatasourceSQLAudit entity.
+// If the DatasourceSQLAudit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceSQLAuditMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *DatasourceSQLAuditMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUID sets the "uid" field.
+func (m *DatasourceSQLAuditMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *DatasourceSQLAuditMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the DatasourceSQLAudit entity.
+// If the DatasourceSQLAudit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceSQLAuditMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *DatasourceSQLAuditMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetNamespaceUID sets the "namespace_uid" field.
+func (m *DatasourceSQLAuditMutation) SetNamespaceUID(s string) {
+	m.namespace_uid = &s
+}
+
+// NamespaceUID returns the value of the "namespace_uid" field in the mutation.
+func (m *DatasourceSQLAuditMutation) NamespaceUID() (r string, exists bool) {
+	v := m.namespace_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNamespaceUID returns the old "namespace_uid" field's value of the DatasourceSQLAudit entity.
+// If the DatasourceSQLAudit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceSQLAuditMutation) OldNamespaceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNamespaceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNamespaceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNamespaceUID: %w", err)
+	}
+	return oldValue.NamespaceUID, nil
+}
+
+// ResetNamespaceUID resets all changes to the "namespace_uid" field.
+func (m *DatasourceSQLAuditMutation) ResetNamespaceUID() {
+	m.namespace_uid = nil
+}
+
+// SetDatasourceUID sets the "datasource_uid" field.
+func (m *DatasourceSQLAuditMutation) SetDatasourceUID(s string) {
+	m.datasource_uid = &s
+}
+
+// DatasourceUID returns the value of the "datasource_uid" field in the mutation.
+func (m *DatasourceSQLAuditMutation) DatasourceUID() (r string, exists bool) {
+	v := m.datasource_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDatasourceUID returns the old "datasource_uid" field's value of the DatasourceSQLAudit entity.
+// If the DatasourceSQLAudit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceSQLAuditMutation) OldDatasourceUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDatasourceUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDatasourceUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDatasourceUID: %w", err)
+	}
+	return oldValue.DatasourceUID, nil
+}
+
+// ResetDatasourceUID resets all changes to the "datasource_uid" field.
+func (m *DatasourceSQLAuditMutation) ResetDatasourceUID() {
+	m.datasource_uid = nil
+}
+
+// SetOperatorUID sets the "operator_uid" field.
+func (m *DatasourceSQLAuditMutation) SetOperatorUID(s string) {
+	m.operator_uid = &s
+}
+
+// OperatorUID returns the value of the "operator_uid" field in the mutation.
+func (m *DatasourceSQLAuditMutation) OperatorUID() (r string, exists bool) {
+	v := m.operator_uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOperatorUID returns the old "operator_uid" field's value of the DatasourceSQLAudit entity.
+// If the DatasourceSQLAudit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceSQLAuditMutation) OldOperatorUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOperatorUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOperatorUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOperatorUID: %w", err)
+	}
+	return oldValue.OperatorUID, nil
+}
+
+// ResetOperatorUID resets all changes to the "operator_uid" field.
+func (m *DatasourceSQLAuditMutation) ResetOperatorUID() {
+	m.operator_uid = nil
+}
+
+// SetAction sets the "action" field.
+func (m *DatasourceSQLAuditMutation) SetAction(d datasourcesqlaudit.Action) {
+	m.action = &d
+}
+
+// Action returns the value of the "action" field in the mutation.
+func (m *DatasourceSQLAuditMutation) Action() (r datasourcesqlaudit.Action, exists bool) {
+	v := m.action
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAction returns the old "action" field's value of the DatasourceSQLAudit entity.
+// If the DatasourceSQLAudit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceSQLAuditMutation) OldAction(ctx context.Context) (v datasourcesqlaudit.Action, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAction is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAction requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAction: %w", err)
+	}
+	return oldValue.Action, nil
+}
+
+// ResetAction resets all changes to the "action" field.
+func (m *DatasourceSQLAuditMutation) ResetAction() {
+	m.action = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *DatasourceSQLAuditMutation) SetStatus(d datasourcesqlaudit.Status) {
+	m.status = &d
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *DatasourceSQLAuditMutation) Status() (r datasourcesqlaudit.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the DatasourceSQLAudit entity.
+// If the DatasourceSQLAudit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceSQLAuditMutation) OldStatus(ctx context.Context) (v datasourcesqlaudit.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *DatasourceSQLAuditMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetDatabase sets the "database" field.
+func (m *DatasourceSQLAuditMutation) SetDatabase(s string) {
+	m.database = &s
+}
+
+// Database returns the value of the "database" field in the mutation.
+func (m *DatasourceSQLAuditMutation) Database() (r string, exists bool) {
+	v := m.database
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDatabase returns the old "database" field's value of the DatasourceSQLAudit entity.
+// If the DatasourceSQLAudit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceSQLAuditMutation) OldDatabase(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDatabase is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDatabase requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDatabase: %w", err)
+	}
+	return oldValue.Database, nil
+}
+
+// ResetDatabase resets all changes to the "database" field.
+func (m *DatasourceSQLAuditMutation) ResetDatabase() {
+	m.database = nil
+}
+
+// SetSchema sets the "schema" field.
+func (m *DatasourceSQLAuditMutation) SetSchema(s string) {
+	m.schema = &s
+}
+
+// Schema returns the value of the "schema" field in the mutation.
+func (m *DatasourceSQLAuditMutation) Schema() (r string, exists bool) {
+	v := m.schema
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSchema returns the old "schema" field's value of the DatasourceSQLAudit entity.
+// If the DatasourceSQLAudit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceSQLAuditMutation) OldSchema(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSchema is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSchema requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSchema: %w", err)
+	}
+	return oldValue.Schema, nil
+}
+
+// ResetSchema resets all changes to the "schema" field.
+func (m *DatasourceSQLAuditMutation) ResetSchema() {
+	m.schema = nil
+}
+
+// SetTable sets the "table" field.
+func (m *DatasourceSQLAuditMutation) SetTable(s string) {
+	m.table = &s
+}
+
+// Table returns the value of the "table" field in the mutation.
+func (m *DatasourceSQLAuditMutation) Table() (r string, exists bool) {
+	v := m.table
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTable returns the old "table" field's value of the DatasourceSQLAudit entity.
+// If the DatasourceSQLAudit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceSQLAuditMutation) OldTable(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTable is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTable requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTable: %w", err)
+	}
+	return oldValue.Table, nil
+}
+
+// ResetTable resets all changes to the "table" field.
+func (m *DatasourceSQLAuditMutation) ResetTable() {
+	m.table = nil
+}
+
+// SetStatement sets the "statement" field.
+func (m *DatasourceSQLAuditMutation) SetStatement(s string) {
+	m.statement = &s
+}
+
+// Statement returns the value of the "statement" field in the mutation.
+func (m *DatasourceSQLAuditMutation) Statement() (r string, exists bool) {
+	v := m.statement
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatement returns the old "statement" field's value of the DatasourceSQLAudit entity.
+// If the DatasourceSQLAudit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceSQLAuditMutation) OldStatement(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatement is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatement requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatement: %w", err)
+	}
+	return oldValue.Statement, nil
+}
+
+// ResetStatement resets all changes to the "statement" field.
+func (m *DatasourceSQLAuditMutation) ResetStatement() {
+	m.statement = nil
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (m *DatasourceSQLAuditMutation) SetErrorMessage(s string) {
+	m.error_message = &s
+}
+
+// ErrorMessage returns the value of the "error_message" field in the mutation.
+func (m *DatasourceSQLAuditMutation) ErrorMessage() (r string, exists bool) {
+	v := m.error_message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorMessage returns the old "error_message" field's value of the DatasourceSQLAudit entity.
+// If the DatasourceSQLAudit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DatasourceSQLAuditMutation) OldErrorMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorMessage: %w", err)
+	}
+	return oldValue.ErrorMessage, nil
+}
+
+// ResetErrorMessage resets all changes to the "error_message" field.
+func (m *DatasourceSQLAuditMutation) ResetErrorMessage() {
+	m.error_message = nil
+}
+
+// Where appends a list predicates to the DatasourceSQLAuditMutation builder.
+func (m *DatasourceSQLAuditMutation) Where(ps ...predicate.DatasourceSQLAudit) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DatasourceSQLAuditMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DatasourceSQLAuditMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DatasourceSQLAudit, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DatasourceSQLAuditMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DatasourceSQLAuditMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (DatasourceSQLAudit).
+func (m *DatasourceSQLAuditMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DatasourceSQLAuditMutation) Fields() []string {
+	fields := make([]string, 0, 13)
+	if m.created_at != nil {
+		fields = append(fields, datasourcesqlaudit.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, datasourcesqlaudit.FieldUpdatedAt)
+	}
+	if m.uid != nil {
+		fields = append(fields, datasourcesqlaudit.FieldUID)
+	}
+	if m.namespace_uid != nil {
+		fields = append(fields, datasourcesqlaudit.FieldNamespaceUID)
+	}
+	if m.datasource_uid != nil {
+		fields = append(fields, datasourcesqlaudit.FieldDatasourceUID)
+	}
+	if m.operator_uid != nil {
+		fields = append(fields, datasourcesqlaudit.FieldOperatorUID)
+	}
+	if m.action != nil {
+		fields = append(fields, datasourcesqlaudit.FieldAction)
+	}
+	if m.status != nil {
+		fields = append(fields, datasourcesqlaudit.FieldStatus)
+	}
+	if m.database != nil {
+		fields = append(fields, datasourcesqlaudit.FieldDatabase)
+	}
+	if m.schema != nil {
+		fields = append(fields, datasourcesqlaudit.FieldSchema)
+	}
+	if m.table != nil {
+		fields = append(fields, datasourcesqlaudit.FieldTable)
+	}
+	if m.statement != nil {
+		fields = append(fields, datasourcesqlaudit.FieldStatement)
+	}
+	if m.error_message != nil {
+		fields = append(fields, datasourcesqlaudit.FieldErrorMessage)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DatasourceSQLAuditMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case datasourcesqlaudit.FieldCreatedAt:
+		return m.CreatedAt()
+	case datasourcesqlaudit.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case datasourcesqlaudit.FieldUID:
+		return m.UID()
+	case datasourcesqlaudit.FieldNamespaceUID:
+		return m.NamespaceUID()
+	case datasourcesqlaudit.FieldDatasourceUID:
+		return m.DatasourceUID()
+	case datasourcesqlaudit.FieldOperatorUID:
+		return m.OperatorUID()
+	case datasourcesqlaudit.FieldAction:
+		return m.Action()
+	case datasourcesqlaudit.FieldStatus:
+		return m.Status()
+	case datasourcesqlaudit.FieldDatabase:
+		return m.Database()
+	case datasourcesqlaudit.FieldSchema:
+		return m.Schema()
+	case datasourcesqlaudit.FieldTable:
+		return m.Table()
+	case datasourcesqlaudit.FieldStatement:
+		return m.Statement()
+	case datasourcesqlaudit.FieldErrorMessage:
+		return m.ErrorMessage()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DatasourceSQLAuditMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case datasourcesqlaudit.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case datasourcesqlaudit.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case datasourcesqlaudit.FieldUID:
+		return m.OldUID(ctx)
+	case datasourcesqlaudit.FieldNamespaceUID:
+		return m.OldNamespaceUID(ctx)
+	case datasourcesqlaudit.FieldDatasourceUID:
+		return m.OldDatasourceUID(ctx)
+	case datasourcesqlaudit.FieldOperatorUID:
+		return m.OldOperatorUID(ctx)
+	case datasourcesqlaudit.FieldAction:
+		return m.OldAction(ctx)
+	case datasourcesqlaudit.FieldStatus:
+		return m.OldStatus(ctx)
+	case datasourcesqlaudit.FieldDatabase:
+		return m.OldDatabase(ctx)
+	case datasourcesqlaudit.FieldSchema:
+		return m.OldSchema(ctx)
+	case datasourcesqlaudit.FieldTable:
+		return m.OldTable(ctx)
+	case datasourcesqlaudit.FieldStatement:
+		return m.OldStatement(ctx)
+	case datasourcesqlaudit.FieldErrorMessage:
+		return m.OldErrorMessage(ctx)
+	}
+	return nil, fmt.Errorf("unknown DatasourceSQLAudit field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DatasourceSQLAuditMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case datasourcesqlaudit.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case datasourcesqlaudit.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case datasourcesqlaudit.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case datasourcesqlaudit.FieldNamespaceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNamespaceUID(v)
+		return nil
+	case datasourcesqlaudit.FieldDatasourceUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDatasourceUID(v)
+		return nil
+	case datasourcesqlaudit.FieldOperatorUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOperatorUID(v)
+		return nil
+	case datasourcesqlaudit.FieldAction:
+		v, ok := value.(datasourcesqlaudit.Action)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAction(v)
+		return nil
+	case datasourcesqlaudit.FieldStatus:
+		v, ok := value.(datasourcesqlaudit.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case datasourcesqlaudit.FieldDatabase:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDatabase(v)
+		return nil
+	case datasourcesqlaudit.FieldSchema:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSchema(v)
+		return nil
+	case datasourcesqlaudit.FieldTable:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTable(v)
+		return nil
+	case datasourcesqlaudit.FieldStatement:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatement(v)
+		return nil
+	case datasourcesqlaudit.FieldErrorMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorMessage(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DatasourceSQLAudit field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DatasourceSQLAuditMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DatasourceSQLAuditMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DatasourceSQLAuditMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown DatasourceSQLAudit numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DatasourceSQLAuditMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DatasourceSQLAuditMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DatasourceSQLAuditMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown DatasourceSQLAudit nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DatasourceSQLAuditMutation) ResetField(name string) error {
+	switch name {
+	case datasourcesqlaudit.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case datasourcesqlaudit.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case datasourcesqlaudit.FieldUID:
+		m.ResetUID()
+		return nil
+	case datasourcesqlaudit.FieldNamespaceUID:
+		m.ResetNamespaceUID()
+		return nil
+	case datasourcesqlaudit.FieldDatasourceUID:
+		m.ResetDatasourceUID()
+		return nil
+	case datasourcesqlaudit.FieldOperatorUID:
+		m.ResetOperatorUID()
+		return nil
+	case datasourcesqlaudit.FieldAction:
+		m.ResetAction()
+		return nil
+	case datasourcesqlaudit.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case datasourcesqlaudit.FieldDatabase:
+		m.ResetDatabase()
+		return nil
+	case datasourcesqlaudit.FieldSchema:
+		m.ResetSchema()
+		return nil
+	case datasourcesqlaudit.FieldTable:
+		m.ResetTable()
+		return nil
+	case datasourcesqlaudit.FieldStatement:
+		m.ResetStatement()
+		return nil
+	case datasourcesqlaudit.FieldErrorMessage:
+		m.ResetErrorMessage()
+		return nil
+	}
+	return fmt.Errorf("unknown DatasourceSQLAudit field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DatasourceSQLAuditMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DatasourceSQLAuditMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DatasourceSQLAuditMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DatasourceSQLAuditMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DatasourceSQLAuditMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DatasourceSQLAuditMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DatasourceSQLAuditMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown DatasourceSQLAudit unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DatasourceSQLAuditMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown DatasourceSQLAudit edge %s", name)
 }
 
 // EmailLoginCodeMutation represents an operation that mutates the EmailLoginCode nodes in the graph.

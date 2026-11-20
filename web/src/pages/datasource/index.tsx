@@ -91,11 +91,12 @@ import { DatasourceDetailSheet } from "@/pages/datasource/detail"
 import { MetadataPanel } from "@/pages/datasource/metadata-panel"
 import { QueryPanel } from "@/pages/datasource/query-panel"
 
-const types = ["METRICS", "LOGS", "TRACE"]
+const types = ["METRICS", "LOGS", "TRACE", "SQL"]
 const drivers: Record<string, string[]> = {
   METRICS: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS"],
   LOGS: ["LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS"],
   TRACE: ["TRACE_JAEGER"],
+  SQL: ["SQL_POSTGRESQL"],
 }
 
 // 与 proto 的 buf.validate 对齐：窗口 0..1440 分钟，阈值 0..1000 次，
@@ -382,6 +383,8 @@ export function DatasourcePage() {
 
   function validateDatasourceStep(step: number): FieldErrors {
     if (step === 0) {
+      // SQL 数据源填 PostgreSQL 连接串，其它数据源仍要求 http(s) 根地址。
+      const sqlDriver = form.driver === "SQL_POSTGRESQL"
       const errors = collectFieldErrors([
         [
           "name",
@@ -400,8 +403,12 @@ export function DatasourcePage() {
             label: t("datasource.endpoint"),
             value: form.endpoint,
             required: true,
-            pattern: /^https?:\/\/\S+/i,
-            hint: patternHint("endpoint"),
+            pattern: sqlDriver
+              ? /^postgres(ql)?:\/\/\S+/i
+              : /^https?:\/\/\S+/i,
+            hint: sqlDriver
+              ? t("field.hint.postgres")
+              : patternHint("endpoint"),
           }),
         ],
       ])
@@ -865,7 +872,11 @@ export function DatasourcePage() {
                 <FormField
                   label={t("datasource.endpoint")}
                   htmlFor="ds-endpoint"
-                  hint={t("datasource.endpointHint")}
+                  hint={
+                    form.driver === "SQL_POSTGRESQL"
+                      ? t("datasource.endpointHintSql")
+                      : t("datasource.endpointHint")
+                  }
                   className="sm:col-span-full"
                   required
                   error={fieldErrors.endpoint}
@@ -873,7 +884,11 @@ export function DatasourcePage() {
                   <Input
                     id="ds-endpoint"
                     value={form.endpoint}
-                    placeholder="http://127.0.0.1:9090"
+                    placeholder={
+                      form.driver === "SQL_POSTGRESQL"
+                        ? t("datasource.endpointPlaceholderSql")
+                        : "http://127.0.0.1:9090"
+                    }
                     onChange={(event) =>
                       setForm({ ...form, endpoint: event.target.value })
                     }

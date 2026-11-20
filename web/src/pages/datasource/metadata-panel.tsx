@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { getDatasourceMetadata, listDatasourceMetrics } from "@/api/datasource"
+import { listSqlDatabases } from "@/api/sql-lab"
 import type {
   DatasourceItem,
   DatasourceMetadataItem,
@@ -330,6 +331,91 @@ function LogsMetadata({ datasource }: { datasource: DatasourceItem }) {
   )
 }
 
+function SqlMetadata({ datasource }: { datasource: DatasourceItem }) {
+  const { t } = useTranslation()
+  const [databases, setDatabases] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState("")
+  const [attempt, setAttempt] = useState(0)
+
+  useEffect(() => {
+    let active = true
+    async function load() {
+      setLoading(true)
+      setFailed("")
+      try {
+        const result = await listSqlDatabases(datasource.uid)
+        if (!active) {
+          return
+        }
+        setDatabases(result.items ?? [])
+      } catch (err) {
+        if (active) {
+          setDatabases([])
+          setFailed(failureMessage(err, t("state.failed")))
+        }
+      } finally {
+        if (active) {
+          setLoading(false)
+        }
+      }
+    }
+    void load()
+    return () => {
+      active = false
+    }
+  }, [attempt, datasource.uid, t])
+
+  if (loading) {
+    return <p className="text-sm text-muted-foreground">{t("state.loading")}</p>
+  }
+  if (failed) {
+    return (
+      <div className="flex items-center gap-2">
+        <p className="text-sm text-destructive">{failed}</p>
+        <Button
+          variant="outline"
+          onClick={() => setAttempt((value) => value + 1)}
+        >
+          {t("action.retry")}
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
+      <MetadataHeader datasource={datasource} status="" />
+      <section className="grid gap-3 rounded-lg border bg-card/60 p-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 className="text-sm font-medium">
+            {t("datasource.sqlDatabases")}
+          </h3>
+          <span className="font-mono text-xs text-muted-foreground">
+            {databases.length}
+          </span>
+        </div>
+        {databases.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {t("datasource.sqlDatabasesEmpty")}
+          </p>
+        ) : (
+          <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            {databases.map((database) => (
+              <li
+                key={database}
+                className="min-w-0 rounded-md border bg-background px-2.5 py-2 font-mono text-xs break-all"
+              >
+                {database}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  )
+}
+
 function MetricsMetadata({ uid, driver }: { uid: string; driver: string }) {
   const { t } = useTranslation()
   const [metrics, setMetrics] = useState<DatasourceMetricItem[]>([])
@@ -456,6 +542,9 @@ export function MetadataPanel({ datasource }: { datasource: DatasourceItem }) {
         {t("datasource.metadataEmpty")}
       </p>
     )
+  }
+  if (datasource.type === "SQL") {
+    return <SqlMetadata datasource={datasource} />
   }
   if (datasource.driver === "LOGS_ELASTICSEARCH") {
     return <ElasticsearchNodes datasource={datasource} />

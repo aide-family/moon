@@ -46,6 +46,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/captcha"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/cluster"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasourcesqlaudit"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
@@ -166,6 +167,8 @@ type Client struct {
 	Cluster *ClusterClient
 	// Datasource is the client for interacting with the Datasource builders.
 	Datasource *DatasourceClient
+	// DatasourceSQLAudit is the client for interacting with the DatasourceSQLAudit builders.
+	DatasourceSQLAudit *DatasourceSQLAuditClient
 	// EmailLoginCode is the client for interacting with the EmailLoginCode builders.
 	EmailLoginCode *EmailLoginCodeClient
 	// FeaturePackage is the client for interacting with the FeaturePackage builders.
@@ -307,6 +310,7 @@ func (c *Client) init() {
 	c.Captcha = NewCaptchaClient(c.config)
 	c.Cluster = NewClusterClient(c.config)
 	c.Datasource = NewDatasourceClient(c.config)
+	c.DatasourceSQLAudit = NewDatasourceSQLAuditClient(c.config)
 	c.EmailLoginCode = NewEmailLoginCodeClient(c.config)
 	c.FeaturePackage = NewFeaturePackageClient(c.config)
 	c.FeaturePackageItem = NewFeaturePackageItemClient(c.config)
@@ -480,6 +484,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Captcha:                       NewCaptchaClient(cfg),
 		Cluster:                       NewClusterClient(cfg),
 		Datasource:                    NewDatasourceClient(cfg),
+		DatasourceSQLAudit:            NewDatasourceSQLAuditClient(cfg),
 		EmailLoginCode:                NewEmailLoginCodeClient(cfg),
 		FeaturePackage:                NewFeaturePackageClient(cfg),
 		FeaturePackageItem:            NewFeaturePackageItemClient(cfg),
@@ -580,6 +585,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Captcha:                       NewCaptchaClient(cfg),
 		Cluster:                       NewClusterClient(cfg),
 		Datasource:                    NewDatasourceClient(cfg),
+		DatasourceSQLAudit:            NewDatasourceSQLAuditClient(cfg),
 		EmailLoginCode:                NewEmailLoginCodeClient(cfg),
 		FeaturePackage:                NewFeaturePackageClient(cfg),
 		FeaturePackageItem:            NewFeaturePackageItemClient(cfg),
@@ -667,8 +673,8 @@ func (c *Client) Use(hooks ...Hook) {
 		c.ApplicationVersionComponent, c.ApplicationVersionImage,
 		c.ApplicationVersionResource, c.AuthEmailSetting, c.AuthLoginSetting,
 		c.AuthOAuthProvider, c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource,
-		c.EmailLoginCode, c.FeaturePackage, c.FeaturePackageItem, c.ImageSync,
-		c.InspectionItem, c.InspectionPlan, c.InspectionReport,
+		c.DatasourceSQLAudit, c.EmailLoginCode, c.FeaturePackage, c.FeaturePackageItem,
+		c.ImageSync, c.InspectionItem, c.InspectionPlan, c.InspectionReport,
 		c.InspectionReportShare, c.InspectionRun, c.InspectionTemplate, c.Member,
 		c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard, c.Namespace,
 		c.NamespaceFeature, c.NamespaceOrder, c.NotificationChannel,
@@ -698,8 +704,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.ApplicationVersionComponent, c.ApplicationVersionImage,
 		c.ApplicationVersionResource, c.AuthEmailSetting, c.AuthLoginSetting,
 		c.AuthOAuthProvider, c.Board, c.BoardPanel, c.Captcha, c.Cluster, c.Datasource,
-		c.EmailLoginCode, c.FeaturePackage, c.FeaturePackageItem, c.ImageSync,
-		c.InspectionItem, c.InspectionPlan, c.InspectionReport,
+		c.DatasourceSQLAudit, c.EmailLoginCode, c.FeaturePackage, c.FeaturePackageItem,
+		c.ImageSync, c.InspectionItem, c.InspectionPlan, c.InspectionReport,
 		c.InspectionReportShare, c.InspectionRun, c.InspectionTemplate, c.Member,
 		c.MemberInvite, c.MemberRole, c.MessageLog, c.MessageLogShard, c.Namespace,
 		c.NamespaceFeature, c.NamespaceOrder, c.NotificationChannel,
@@ -783,6 +789,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Cluster.mutate(ctx, m)
 	case *DatasourceMutation:
 		return c.Datasource.mutate(ctx, m)
+	case *DatasourceSQLAuditMutation:
+		return c.DatasourceSQLAudit.mutate(ctx, m)
 	case *EmailLoginCodeMutation:
 		return c.EmailLoginCode.mutate(ctx, m)
 	case *FeaturePackageMutation:
@@ -5139,6 +5147,139 @@ func (c *DatasourceClient) mutate(ctx context.Context, m *DatasourceMutation) (V
 		return (&DatasourceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Datasource mutation op: %q", m.Op())
+	}
+}
+
+// DatasourceSQLAuditClient is a client for the DatasourceSQLAudit schema.
+type DatasourceSQLAuditClient struct {
+	config
+}
+
+// NewDatasourceSQLAuditClient returns a client for the DatasourceSQLAudit from the given config.
+func NewDatasourceSQLAuditClient(c config) *DatasourceSQLAuditClient {
+	return &DatasourceSQLAuditClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `datasourcesqlaudit.Hooks(f(g(h())))`.
+func (c *DatasourceSQLAuditClient) Use(hooks ...Hook) {
+	c.hooks.DatasourceSQLAudit = append(c.hooks.DatasourceSQLAudit, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `datasourcesqlaudit.Intercept(f(g(h())))`.
+func (c *DatasourceSQLAuditClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DatasourceSQLAudit = append(c.inters.DatasourceSQLAudit, interceptors...)
+}
+
+// Create returns a builder for creating a DatasourceSQLAudit entity.
+func (c *DatasourceSQLAuditClient) Create() *DatasourceSQLAuditCreate {
+	mutation := newDatasourceSQLAuditMutation(c.config, OpCreate)
+	return &DatasourceSQLAuditCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DatasourceSQLAudit entities.
+func (c *DatasourceSQLAuditClient) CreateBulk(builders ...*DatasourceSQLAuditCreate) *DatasourceSQLAuditCreateBulk {
+	return &DatasourceSQLAuditCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DatasourceSQLAuditClient) MapCreateBulk(slice any, setFunc func(*DatasourceSQLAuditCreate, int)) *DatasourceSQLAuditCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DatasourceSQLAuditCreateBulk{err: fmt.Errorf("calling to DatasourceSQLAuditClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DatasourceSQLAuditCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DatasourceSQLAuditCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DatasourceSQLAudit.
+func (c *DatasourceSQLAuditClient) Update() *DatasourceSQLAuditUpdate {
+	mutation := newDatasourceSQLAuditMutation(c.config, OpUpdate)
+	return &DatasourceSQLAuditUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DatasourceSQLAuditClient) UpdateOne(_m *DatasourceSQLAudit) *DatasourceSQLAuditUpdateOne {
+	mutation := newDatasourceSQLAuditMutation(c.config, OpUpdateOne, withDatasourceSQLAudit(_m))
+	return &DatasourceSQLAuditUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DatasourceSQLAuditClient) UpdateOneID(id int) *DatasourceSQLAuditUpdateOne {
+	mutation := newDatasourceSQLAuditMutation(c.config, OpUpdateOne, withDatasourceSQLAuditID(id))
+	return &DatasourceSQLAuditUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DatasourceSQLAudit.
+func (c *DatasourceSQLAuditClient) Delete() *DatasourceSQLAuditDelete {
+	mutation := newDatasourceSQLAuditMutation(c.config, OpDelete)
+	return &DatasourceSQLAuditDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DatasourceSQLAuditClient) DeleteOne(_m *DatasourceSQLAudit) *DatasourceSQLAuditDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DatasourceSQLAuditClient) DeleteOneID(id int) *DatasourceSQLAuditDeleteOne {
+	builder := c.Delete().Where(datasourcesqlaudit.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DatasourceSQLAuditDeleteOne{builder}
+}
+
+// Query returns a query builder for DatasourceSQLAudit.
+func (c *DatasourceSQLAuditClient) Query() *DatasourceSQLAuditQuery {
+	return &DatasourceSQLAuditQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDatasourceSQLAudit},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DatasourceSQLAudit entity by its id.
+func (c *DatasourceSQLAuditClient) Get(ctx context.Context, id int) (*DatasourceSQLAudit, error) {
+	return c.Query().Where(datasourcesqlaudit.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DatasourceSQLAuditClient) GetX(ctx context.Context, id int) *DatasourceSQLAudit {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *DatasourceSQLAuditClient) Hooks() []Hook {
+	return c.hooks.DatasourceSQLAudit
+}
+
+// Interceptors returns the client interceptors.
+func (c *DatasourceSQLAuditClient) Interceptors() []Interceptor {
+	return c.inters.DatasourceSQLAudit
+}
+
+func (c *DatasourceSQLAuditClient) mutate(ctx context.Context, m *DatasourceSQLAuditMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DatasourceSQLAuditCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DatasourceSQLAuditUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DatasourceSQLAuditUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DatasourceSQLAuditDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DatasourceSQLAudit mutation op: %q", m.Op())
 	}
 }
 
@@ -11670,18 +11811,18 @@ type (
 		ApplicationReleaseOperation, ApplicationVersion, ApplicationVersionComponent,
 		ApplicationVersionImage, ApplicationVersionResource, AuthEmailSetting,
 		AuthLoginSetting, AuthOAuthProvider, Board, BoardPanel, Captcha, Cluster,
-		Datasource, EmailLoginCode, FeaturePackage, FeaturePackageItem, ImageSync,
-		InspectionItem, InspectionPlan, InspectionReport, InspectionReportShare,
-		InspectionRun, InspectionTemplate, Member, MemberInvite, MemberRole,
-		MessageLog, MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
-		NotificationChannel, NotificationGroup, NotificationOnCall,
-		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
-		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,
-		ProbeTarget, ProbeTargetGroup, Registry, Role, RolePermission, SSHCommand,
-		SSHCommandAudit, SiteFeature, SiteHomeContent, SitePage, SiteSetting,
-		StatusPage, SystemMessage, User, UserAlertPage, UserOAuth,
-		WorkerInstance []ent.Hook
+		Datasource, DatasourceSQLAudit, EmailLoginCode, FeaturePackage,
+		FeaturePackageItem, ImageSync, InspectionItem, InspectionPlan,
+		InspectionReport, InspectionReportShare, InspectionRun, InspectionTemplate,
+		Member, MemberInvite, MemberRole, MessageLog, MessageLogShard, Namespace,
+		NamespaceFeature, NamespaceOrder, NotificationChannel, NotificationGroup,
+		NotificationOnCall, NotificationOnCallGroup, NotificationPreset,
+		NotificationSubscription, NotificationSubscriptionGroup, NotificationTask,
+		NotificationTemplate, OnCallRotation, OnCallRotationMember, Permission,
+		ProbeResult, ProbeSlaDaily, ProbeTarget, ProbeTargetGroup, Registry, Role,
+		RolePermission, SSHCommand, SSHCommandAudit, SiteFeature, SiteHomeContent,
+		SitePage, SiteSetting, StatusPage, SystemMessage, User, UserAlertPage,
+		UserOAuth, WorkerInstance []ent.Hook
 	}
 	inters struct {
 		Agent, AlertDictionary, AlertEscalationPolicy, AlertEscalationStep,
@@ -11692,17 +11833,17 @@ type (
 		ApplicationReleaseOperation, ApplicationVersion, ApplicationVersionComponent,
 		ApplicationVersionImage, ApplicationVersionResource, AuthEmailSetting,
 		AuthLoginSetting, AuthOAuthProvider, Board, BoardPanel, Captcha, Cluster,
-		Datasource, EmailLoginCode, FeaturePackage, FeaturePackageItem, ImageSync,
-		InspectionItem, InspectionPlan, InspectionReport, InspectionReportShare,
-		InspectionRun, InspectionTemplate, Member, MemberInvite, MemberRole,
-		MessageLog, MessageLogShard, Namespace, NamespaceFeature, NamespaceOrder,
-		NotificationChannel, NotificationGroup, NotificationOnCall,
-		NotificationOnCallGroup, NotificationPreset, NotificationSubscription,
-		NotificationSubscriptionGroup, NotificationTask, NotificationTemplate,
-		OnCallRotation, OnCallRotationMember, Permission, ProbeResult, ProbeSlaDaily,
-		ProbeTarget, ProbeTargetGroup, Registry, Role, RolePermission, SSHCommand,
-		SSHCommandAudit, SiteFeature, SiteHomeContent, SitePage, SiteSetting,
-		StatusPage, SystemMessage, User, UserAlertPage, UserOAuth,
-		WorkerInstance []ent.Interceptor
+		Datasource, DatasourceSQLAudit, EmailLoginCode, FeaturePackage,
+		FeaturePackageItem, ImageSync, InspectionItem, InspectionPlan,
+		InspectionReport, InspectionReportShare, InspectionRun, InspectionTemplate,
+		Member, MemberInvite, MemberRole, MessageLog, MessageLogShard, Namespace,
+		NamespaceFeature, NamespaceOrder, NotificationChannel, NotificationGroup,
+		NotificationOnCall, NotificationOnCallGroup, NotificationPreset,
+		NotificationSubscription, NotificationSubscriptionGroup, NotificationTask,
+		NotificationTemplate, OnCallRotation, OnCallRotationMember, Permission,
+		ProbeResult, ProbeSlaDaily, ProbeTarget, ProbeTargetGroup, Registry, Role,
+		RolePermission, SSHCommand, SSHCommandAudit, SiteFeature, SiteHomeContent,
+		SitePage, SiteSetting, StatusPage, SystemMessage, User, UserAlertPage,
+		UserOAuth, WorkerInstance []ent.Interceptor
 	}
 )

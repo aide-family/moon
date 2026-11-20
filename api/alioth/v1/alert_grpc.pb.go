@@ -52,7 +52,8 @@ type DatasourceServiceClient interface {
 	ListDatasources(ctx context.Context, in *ListDatasourcesRequest, opts ...grpc.CallOption) (*ListDatasourcesResponse, error)
 	// 下拉选择数据源。
 	SelectDatasources(ctx context.Context, in *SelectDatasourcesRequest, opts ...grpc.CallOption) (*SelectDatasourcesResponse, error)
-	// 查看数据源是否可连通。支持指标数据源、Loki、VictoriaLogs 和 Elasticsearch 日志数据源。
+	// 查看数据源是否可连通。支持指标数据源、Loki、VictoriaLogs、Elasticsearch
+	// 日志数据源和 PostgreSQL 数据库数据源。
 	GetDatasourceStatus(ctx context.Context, in *GetDatasourceStatusRequest, opts ...grpc.CallOption) (*GetDatasourceStatusResponse, error)
 	// 查看日志数据源的关键信息。Loki 返回版本信息，VictoriaLogs 返回健康状态，
 	// Elasticsearch 返回集群状态和节点分配。
@@ -201,7 +202,8 @@ type DatasourceServiceServer interface {
 	ListDatasources(context.Context, *ListDatasourcesRequest) (*ListDatasourcesResponse, error)
 	// 下拉选择数据源。
 	SelectDatasources(context.Context, *SelectDatasourcesRequest) (*SelectDatasourcesResponse, error)
-	// 查看数据源是否可连通。支持指标数据源、Loki、VictoriaLogs 和 Elasticsearch 日志数据源。
+	// 查看数据源是否可连通。支持指标数据源、Loki、VictoriaLogs、Elasticsearch
+	// 日志数据源和 PostgreSQL 数据库数据源。
 	GetDatasourceStatus(context.Context, *GetDatasourceStatusRequest) (*GetDatasourceStatusResponse, error)
 	// 查看日志数据源的关键信息。Loki 返回版本信息，VictoriaLogs 返回健康状态，
 	// Elasticsearch 返回集群状态和节点分配。

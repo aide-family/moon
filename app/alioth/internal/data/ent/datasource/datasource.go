@@ -148,6 +148,7 @@ const (
 	TypeMETRICS Type = "METRICS"
 	TypeLOGS    Type = "LOGS"
 	TypeTRACE   Type = "TRACE"
+	TypeSQL     Type = "SQL"
 )
 
 func (_type Type) String() string {
@@ -157,7 +158,7 @@ func (_type Type) String() string {
 // TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
 func TypeValidator(_type Type) error {
 	switch _type {
-	case TypeMETRICS, TypeLOGS, TypeTRACE:
+	case TypeMETRICS, TypeLOGS, TypeTRACE, TypeSQL:
 		return nil
 	default:
 		return fmt.Errorf("datasource: invalid enum value for type field: %q", _type)
@@ -175,6 +176,7 @@ const (
 	DriverLOGS_LOKI                Driver = "LOGS_LOKI"
 	DriverLOGS_VLOGS               Driver = "LOGS_VLOGS"
 	DriverTRACE_JAEGER             Driver = "TRACE_JAEGER"
+	DriverSQL_POSTGRESQL           Driver = "SQL_POSTGRESQL"
 )
 
 func (_driver Driver) String() string {
@@ -184,7 +186,7 @@ func (_driver Driver) String() string {
 // DriverValidator is a validator for the "driver" field enum values. It is called by the builders before save.
 func DriverValidator(_driver Driver) error {
 	switch _driver {
-	case DriverMETRICS_PROMETHEUS, DriverMETRICS_VICTORIA_METRICS, DriverLOGS_ELASTICSEARCH, DriverLOGS_LOKI, DriverLOGS_VLOGS, DriverTRACE_JAEGER:
+	case DriverMETRICS_PROMETHEUS, DriverMETRICS_VICTORIA_METRICS, DriverLOGS_ELASTICSEARCH, DriverLOGS_LOKI, DriverLOGS_VLOGS, DriverTRACE_JAEGER, DriverSQL_POSTGRESQL:
 		return nil
 	default:
 		return fmt.Errorf("datasource: invalid enum value for driver field: %q", _driver)

@@ -208,7 +208,7 @@ func (r *datasourceRepo) ListDatasources(ctx context.Context, namespaceUID strin
 		query = query.Where(datasource.NameContainsFold(name))
 	}
 	if kind != "" {
-		if kind != "METRICS" && kind != "LOGS" && kind != "TRACE" {
+		if kind != "METRICS" && kind != "LOGS" && kind != "TRACE" && kind != "SQL" {
 			return nil, 0, merr.Invalid("invalid request")
 		}
 		query = query.Where(datasource.TypeEQ(datasource.Type(kind)))
@@ -298,7 +298,7 @@ func validDatasourceDriver(driver string) bool {
 	switch datasource.Driver(driver) {
 	case datasource.DriverMETRICS_PROMETHEUS, datasource.DriverMETRICS_VICTORIA_METRICS,
 		datasource.DriverLOGS_ELASTICSEARCH, datasource.DriverLOGS_LOKI, datasource.DriverLOGS_VLOGS,
-		datasource.DriverTRACE_JAEGER:
+		datasource.DriverTRACE_JAEGER, datasource.DriverSQL_POSTGRESQL:
 		return true
 	default:
 		return false
@@ -329,7 +329,7 @@ func (r *datasourceRepo) SelectDatasources(ctx context.Context, namespaceUID str
 	if lastUID != "" {
 		query = query.Where(datasource.UIDGT(lastUID))
 	}
-	if kind == "METRICS" || kind == "LOGS" || kind == "TRACE" {
+	if kind == "METRICS" || kind == "LOGS" || kind == "TRACE" || kind == "SQL" {
 		query = query.Where(datasource.TypeEQ(datasource.Type(kind)))
 	}
 	if len(drivers) > 0 {
@@ -485,13 +485,13 @@ func nonNilStrings(values []string) []string {
 func datasourceEnums(kind, driver, status string) (datasource.Type, datasource.Driver, datasource.Status, error) {
 	parsedType := datasource.Type(kind)
 	switch parsedType {
-	case datasource.TypeMETRICS, datasource.TypeLOGS, datasource.TypeTRACE:
+	case datasource.TypeMETRICS, datasource.TypeLOGS, datasource.TypeTRACE, datasource.TypeSQL:
 	default:
 		return "", "", "", merr.Invalid("invalid request")
 	}
 	parsedDriver := datasource.Driver(driver)
 	switch parsedDriver {
-	case datasource.DriverMETRICS_PROMETHEUS, datasource.DriverMETRICS_VICTORIA_METRICS, datasource.DriverLOGS_ELASTICSEARCH, datasource.DriverLOGS_LOKI, datasource.DriverLOGS_VLOGS, datasource.DriverTRACE_JAEGER:
+	case datasource.DriverMETRICS_PROMETHEUS, datasource.DriverMETRICS_VICTORIA_METRICS, datasource.DriverLOGS_ELASTICSEARCH, datasource.DriverLOGS_LOKI, datasource.DriverLOGS_VLOGS, datasource.DriverTRACE_JAEGER, datasource.DriverSQL_POSTGRESQL:
 	default:
 		return "", "", "", merr.Invalid("invalid request")
 	}

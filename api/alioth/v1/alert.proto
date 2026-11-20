@@ -47,7 +47,8 @@ service DatasourceService {
   rpc SelectDatasources(SelectDatasourcesRequest) returns (SelectDatasourcesResponse) {
     option (google.api.http) = {get: "/v1/datasources/select"};
   }
-  // 查看数据源是否可连通。支持指标数据源、Loki、VictoriaLogs 和 Elasticsearch 日志数据源。
+  // 查看数据源是否可连通。支持指标数据源、Loki、VictoriaLogs、Elasticsearch
+  // 日志数据源和 PostgreSQL 数据库数据源。
   rpc GetDatasourceStatus(GetDatasourceStatusRequest) returns (GetDatasourceStatusResponse) {
     option (google.api.http) = {get: "/v1/datasource/{uid}/status"};
   }
@@ -200,7 +201,7 @@ message DatasourceItem {
   string uid = 1;
   // 名称。
   string name = 2;
-  // 类型，取值为 METRICS、LOGS 或 TRACE。
+  // 类型，取值为 METRICS、LOGS、TRACE 或 SQL。
   string type = 3;
   // 驱动。
   string driver = 4;
@@ -240,10 +241,10 @@ message DatasourceItem {
 message CreateDatasourceRequest {
   // 名称。
   string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
-  // 类型，取值为 METRICS、LOGS 或 TRACE。
-  string type = 2 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
+  // 类型，取值为 METRICS、LOGS、TRACE 或 SQL。
+  string type = 2 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE", "SQL"]}];
   // 驱动。
-  string driver = 3 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER"]}];
+  string driver = 3 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "SQL_POSTGRESQL"]}];
   // 连接地址。
   string endpoint = 4 [(buf.validate.field).string.min_len = 1];
   // 用户名。
@@ -284,10 +285,10 @@ message UpdateDatasourceRequest {
   string uid = 1 [(buf.validate.field).string.min_len = 1];
   // 名称。
   string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
-  // 类型，取值为 METRICS、LOGS 或 TRACE。
-  string type = 3 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE"]}];
+  // 类型，取值为 METRICS、LOGS、TRACE 或 SQL。
+  string type = 3 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE", "SQL"]}];
   // 驱动。
-  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "PROBE_HTTP"]}];
+  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "SQL_POSTGRESQL", "PROBE_HTTP"]}];
   // 连接地址。
   string endpoint = 5 [(buf.validate.field).string.min_len = 1];
   // 用户名。

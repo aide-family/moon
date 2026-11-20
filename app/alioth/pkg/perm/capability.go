@@ -32,13 +32,14 @@ const (
 	CapabilityProbeDNS           = "probe_dns"
 	CapabilityProbeTLS           = "probe_tls"
 	// 数据源按驱动细分：一个套餐可以只买 Prometheus，不买 Loki 或 ES。
-	// 六个编码与 datasource.driver 枚举一一对应，权限相同，由能力决定可用类型。
+	// 七个编码与 datasource.driver 枚举一一对应，权限相同，由能力决定可用类型。
 	CapabilityDatasourcePrometheus      = "datasource_prometheus"
 	CapabilityDatasourceVictoriaMetrics = "datasource_victoria_metrics"
 	CapabilityDatasourceElasticsearch   = "datasource_elasticsearch"
 	CapabilityDatasourceLoki            = "datasource_loki"
 	CapabilityDatasourceVictoriaLogs    = "datasource_vlogs"
 	CapabilityDatasourceJaeger          = "datasource_jaeger"
+	CapabilityDatasourcePostgresql      = "datasource_postgresql"
 	// 通知模块按菜单拆成七类能力，权限相同，由菜单权限区分入口；
 	// 通知渠道再按「渠道类型 + 应用」细分：Webhook 按厂商拆成四个应用能力，
 	// 短信按提供商拆成阿里云和腾讯云两个能力。未授权的渠道能力不出现在渠道、
@@ -224,6 +225,11 @@ var capabilitySpecs = []Capability{
 	{
 		Code: CapabilityDatasourceJaeger, Module: FeatureDatasource, Name: "Jaeger 链路",
 		Description: "接入 Jaeger 链路数据源。",
+		Permissions: []string{DatasourceRead, DatasourceWrite, DatasourceDelete},
+	},
+	{
+		Code: CapabilityDatasourcePostgresql, Module: FeatureDatasource, Name: "PostgreSQL 数据库",
+		Description: "接入 PostgreSQL 数据源，浏览库表、执行只读查询并管理表结构。",
 		Permissions: []string{DatasourceRead, DatasourceWrite, DatasourceDelete},
 	},
 	{
@@ -562,6 +568,7 @@ var legacyCapabilityExpansion = map[string][]string{
 		CapabilityDatasourceLoki,
 		CapabilityDatasourceVictoriaLogs,
 		CapabilityDatasourceJaeger,
+		CapabilityDatasourcePostgresql,
 	},
 	"probe_target": {CapabilityProbeHTTP, CapabilityProbeTCP, CapabilityProbeICMP, CapabilityProbeDNS, CapabilityProbeTLS},
 	"notify_channel": {
@@ -676,7 +683,7 @@ func NormalizeCapabilities(codes []string) []string {
 	return EffectiveCapabilities(nil, expanded)
 }
 
-// BaseCapabilities 返回基础套餐包含的能力：前七个模块的全部能力，共 30 项。
+// BaseCapabilities 返回基础套餐包含的能力：前七个模块的全部能力，共 37 项。
 // 数据源、探测和通知渠道按类型/应用展开后全部包含在基础套餐里，保持升级前
 // 「基础套餐可用全部数据源、探测与通知渠道类型」的行为；Kubernetes、机器和 SSH
 // 能力由超级管理员另行开通。
@@ -685,7 +692,7 @@ func BaseCapabilities() []string {
 	for _, code := range BaseFeatures() {
 		modules[code] = struct{}{}
 	}
-	codes := make([]string, 0, 31)
+	codes := make([]string, 0, 37)
 	for _, item := range capabilitySpecs {
 		if _, ok := modules[item.Module]; ok {
 			codes = append(codes, item.Code)
@@ -782,6 +789,7 @@ var datasourceCapabilityDrivers = []struct {
 	{"LOGS_LOKI", CapabilityDatasourceLoki},
 	{"LOGS_VLOGS", CapabilityDatasourceVictoriaLogs},
 	{"TRACE_JAEGER", CapabilityDatasourceJaeger},
+	{"SQL_POSTGRESQL", CapabilityDatasourcePostgresql},
 }
 
 // DatasourceDrivers 按固定顺序返回全部数据源驱动编码。

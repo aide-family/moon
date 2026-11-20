@@ -37,6 +37,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/captcha"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/cluster"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasourcesqlaudit"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
@@ -1715,6 +1716,57 @@ func init() {
 	datasourceDescNotificationGroupUids := datasourceFields[18].Descriptor()
 	// datasource.DefaultNotificationGroupUids holds the default value on creation for the notification_group_uids field.
 	datasource.DefaultNotificationGroupUids = datasourceDescNotificationGroupUids.Default.([]string)
+	datasourcesqlauditMixin := schema.DatasourceSQLAudit{}.Mixin()
+	datasourcesqlauditMixinFields0 := datasourcesqlauditMixin[0].Fields()
+	_ = datasourcesqlauditMixinFields0
+	datasourcesqlauditFields := schema.DatasourceSQLAudit{}.Fields()
+	_ = datasourcesqlauditFields
+	// datasourcesqlauditDescCreatedAt is the schema descriptor for created_at field.
+	datasourcesqlauditDescCreatedAt := datasourcesqlauditMixinFields0[0].Descriptor()
+	// datasourcesqlaudit.DefaultCreatedAt holds the default value on creation for the created_at field.
+	datasourcesqlaudit.DefaultCreatedAt = datasourcesqlauditDescCreatedAt.Default.(func() time.Time)
+	// datasourcesqlauditDescUpdatedAt is the schema descriptor for updated_at field.
+	datasourcesqlauditDescUpdatedAt := datasourcesqlauditMixinFields0[1].Descriptor()
+	// datasourcesqlaudit.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	datasourcesqlaudit.DefaultUpdatedAt = datasourcesqlauditDescUpdatedAt.Default.(func() time.Time)
+	// datasourcesqlaudit.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	datasourcesqlaudit.UpdateDefaultUpdatedAt = datasourcesqlauditDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// datasourcesqlauditDescUID is the schema descriptor for uid field.
+	datasourcesqlauditDescUID := datasourcesqlauditFields[0].Descriptor()
+	// datasourcesqlaudit.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	datasourcesqlaudit.UIDValidator = datasourcesqlauditDescUID.Validators[0].(func(string) error)
+	// datasourcesqlauditDescNamespaceUID is the schema descriptor for namespace_uid field.
+	datasourcesqlauditDescNamespaceUID := datasourcesqlauditFields[1].Descriptor()
+	// datasourcesqlaudit.NamespaceUIDValidator is a validator for the "namespace_uid" field. It is called by the builders before save.
+	datasourcesqlaudit.NamespaceUIDValidator = datasourcesqlauditDescNamespaceUID.Validators[0].(func(string) error)
+	// datasourcesqlauditDescDatasourceUID is the schema descriptor for datasource_uid field.
+	datasourcesqlauditDescDatasourceUID := datasourcesqlauditFields[2].Descriptor()
+	// datasourcesqlaudit.DatasourceUIDValidator is a validator for the "datasource_uid" field. It is called by the builders before save.
+	datasourcesqlaudit.DatasourceUIDValidator = datasourcesqlauditDescDatasourceUID.Validators[0].(func(string) error)
+	// datasourcesqlauditDescOperatorUID is the schema descriptor for operator_uid field.
+	datasourcesqlauditDescOperatorUID := datasourcesqlauditFields[3].Descriptor()
+	// datasourcesqlaudit.DefaultOperatorUID holds the default value on creation for the operator_uid field.
+	datasourcesqlaudit.DefaultOperatorUID = datasourcesqlauditDescOperatorUID.Default.(string)
+	// datasourcesqlauditDescDatabase is the schema descriptor for database field.
+	datasourcesqlauditDescDatabase := datasourcesqlauditFields[6].Descriptor()
+	// datasourcesqlaudit.DefaultDatabase holds the default value on creation for the database field.
+	datasourcesqlaudit.DefaultDatabase = datasourcesqlauditDescDatabase.Default.(string)
+	// datasourcesqlauditDescSchema is the schema descriptor for schema field.
+	datasourcesqlauditDescSchema := datasourcesqlauditFields[7].Descriptor()
+	// datasourcesqlaudit.DefaultSchema holds the default value on creation for the schema field.
+	datasourcesqlaudit.DefaultSchema = datasourcesqlauditDescSchema.Default.(string)
+	// datasourcesqlauditDescTable is the schema descriptor for table field.
+	datasourcesqlauditDescTable := datasourcesqlauditFields[8].Descriptor()
+	// datasourcesqlaudit.DefaultTable holds the default value on creation for the table field.
+	datasourcesqlaudit.DefaultTable = datasourcesqlauditDescTable.Default.(string)
+	// datasourcesqlauditDescStatement is the schema descriptor for statement field.
+	datasourcesqlauditDescStatement := datasourcesqlauditFields[9].Descriptor()
+	// datasourcesqlaudit.DefaultStatement holds the default value on creation for the statement field.
+	datasourcesqlaudit.DefaultStatement = datasourcesqlauditDescStatement.Default.(string)
+	// datasourcesqlauditDescErrorMessage is the schema descriptor for error_message field.
+	datasourcesqlauditDescErrorMessage := datasourcesqlauditFields[10].Descriptor()
+	// datasourcesqlaudit.DefaultErrorMessage holds the default value on creation for the error_message field.
+	datasourcesqlaudit.DefaultErrorMessage = datasourcesqlauditDescErrorMessage.Default.(string)
 	emaillogincodeMixin := schema.EmailLoginCode{}.Mixin()
 	emaillogincodeMixinFields0 := emaillogincodeMixin[0].Fields()
 	_ = emaillogincodeMixinFields0

@@ -110,6 +110,8 @@ var archivedTables = []string{
 // 新增表必须二选一，不能悄悄漏掉。
 var runtimeTables = []string{
 	"alert_eval_batches",
+	// DDL 审计是运行数据，不随迁移包搬。
+	"datasource_sql_audits",
 	"alert_events",
 	"alert_event_actions",
 	"alert_event_firings",

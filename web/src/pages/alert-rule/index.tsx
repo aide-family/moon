@@ -345,9 +345,12 @@ export function AlertRulePage() {
   const [editingRule, setEditingRule] = useState<AlertRuleItem | null>(null)
   const [form, setForm] = useState<RuleDraft>(emptyRule)
   // 规则跟随数据源 / 探测类型：只提供套餐已开通的驱动，未授权类型不出现在规则里。
+  // SQL 数据源暂不参与规则评测，即使套餐已开通也不出现在规则驱动里。
   const allowedDrivers = useMemo(
     () => [
-      ...authorizedDatasourceDrivers(session.features),
+      ...authorizedDatasourceDrivers(session.features).filter(
+        (driver) => driver !== "SQL_POSTGRESQL"
+      ),
       ...authorizedProbeDrivers(session.features),
     ],
     [session.features]

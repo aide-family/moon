@@ -83,6 +83,21 @@ func (r *repoBase) callUpstream(ctx context.Context, item bo.Datasource, method,
 }
 
 func (r *datasourceRepo) DatasourceStatus(ctx context.Context, item bo.Datasource) (string, error) {
+	// PostgreSQL 没有健康检查路径，连上并执行一次 SELECT 1 才算可用。
+	if item.Driver == driverSQLPostgresql {
+		db, err := r.sqlDataSourceFor(ctx, item, "")
+		if err != nil {
+			return "", err
+		}
+		defer db.Close()
+		pingCtx, cancel := context.WithTimeout(ctx, sqlQueryTimeout)
+		defer cancel()
+		var value int
+		if err := db.QueryRowContext(pingCtx, "SELECT 1").Scan(&value); err != nil {
+			return "", sqlClientError(err)
+		}
+		return "up", nil
+	}
 	path, err := statusPath(item.Driver)
 	if err != nil {
 		return "", err

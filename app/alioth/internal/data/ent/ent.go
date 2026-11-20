@@ -44,6 +44,7 @@ import (
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/captcha"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/cluster"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasource"
+	"github.com/aide-family/moon/app/alioth/internal/data/ent/datasourcesqlaudit"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/emaillogincode"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackage"
 	"github.com/aide-family/moon/app/alioth/internal/data/ent/featurepackageitem"
@@ -185,6 +186,7 @@ func checkColumn(t, c string) error {
 			captcha.Table:                       captcha.ValidColumn,
 			cluster.Table:                       cluster.ValidColumn,
 			datasource.Table:                    datasource.ValidColumn,
+			datasourcesqlaudit.Table:            datasourcesqlaudit.ValidColumn,
 			emaillogincode.Table:                emaillogincode.ValidColumn,
 			featurepackage.Table:                featurepackage.ValidColumn,
 			featurepackageitem.Table:            featurepackageitem.ValidColumn,

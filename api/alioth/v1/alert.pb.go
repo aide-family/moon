@@ -30,7 +30,7 @@ type DatasourceItem struct {
 	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	// 名称。
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// 类型，取值为 METRICS、LOGS 或 TRACE。
+	// 类型，取值为 METRICS、LOGS、TRACE 或 SQL。
 	Type string `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
 	// 驱动。
 	Driver string `protobuf:"bytes,4,opt,name=driver,proto3" json:"driver,omitempty"`
@@ -236,7 +236,7 @@ type CreateDatasourceRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 名称。
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// 类型，取值为 METRICS、LOGS 或 TRACE。
+	// 类型，取值为 METRICS、LOGS、TRACE 或 SQL。
 	Type string `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
 	// 驱动。
 	Driver string `protobuf:"bytes,3,opt,name=driver,proto3" json:"driver,omitempty"`
@@ -465,7 +465,7 @@ type UpdateDatasourceRequest struct {
 	Uid string `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
 	// 名称。
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// 类型，取值为 METRICS、LOGS 或 TRACE。
+	// 类型，取值为 METRICS、LOGS、TRACE 或 SQL。
 	Type string `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
 	// 驱动。
 	Driver string `protobuf:"bytes,4,opt,name=driver,proto3" json:"driver,omitempty"`
@@ -5040,12 +5040,12 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\x16failure_window_minutes\x18\x10 \x01(\x05R\x14failureWindowMinutes\x12+\n" +
 	"\x11failure_threshold\x18\x11 \x01(\x05R\x10failureThreshold\x126\n" +
 	"\x17notification_group_uids\x18\x12 \x03(\tR\x15notificationGroupUids\x128\n" +
-	"\x18notification_group_names\x18\x13 \x03(\tR\x16notificationGroupNames\"\x99\x06\n" +
+	"\x18notification_group_names\x18\x13 \x03(\tR\x16notificationGroupNames\"\xae\x06\n" +
 	"\x17CreateDatasourceRequest\x12\x1d\n" +
-	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12/\n" +
-	"\x04type\x18\x02 \x01(\tB\x1b\xbaH\x18r\x16R\aMETRICSR\x04LOGSR\x05TRACER\x04type\x12\x84\x01\n" +
-	"\x06driver\x18\x03 \x01(\tBl\xbaHirgR\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\n" +
-	"LOGS_VLOGSR\fTRACE_JAEGERR\x06driver\x12#\n" +
+	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x124\n" +
+	"\x04type\x18\x02 \x01(\tB \xbaH\x1dr\x1bR\aMETRICSR\x04LOGSR\x05TRACER\x03SQLR\x04type\x12\x94\x01\n" +
+	"\x06driver\x18\x03 \x01(\tB|\xbaHyrwR\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\n" +
+	"LOGS_VLOGSR\fTRACE_JAEGERR\x0eSQL_POSTGRESQLR\x06driver\x12#\n" +
 	"\bendpoint\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bendpoint\x12\x1a\n" +
 	"\busername\x18\x05 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x06 \x01(\tR\bpassword\x12\x16\n" +
@@ -5066,13 +5066,13 @@ const file_alioth_v1_alert_proto_rawDesc = "" +
 	"\x18CreateDatasourceResponse\x129\n" +
 	"\n" +
 	"datasource\x18\x01 \x01(\v2\x19.alioth.v1.DatasourceItemR\n" +
-	"datasource\"\xc0\x06\n" +
+	"datasource\"\xd8\x06\n" +
 	"\x17UpdateDatasourceRequest\x12\x19\n" +
 	"\x03uid\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03uid\x12\x1d\n" +
-	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12/\n" +
-	"\x04type\x18\x03 \x01(\tB\x1b\xbaH\x18r\x16R\aMETRICSR\x04LOGSR\x05TRACER\x04type\x12\x90\x01\n" +
-	"\x06driver\x18\x04 \x01(\tBx\xbaHursR\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\n" +
-	"LOGS_VLOGSR\fTRACE_JAEGERR\n" +
+	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x124\n" +
+	"\x04type\x18\x03 \x01(\tB \xbaH\x1dr\x1bR\aMETRICSR\x04LOGSR\x05TRACER\x03SQLR\x04type\x12\xa3\x01\n" +
+	"\x06driver\x18\x04 \x01(\tB\x8a\x01\xbaH\x86\x01r\x83\x01R\x12METRICS_PROMETHEUSR\x18METRICS_VICTORIA_METRICSR\x12LOGS_ELASTICSEARCHR\tLOGS_LOKIR\n" +
+	"LOGS_VLOGSR\fTRACE_JAEGERR\x0eSQL_POSTGRESQLR\n" +
 	"PROBE_HTTPR\x06driver\x12#\n" +
 	"\bendpoint\x18\x05 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bendpoint\x12\x1a\n" +
 	"\busername\x18\x06 \x01(\tR\busername\x12\x1a\n" +

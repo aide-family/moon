@@ -102,6 +102,9 @@ type Cluster func(*sql.Selector)
 // Datasource is the predicate function for datasource builders.
 type Datasource func(*sql.Selector)
 
+// DatasourceSQLAudit is the predicate function for datasourcesqlaudit builders.
+type DatasourceSQLAudit func(*sql.Selector)
+
 // EmailLoginCode is the predicate function for emaillogincode builders.
 type EmailLoginCode func(*sql.Selector)
 

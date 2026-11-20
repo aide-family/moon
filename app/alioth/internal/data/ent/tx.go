@@ -76,6 +76,8 @@ type Tx struct {
 	Cluster *ClusterClient
 	// Datasource is the client for interacting with the Datasource builders.
 	Datasource *DatasourceClient
+	// DatasourceSQLAudit is the client for interacting with the DatasourceSQLAudit builders.
+	DatasourceSQLAudit *DatasourceSQLAuditClient
 	// EmailLoginCode is the client for interacting with the EmailLoginCode builders.
 	EmailLoginCode *EmailLoginCodeClient
 	// FeaturePackage is the client for interacting with the FeaturePackage builders.
@@ -337,6 +339,7 @@ func (tx *Tx) init() {
 	tx.Captcha = NewCaptchaClient(tx.config)
 	tx.Cluster = NewClusterClient(tx.config)
 	tx.Datasource = NewDatasourceClient(tx.config)
+	tx.DatasourceSQLAudit = NewDatasourceSQLAuditClient(tx.config)
 	tx.EmailLoginCode = NewEmailLoginCodeClient(tx.config)
 	tx.FeaturePackage = NewFeaturePackageClient(tx.config)
 	tx.FeaturePackageItem = NewFeaturePackageItemClient(tx.config)

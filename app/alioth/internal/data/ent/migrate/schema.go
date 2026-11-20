@@ -1316,8 +1316,8 @@ var (
 		{Name: "uid", Type: field.TypeString},
 		{Name: "namespace_uid", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"METRICS", "LOGS", "TRACE"}},
-		{Name: "driver", Type: field.TypeEnum, Enums: []string{"METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER"}},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"METRICS", "LOGS", "TRACE", "SQL"}},
+		{Name: "driver", Type: field.TypeEnum, Enums: []string{"METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "SQL_POSTGRESQL"}},
 		{Name: "endpoint", Type: field.TypeString},
 		{Name: "index_pattern", Type: field.TypeString, Default: ""},
 		{Name: "time_field", Type: field.TypeString, Default: ""},
@@ -1364,6 +1364,41 @@ var (
 				Name:    "datasource_namespace_uid",
 				Unique:  false,
 				Columns: []*schema.Column{DatasourcesColumns[5]},
+			},
+		},
+	}
+	// DatasourceSQLAuditsColumns holds the columns for the "datasource_sql_audits" table.
+	DatasourceSQLAuditsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "namespace_uid", Type: field.TypeString},
+		{Name: "datasource_uid", Type: field.TypeString},
+		{Name: "operator_uid", Type: field.TypeString, Default: ""},
+		{Name: "action", Type: field.TypeEnum, Enums: []string{"CREATE_TABLE", "ALTER_TABLE", "DROP_TABLE"}},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"SUCCESS", "FAILED"}},
+		{Name: "database", Type: field.TypeString, Default: ""},
+		{Name: "schema", Type: field.TypeString, Default: ""},
+		{Name: "table", Type: field.TypeString, Default: ""},
+		{Name: "statement", Type: field.TypeString, Default: ""},
+		{Name: "error_message", Type: field.TypeString, Default: ""},
+	}
+	// DatasourceSQLAuditsTable holds the schema information for the "datasource_sql_audits" table.
+	DatasourceSQLAuditsTable = &schema.Table{
+		Name:       "datasource_sql_audits",
+		Columns:    DatasourceSQLAuditsColumns,
+		PrimaryKey: []*schema.Column{DatasourceSQLAuditsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "datasourcesqlaudit_uid",
+				Unique:  true,
+				Columns: []*schema.Column{DatasourceSQLAuditsColumns[3]},
+			},
+			{
+				Name:    "datasourcesqlaudit_namespace_uid_datasource_uid_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{DatasourceSQLAuditsColumns[4], DatasourceSQLAuditsColumns[5], DatasourceSQLAuditsColumns[1]},
 			},
 		},
 	}
@@ -3492,6 +3527,7 @@ var (
 		CaptchasTable,
 		ClustersTable,
 		DatasourcesTable,
+		DatasourceSQLAuditsTable,
 		EmailLoginCodesTable,
 		FeaturePackagesTable,
 		FeaturePackageItemsTable,

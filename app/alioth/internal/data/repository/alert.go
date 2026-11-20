@@ -30,6 +30,22 @@ type DatasourceRepo interface {
 	RangeQuery(ctx context.Context, item bo.Datasource, expr string, start, end, step int64) (string, error)
 	QueryLogs(ctx context.Context, item bo.Datasource, query string, start, end int64, limit int, direction string) (string, error)
 	ProxyQuery(ctx context.Context, item bo.Datasource, method, path, body string) (string, error)
+	// —— PostgreSQL 数据源的库表浏览、只读查询与结构变更 ——
+	// SqlDatabases 列出可连接的库。database 为空时使用连接串里的库。
+	SqlDatabases(ctx context.Context, item bo.Datasource) ([]string, error)
+	SqlSchemas(ctx context.Context, item bo.Datasource, database string) ([]string, error)
+	SqlTables(ctx context.Context, item bo.Datasource, database, schema string) ([]bo.SqlTable, error)
+	SqlTableColumns(ctx context.Context, item bo.Datasource, database, schema, table string) ([]bo.SqlColumn, error)
+	SqlTableIndexes(ctx context.Context, item bo.Datasource, database, schema, table string) ([]bo.SqlIndex, error)
+	// QuerySql 在只读事务里执行一条查询，最多返回 maxRows 行。
+	QuerySql(ctx context.Context, item bo.Datasource, database, statement string, maxRows int) (*bo.SqlQueryResult, error)
+	// CreateSqlTable、AlterSqlTable 和 DropSqlTable 在事务里执行结构变更，
+	// 成功和失败都写一条审计，operatorUID 是操作人。
+	CreateSqlTable(ctx context.Context, item bo.Datasource, in bo.CreateSqlTableInput, operatorUID string) (string, error)
+	AlterSqlTable(ctx context.Context, item bo.Datasource, in bo.AlterSqlTableInput, operatorUID string) ([]string, error)
+	DropSqlTable(ctx context.Context, item bo.Datasource, in bo.DropSqlTableInput, operatorUID string) (string, error)
+	// ListSqlAudits 按时间倒序返回某个数据源的 DDL 审计。
+	ListSqlAudits(ctx context.Context, namespaceUID, datasourceUID string, page, pageSize int) ([]bo.SqlAudit, int, error)
 }
 
 // AlertDictionaryRepo 读写告警字典。条目类型是告警级别或数据源级别。

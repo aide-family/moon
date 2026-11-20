@@ -41,6 +41,7 @@ const successValues = new Set([
   "RUNNING",
   "PUBLISHED",
   "SUCCEEDED",
+  "SUCCESS",
   "IN_SYNC",
 ])
 
@@ -88,6 +89,9 @@ const typeTones: Record<string, BadgeTone> = {
   LOGS_VLOGS: "violet",
   TRACE: "primary",
   TRACE_JAEGER: "primary",
+  // SQL 数据库与指标同属「可查询数据源」，用同一种 info 色。
+  SQL: "info",
+  SQL_POSTGRESQL: "info",
   PROBE_HTTP: "primary",
   // 五种探测类型同属探测能力，共用品牌色标签，靠文案区分类型。
   PROBE_TCP: "primary",

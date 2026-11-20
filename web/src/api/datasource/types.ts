@@ -1,4 +1,4 @@
-export type DatasourceType = "METRICS" | "LOGS" | "TRACE"
+export type DatasourceType = "METRICS" | "LOGS" | "TRACE" | "SQL"
 
 export type DatasourceDriver =
   | "METRICS_PROMETHEUS"
@@ -7,6 +7,7 @@ export type DatasourceDriver =
   | "LOGS_LOKI"
   | "LOGS_VLOGS"
   | "TRACE_JAEGER"
+  | "SQL_POSTGRESQL"
 
 export interface DatasourceItem {
   uid: string

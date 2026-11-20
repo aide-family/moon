@@ -408,3 +408,45 @@ func TestUpdateDatasourceAcceptsEnabledAvailability(t *testing.T) {
 		t.Fatalf("updated = %+v", sources.updated)
 	}
 }
+
+// TestTypeForDriverMapsPostgresql 校验 PostgreSQL 驱动归到 SQL 类型，
+// SQL 数据源不能和指标、日志类型混用。
+func TestTypeForDriverMapsPostgresql(t *testing.T) {
+	if got := TypeForDriver("SQL_POSTGRESQL"); got != "SQL" {
+		t.Fatalf("SQL_POSTGRESQL type = %s", got)
+	}
+	if !DriverMatches("SQL", "SQL_POSTGRESQL") {
+		t.Fatal("SQL/SQL_POSTGRESQL should match")
+	}
+	if DriverMatches("LOGS", "SQL_POSTGRESQL") || DriverMatches("SQL", "LOGS_LOKI") {
+		t.Fatal("driver and type should not be mixed")
+	}
+}
+
+// TestValidateDatasourceAcceptsPostgresqlDSN 校验 SQL 数据源用 postgres 连接串，
+// HTTP 地址和缺少主机的连接串都要在保存时拒绝。
+func TestValidateDatasourceAcceptsPostgresqlDSN(t *testing.T) {
+	valid := []string{
+		"postgres://moon:secret@db.moon.com:5432/app",
+		"postgresql://db.moon.com/app",
+	}
+	for _, endpoint := range valid {
+		if err := validateDatasource(bo.Datasource{Name: "pg", Type: "SQL", Driver: "SQL_POSTGRESQL", Endpoint: endpoint}); err != nil {
+			t.Fatalf("validateDatasource(%q) error = %v", endpoint, err)
+		}
+	}
+	invalid := []string{
+		"http://db.moon.com:5432/app",
+		"db.moon.com:5432",
+		"postgres://",
+	}
+	for _, endpoint := range invalid {
+		if err := validateDatasource(bo.Datasource{Name: "pg", Type: "SQL", Driver: "SQL_POSTGRESQL", Endpoint: endpoint}); !merr.IsInvalid(err) {
+			t.Fatalf("validateDatasource(%q) = %v", endpoint, err)
+		}
+	}
+	// 指标数据源仍然只接受 http/https。
+	if err := validateDatasource(bo.Datasource{Name: "prom", Type: "METRICS", Driver: "METRICS_PROMETHEUS", Endpoint: "postgres://db.moon.com/app"}); !merr.IsInvalid(err) {
+		t.Fatalf("metrics postgres endpoint = %v", err)
+	}
+}

@@ -1,0 +1,370 @@
+syntax = "proto3";
+
+package alioth.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/aide-family/moon/api/alioth/v1;v1";
+
+// SQL 实验室：面向 PostgreSQL 数据源（驱动 SQL_POSTGRESQL）的库表浏览、
+// 只读查询，以及建表、改表和删表。只读查询在只读事务里执行，DDL 单独记审计。
+service SqlLabService {
+  // 列出可以连接的库。需要 SQL 驱动且数据源已启用。
+  rpc ListSqlDatabases(ListSqlDatabasesRequest) returns (ListSqlDatabasesResponse) {
+    option (google.api.http) = {get: "/v1/datasource/{uid}/sql/databases"};
+  }
+  // 列出库里的模式。database 留空表示数据源连接串里的库。
+  rpc ListSqlSchemas(ListSqlSchemasRequest) returns (ListSqlSchemasResponse) {
+    option (google.api.http) = {get: "/v1/datasource/{uid}/sql/schemas"};
+  }
+  // 列出模式里的表和视图。
+  rpc ListSqlTables(ListSqlTablesRequest) returns (ListSqlTablesResponse) {
+    option (google.api.http) = {get: "/v1/datasource/{uid}/sql/tables"};
+  }
+  // 列出一张表的字段。
+  rpc ListSqlTableColumns(ListSqlTableColumnsRequest) returns (ListSqlTableColumnsResponse) {
+    option (google.api.http) = {get: "/v1/datasource/{uid}/sql/columns"};
+  }
+  // 列出一张表的索引。
+  rpc ListSqlTableIndexes(ListSqlTableIndexesRequest) returns (ListSqlTableIndexesResponse) {
+    option (google.api.http) = {get: "/v1/datasource/{uid}/sql/indexes"};
+  }
+  // 执行一条只读查询，返回列名和字符串化的行。超过 max_rows 的部分截断。
+  rpc QuerySql(QuerySqlRequest) returns (QuerySqlResponse) {
+    option (google.api.http) = {
+      post: "/v1/datasource/{uid}/sql/query"
+      body: "*"
+    };
+  }
+  // 建表。语句在事务里执行，成功后写一条审计。
+  rpc CreateSqlTable(CreateSqlTableRequest) returns (CreateSqlTableResponse) {
+    option (google.api.http) = {
+      post: "/v1/datasource/{uid}/sql/tables"
+      body: "*"
+    };
+  }
+  // 改表：改名、加字段、删字段、改类型或可空与默认值。
+  rpc AlterSqlTable(AlterSqlTableRequest) returns (AlterSqlTableResponse) {
+    option (google.api.http) = {
+      put: "/v1/datasource/{uid}/sql/tables"
+      body: "*"
+    };
+  }
+  // 删表。
+  rpc DropSqlTable(DropSqlTableRequest) returns (DropSqlTableResponse) {
+    option (google.api.http) = {delete: "/v1/datasource/{uid}/sql/tables"};
+  }
+  // 列出这张数据源上的 DDL 审计，最新的在前。
+  rpc ListSqlAudits(ListSqlAuditsRequest) returns (ListSqlAuditsResponse) {
+    option (google.api.http) = {get: "/v1/datasource/{uid}/sql/audits"};
+  }
+}
+
+// 列出库。
+message ListSqlDatabasesRequest {
+  // 数据源标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// 库列表。
+message ListSqlDatabasesResponse {
+  // 库名。
+  repeated string items = 1;
+}
+
+// 列出模式。
+message ListSqlSchemasRequest {
+  // 数据源标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 库名。留空表示数据源连接串里的库。
+  string database = 2 [(buf.validate.field).string.max_len = 63];
+}
+
+// 模式列表。
+message ListSqlSchemasResponse {
+  // 模式名。
+  repeated string items = 1;
+}
+
+// 列出表。
+message ListSqlTablesRequest {
+  // 数据源标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 库名。留空表示数据源连接串里的库。
+  string database = 2 [(buf.validate.field).string.max_len = 63];
+  // 模式名。留空表示 public。
+  string schema = 3 [(buf.validate.field).string.max_len = 63];
+}
+
+// 表或视图。
+message SqlTableItem {
+  // 名称。
+  string name = 1;
+  // 类型，取值为 TABLE 或 VIEW。
+  string type = 2;
+}
+
+// 表列表。
+message ListSqlTablesResponse {
+  // 表和视图。
+  repeated SqlTableItem items = 1;
+}
+
+// 列出字段。
+message ListSqlTableColumnsRequest {
+  // 数据源标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 库名。留空表示数据源连接串里的库。
+  string database = 2 [(buf.validate.field).string.max_len = 63];
+  // 模式名。留空表示 public。
+  string schema = 3 [(buf.validate.field).string.max_len = 63];
+  // 表名。
+  string table = 4 [(buf.validate.field).string = {min_len: 1, max_len: 63}];
+}
+
+// 一个字段。
+message SqlColumnItem {
+  // 字段名。
+  string name = 1;
+  // 数据类型，例如 character varying。
+  string data_type = 2;
+  // 内部类型名，例如 varchar。
+  string udt_name = 3;
+  // 是否允许为空。
+  bool nullable = 4;
+  // 默认值表达式，没有时为空。
+  string default_value = 5;
+  // 字符长度，非字符类型为 0。
+  int32 length = 6;
+  // 数值精度，非数值类型为 0。
+  int32 numeric_precision = 7;
+  // 数值小数位，非数值类型为 0。
+  int32 numeric_scale = 8;
+  // 是否主键。
+  bool primary_key = 9;
+  // 是否唯一。
+  bool unique = 10;
+  // 字段顺序，从 1 开始。
+  int32 position = 11;
+}
+
+// 字段列表。
+message ListSqlTableColumnsResponse {
+  // 字段。
+  repeated SqlColumnItem items = 1;
+}
+
+// 列出索引。
+message ListSqlTableIndexesRequest {
+  // 数据源标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 库名。留空表示数据源连接串里的库。
+  string database = 2 [(buf.validate.field).string.max_len = 63];
+  // 模式名。留空表示 public。
+  string schema = 3 [(buf.validate.field).string.max_len = 63];
+  // 表名。
+  string table = 4 [(buf.validate.field).string = {min_len: 1, max_len: 63}];
+}
+
+// 一个索引。
+message SqlIndexItem {
+  // 索引名。
+  string name = 1;
+  // 索引包含的字段，按定义顺序。
+  repeated string columns = 2;
+  // 是否唯一索引。
+  bool unique = 3;
+  // 是否主键索引。
+  bool primary = 4;
+  // 索引定义。
+  string definition = 5;
+}
+
+// 索引列表。
+message ListSqlTableIndexesResponse {
+  // 索引。
+  repeated SqlIndexItem items = 1;
+}
+
+// 执行只读查询。
+message QuerySqlRequest {
+  // 数据源标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 库名。留空表示数据源连接串里的库。
+  string database = 2 [(buf.validate.field).string.max_len = 63];
+  // 查询语句。只允许 SELECT、WITH、SHOW、EXPLAIN、VALUES 和 TABLE。
+  string statement = 3 [(buf.validate.field).string = {min_len: 1, max_len: 100000}];
+  // 最多返回多少行。0 表示使用默认 100，上限 1000。
+  int32 max_rows = 4 [json_name = "maxRows", (buf.validate.field).int32 = {gte: 0, lte: 1000}];
+}
+
+// 查询结果。
+message QuerySqlResponse {
+  // 列名。
+  repeated string columns = 1;
+  // 行，每个元素按列顺序排列。
+  repeated SqlRow rows = 2;
+  // 返回的行数。
+  int32 row_count = 3 [json_name = "rowCount"];
+  // 服务端耗时，单位毫秒。
+  int64 elapsed_ms = 4 [json_name = "elapsedMs"];
+  // 结果是否因为行数上限被截断。
+  bool truncated = 5;
+}
+
+// 一行查询结果。字段值统一转成字符串，NULL 为空串。
+message SqlRow {
+  // 按列顺序排列的单元格。
+  repeated string cells = 1;
+}
+
+// 建表时的字段定义。
+message SqlColumnDefinition {
+  // 字段名。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 63, pattern: "^[A-Za-z_][A-Za-z0-9_]{0,62}$"}];
+  // 类型，例如 varchar(64)、bigint、timestamptz。只允许类型名和可选的长度与精度。
+  string type = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 是否允许为空。主键字段由服务端强制为不允许。
+  bool nullable = 3;
+  // 默认值。只允许字面量和 now()、CURRENT_TIMESTAMP 等白名单表达式，留空表示没有默认值。
+  string default_value = 4 [json_name = "defaultValue"];
+  // 是否主键。
+  bool primary_key = 5 [json_name = "primaryKey"];
+  // 是否唯一。
+  bool unique = 6;
+  // 字段注释。
+  string comment = 7 [(buf.validate.field).string.max_len = 200];
+}
+
+// 建表。
+message CreateSqlTableRequest {
+  // 数据源标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 库名。留空表示数据源连接串里的库。
+  string database = 2 [(buf.validate.field).string.max_len = 63];
+  // 模式名。留空表示 public。
+  string schema = 3 [(buf.validate.field).string.max_len = 63];
+  // 表名。
+  string table = 4 [(buf.validate.field).string = {min_len: 1, max_len: 63, pattern: "^[A-Za-z_][A-Za-z0-9_]{0,62}$"}];
+  // 字段。至少一列。
+  repeated SqlColumnDefinition columns = 5 [(buf.validate.field).repeated = {min_items: 1, max_items: 64}];
+  // 表已存在时不报错。
+  bool if_not_exists = 6 [json_name = "ifNotExists"];
+  // 表注释。
+  string comment = 7 [(buf.validate.field).string.max_len = 200];
+}
+
+// 建表结果。
+message CreateSqlTableResponse {
+  // 实际执行的语句。
+  string statement = 1;
+}
+
+// 改表时的字段修改。字段留空表示这一项不改。
+message SqlAlterColumn {
+  // 字段名。
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 63}];
+  // 新类型。留空表示不改。
+  string type = 2 [(buf.validate.field).string.max_len = 64];
+  // 是否允许为空。缺失表示不改。
+  optional bool nullable = 3;
+  // 新默认值。留空表示不改。
+  string default_value = 4 [json_name = "defaultValue"];
+  // 清除默认值。
+  bool drop_default = 5 [json_name = "dropDefault"];
+}
+
+// 改表。
+message AlterSqlTableRequest {
+  // 数据源标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 库名。留空表示数据源连接串里的库。
+  string database = 2 [(buf.validate.field).string.max_len = 63];
+  // 模式名。留空表示 public。
+  string schema = 3 [(buf.validate.field).string.max_len = 63];
+  // 表名。
+  string table = 4 [(buf.validate.field).string = {min_len: 1, max_len: 63}];
+  // 新表名。留空表示不改名。
+  string rename_to = 5 [json_name = "renameTo", (buf.validate.field).string.max_len = 63];
+  // 新增字段。
+  repeated SqlColumnDefinition add_columns = 6 [json_name = "addColumns", (buf.validate.field).repeated.max_items = 32];
+  // 删除字段，按名称。
+  repeated string drop_columns = 7 [json_name = "dropColumns", (buf.validate.field).repeated.max_items = 32];
+  // 修改字段。
+  repeated SqlAlterColumn alter_columns = 8 [json_name = "alterColumns", (buf.validate.field).repeated.max_items = 32];
+}
+
+// 改表结果。
+message AlterSqlTableResponse {
+  // 实际执行的语句，按顺序。
+  repeated string statements = 1;
+}
+
+// 删表。
+message DropSqlTableRequest {
+  // 数据源标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 库名。留空表示数据源连接串里的库。
+  string database = 2 [(buf.validate.field).string.max_len = 63];
+  // 模式名。留空表示 public。
+  string schema = 3 [(buf.validate.field).string.max_len = 63];
+  // 表名。
+  string table = 4 [(buf.validate.field).string = {min_len: 1, max_len: 63}];
+  // 表不存在时不报错。
+  bool if_exists = 5 [json_name = "ifExists"];
+}
+
+// 删表结果。
+message DropSqlTableResponse {
+  // 实际执行的语句。
+  string statement = 1;
+}
+
+// 列出 DDL 审计。
+message ListSqlAuditsRequest {
+  // 数据源标识。
+  string uid = 1 [(buf.validate.field).string.min_len = 1];
+  // 页码。0 表示使用默认页。
+  int32 page = 2 [(buf.validate.field).int32.gte = 0];
+  // 每页条数，最大 100。
+  int32 page_size = 3 [json_name = "pageSize", (buf.validate.field).int32 = {gte: 0, lte: 100}];
+}
+
+// 一条 DDL 审计。
+message SqlAuditItem {
+  // 标识。
+  string uid = 1;
+  // 动作，取值为 CREATE_TABLE、ALTER_TABLE 或 DROP_TABLE。
+  string action = 2;
+  // 库名。
+  string database = 3;
+  // 模式名。
+  string schema = 4;
+  // 表名。
+  string table = 5;
+  // 实际执行的语句。
+  string statement = 6;
+  // 结果，取值为 SUCCESS 或 FAILED。
+  string status = 7;
+  // 失败原因。
+  string error_message = 8 [json_name = "errorMessage"];
+  // 操作人标识。
+  string operator_uid = 9 [json_name = "operatorUid"];
+  // 操作人名称。用户已删除时为空。
+  string operator_name = 10 [json_name = "operatorName"];
+  // 执行时间，Unix 秒。
+  int64 created_at = 11 [json_name = "createdAt"];
+}
+
+// DDL 审计分页结果。
+message ListSqlAuditsResponse {
+  // 当前页数据。
+  repeated SqlAuditItem items = 1;
+  // 符合条件的总数。
+  int32 total = 2;
+  // 页码。
+  int32 page = 3;
+  // 每页条数。
+  int32 page_size = 4 [json_name = "pageSize"];
+}

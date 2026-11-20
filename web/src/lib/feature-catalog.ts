@@ -1,11 +1,11 @@
 // 能力目录（套餐 / 租户功能授权 / 菜单可见性）。
 //
-// 能力 code 与后端 perm.Capabilities() 的 72 项定义保持一致；GET /v1/system/features
+// 能力 code 与后端 perm.Capabilities() 的 73 项定义保持一致；GET /v1/system/features
 // 返回的是同一份目录（code/module/name/description/permissions）。页面用这里的
 // 双语标签，不直接用接口里的 name/description，这样切到 en 时中文名也不会消失，
 // 后端没部署新接口时也能先用本地目录渲染勾选框。
 //
-// 目录分两级：MODULES 是所属菜单模块（12 个），CAPABILITIES 是具体能力（72 个）。
+// 目录分两级：MODULES 是所属菜单模块（12 个），CAPABILITIES 是具体能力（73 个）。
 // 新增 / 删除能力时同步：后端 perm.Capabilities()、本文件、i18n 里的菜单文案。
 
 export type LocalizedLabel = { zh: string; en: string }
@@ -42,7 +42,7 @@ export const MODULES: ModuleDefinition[] = [
 /**
  * 能力目录：顺序与后端 perm.Capabilities() 一致。
  * 基础套餐 = 前 8 个模块（alert / alert_rule / probe / datasource /
- * notification / member / role / board）的全部能力，共 36 项。
+ * notification / member / role / board）的全部能力，共 37 项。
  */
 export const CAPABILITIES: CapabilityDefinition[] = [
   {
@@ -250,6 +250,15 @@ export const CAPABILITIES: CapabilityDefinition[] = [
     description: {
       zh: "Jaeger 链路数据源",
       en: "Jaeger trace datasources",
+    },
+  },
+  {
+    code: "datasource_postgresql",
+    module: "datasource",
+    label: { zh: "PostgreSQL 数据库", en: "PostgreSQL database" },
+    description: {
+      zh: "PostgreSQL 数据源与库表管理",
+      en: "PostgreSQL datasources and schema management",
     },
   },
   {
@@ -674,7 +683,7 @@ export const CAPABILITIES: CapabilityDefinition[] = [
   },
 ]
 
-/** 基础套餐包含的模块：前 8 个模块的全部能力（数据源、探测、通知渠道按类型/应用展开后共 36 项）。 */
+/** 基础套餐包含的模块：前 8 个模块的全部能力（数据源、探测、通知渠道按类型/应用展开后共 37 项）。 */
 export const BASE_MODULES = [
   "alert",
   "alert_rule",
@@ -803,6 +812,7 @@ export const DATASOURCE_CAPABILITY_DRIVERS: Record<string, string> = {
   datasource_loki: "LOGS_LOKI",
   datasource_vlogs: "LOGS_VLOGS",
   datasource_jaeger: "TRACE_JAEGER",
+  datasource_postgresql: "SQL_POSTGRESQL",
 }
 
 /** 能力编码 → 探测驱动。顺序即目标组/规则列表的类型顺序。 */
@@ -991,6 +1001,7 @@ const CAPABILITY_MENU_OVERRIDES: Record<string, string[]> = {
   datasource_loki: ["datasource"],
   datasource_vlogs: ["datasource"],
   datasource_jaeger: ["datasource"],
+  datasource_postgresql: ["datasource"],
   probe_http: ["probe"],
   probe_tcp: ["probe"],
   probe_icmp: ["probe"],

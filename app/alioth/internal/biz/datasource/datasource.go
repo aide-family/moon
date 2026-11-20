@@ -345,14 +345,15 @@ func (gateway *Gateway) logSource(ctx context.Context, uid string) (*bo.Datasour
 	}
 }
 
-// statusSource 允许指标数据源、Loki、VictoriaLogs 和 Elasticsearch 日志数据源做连通检查。
+// statusSource 允许指标数据源、Loki、VictoriaLogs、Elasticsearch 日志数据源
+// 和 PostgreSQL 数据库数据源做连通检查。
 func (gateway *Gateway) statusSource(ctx context.Context, uid string) (*bo.Datasource, error) {
 	item, err := gateway.readSource(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
 	switch item.Driver {
-	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_LOKI", "LOGS_VLOGS", "LOGS_ELASTICSEARCH":
+	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_LOKI", "LOGS_VLOGS", "LOGS_ELASTICSEARCH", "SQL_POSTGRESQL":
 		return item, nil
 	default:
 		return nil, merr.Invalid("invalid request")
@@ -432,11 +433,8 @@ func validateDatasource(in bo.Datasource) error {
 	if utf8.RuneCountInString(in.Name) > maxDatasourceName {
 		return merr.Invalid("name is too long")
 	}
-	// 地址必须能被数据层拼成上游请求。`htp://` 这类拼写错误如果放进来，
-	// 要等到用户点查询才在数据层报 invalid request，保存时就该拒绝。
-	endpoint, err := url.Parse(strings.TrimSpace(in.Endpoint))
-	if err != nil || endpoint.Host == "" || (endpoint.Scheme != "http" && endpoint.Scheme != "https") {
-		return merr.Invalid("invalid request")
+	if err := validateDatasourceEndpoint(in.Driver, in.Endpoint); err != nil {
+		return err
 	}
 	if in.FailureWindowMinutes < 0 || in.FailureWindowMinutes > maxFailureWindowMinutes {
 		return merr.Invalid("invalid request")
@@ -515,9 +513,31 @@ func TypeForDriver(driver string) string {
 		return "LOGS"
 	case "TRACE_JAEGER":
 		return "TRACE"
+	case "SQL_POSTGRESQL":
+		return "SQL"
 	default:
 		return ""
 	}
+}
+
+// validateDatasourceEndpoint 按驱动校验连接地址。HTTP 驱动要求 http 或 https，
+// PostgreSQL 要求 postgres 或 postgresql 连接串；拼写错误在保存时就拒绝，
+// 不拖到用户点查询。
+func validateDatasourceEndpoint(driver, raw string) error {
+	parsed, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil || parsed.Host == "" {
+		return merr.Invalid("invalid request")
+	}
+	if TypeForDriver(driver) == "SQL" {
+		if parsed.Scheme != "postgres" && parsed.Scheme != "postgresql" {
+			return merr.Invalid("invalid request")
+		}
+		return nil
+	}
+	if parsed.Scheme != "http" && parsed.Scheme != "https" {
+		return merr.Invalid("invalid request")
+	}
+	return nil
 }
 
 // ValidDriver 判断驱动是否属于已支持的枚举。

@@ -41,6 +41,7 @@ import {
   restoreSnapshot,
 } from "@/pages/datasource/query-dialect"
 import { resolveRange, type RangePreset } from "@/pages/datasource/range"
+import { SqlPanel } from "@/pages/datasource/sql-panel"
 import { VlogsPanel } from "@/pages/datasource/vlogs-panel"
 
 const areaClass =
@@ -172,6 +173,11 @@ function ResultJson({
 }
 
 export function QueryPanel({ datasource }: { datasource: DatasourceItem }) {
+  // SQL 数据源走单独的库表/查询/审计面板，不再落到通用代理查询。
+  if (datasource.type === "SQL") {
+    return <SqlPanel datasource={datasource} />
+  }
+
   if (datasource.type === "LOGS" && datasource.driver === "LOGS_LOKI") {
     return <LokiPanel datasource={datasource} />
   }

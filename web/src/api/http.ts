@@ -161,7 +161,19 @@ const messageKeys: Record<string, string> = {
   "datasource is disabled": "error.datasourceDisabled",
   "datasource is not logs": "error.datasourceNotLogs",
   "datasource is not metrics": "error.datasourceNotMetrics",
+  "datasource is not sql": "error.datasourceNotSql",
   "datasource does not support alert charts": "error.datasourceNoAlertCharts",
+  // SQL 实验室的后端原文：连接串/库名/标识符/只读校验与 DDL 校验。
+  "invalid database name": "sqlLab.errors.database",
+  "invalid sql identifier": "sqlLab.errors.invalidIdentifier",
+  "only read-only statements are allowed": "sqlLab.errors.readOnly",
+  "invalid sql column type": "sqlLab.errors.columnType",
+  "invalid sql default value": "sqlLab.errors.defaultValue",
+  "columns are required": "sqlLab.errors.columnsRequired",
+  "duplicate sql column": "sqlLab.errors.duplicateColumn",
+  "invalid sql rename": "sqlLab.errors.rename",
+  "nothing to alter": "sqlLab.errors.noChanges",
+  "sql comment is too long": "sqlLab.errors.commentTooLong",
   "unsupported datasource driver": "error.unsupportedDriver",
   "invalid datasource index pattern": "error.invalidIndexPattern",
   "invalid label matcher": "error.invalidLabelMatcher",
@@ -588,6 +600,13 @@ export class ApiError extends Error {
 }
 
 export function localizeMessage(message: string, reason = ""): string {
+  // SQL 语句错误带数据库原文；保留细节，但主文案必须是本地化的“执行失败”。
+  const sqlPrefix = "sql statement failed: "
+  if (message.startsWith(sqlPrefix)) {
+    return i18n.t("sqlLab.errors.statementFailed", {
+      detail: message.slice(sqlPrefix.length),
+    })
+  }
   const tagPrefix = "tag is referenced by published application versions: "
   if (message.startsWith(tagPrefix)) {
     return i18n.t("error.tagReferenced", { detail: message.slice(tagPrefix.length) })

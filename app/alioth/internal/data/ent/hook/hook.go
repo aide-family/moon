@@ -393,6 +393,18 @@ func (f DatasourceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DatasourceMutation", m)
 }
 
+// The DatasourceSQLAuditFunc type is an adapter to allow the use of ordinary
+// function as DatasourceSQLAudit mutator.
+type DatasourceSQLAuditFunc func(context.Context, *ent.DatasourceSQLAuditMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DatasourceSQLAuditFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DatasourceSQLAuditMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DatasourceSQLAuditMutation", m)
+}
+
 // The EmailLoginCodeFunc type is an adapter to allow the use of ordinary
 // function as EmailLoginCode mutator.
 type EmailLoginCodeFunc func(context.Context, *ent.EmailLoginCodeMutation) (ent.Value, error)
