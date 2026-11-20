@@ -244,6 +244,15 @@ export const CAPABILITIES: CapabilityDefinition[] = [
     },
   },
   {
+    code: "datasource_mysql",
+    module: "datasource",
+    label: { zh: "MySQL 数据库", en: "MySQL database" },
+    description: {
+      zh: "MySQL 数据源与库表管理",
+      en: "MySQL datasources and schema management",
+    },
+  },
+  {
     code: "datasource_jaeger",
     module: "datasource",
     label: { zh: "Jaeger 链路", en: "Jaeger traces" },
@@ -813,6 +822,7 @@ export const DATASOURCE_CAPABILITY_DRIVERS: Record<string, string> = {
   datasource_vlogs: "LOGS_VLOGS",
   datasource_jaeger: "TRACE_JAEGER",
   datasource_postgresql: "SQL_POSTGRESQL",
+  datasource_mysql: "SQL_MYSQL",
 }
 
 /** 能力编码 → 探测驱动。顺序即目标组/规则列表的类型顺序。 */
@@ -1002,6 +1012,7 @@ const CAPABILITY_MENU_OVERRIDES: Record<string, string[]> = {
   datasource_vlogs: ["datasource"],
   datasource_jaeger: ["datasource"],
   datasource_postgresql: ["datasource"],
+  datasource_mysql: ["datasource"],
   probe_http: ["probe"],
   probe_tcp: ["probe"],
   probe_icmp: ["probe"],

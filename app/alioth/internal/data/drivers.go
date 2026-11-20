@@ -9,8 +9,9 @@ const (
 	driverLogsElasticsearch      = "LOGS_ELASTICSEARCH"
 	driverLogsVlogs              = "LOGS_VLOGS"
 	driverTraceJaeger            = "TRACE_JAEGER"
-	// driverSQLPostgresql 是 PostgreSQL 数据库数据源，走 pgx 而不是 HTTP。
+	// driverSQLPostgresql 和 driverSQLMysql 是数据库数据源，走各自的 SQL 驱动。
 	driverSQLPostgresql = "SQL_POSTGRESQL"
+	driverSQLMysql      = "SQL_MYSQL"
 )
 
 // isMetricsDriver 判断驱动是否走 Prometheus 兼容的指标查询接口。

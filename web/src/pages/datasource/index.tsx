@@ -96,7 +96,19 @@ const drivers: Record<string, string[]> = {
   METRICS: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS"],
   LOGS: ["LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS"],
   TRACE: ["TRACE_JAEGER"],
-  SQL: ["SQL_POSTGRESQL"],
+  SQL: ["SQL_POSTGRESQL", "SQL_MYSQL"],
+}
+
+/** SQL 数据源按驱动校验连接串前缀。 */
+function sqlEndpointPattern(driver: string): RegExp {
+  return driver === "SQL_MYSQL" ? /^mysql:\/\/\S+/i : /^postgres(ql)?:\/\/\S+/i
+}
+
+/** SQL 数据源的连接串提示文案。 */
+function sqlEndpointHintKey(driver: string): string {
+  return driver === "SQL_MYSQL"
+    ? "datasource.endpointHintMysql"
+    : "datasource.endpointHintSql"
 }
 
 // 与 proto 的 buf.validate 对齐：窗口 0..1440 分钟，阈值 0..1000 次，
@@ -383,8 +395,9 @@ export function DatasourcePage() {
 
   function validateDatasourceStep(step: number): FieldErrors {
     if (step === 0) {
-      // SQL 数据源填 PostgreSQL 连接串，其它数据源仍要求 http(s) 根地址。
-      const sqlDriver = form.driver === "SQL_POSTGRESQL"
+      // SQL 数据源填各自数据库的连接串，其它数据源仍要求 http(s) 根地址。
+      const sqlDriver =
+        form.driver === "SQL_POSTGRESQL" || form.driver === "SQL_MYSQL"
       const errors = collectFieldErrors([
         [
           "name",
@@ -403,12 +416,8 @@ export function DatasourcePage() {
             label: t("datasource.endpoint"),
             value: form.endpoint,
             required: true,
-            pattern: sqlDriver
-              ? /^postgres(ql)?:\/\/\S+/i
-              : /^https?:\/\/\S+/i,
-            hint: sqlDriver
-              ? t("field.hint.postgres")
-              : patternHint("endpoint"),
+            pattern: sqlDriver ? sqlEndpointPattern(form.driver) : /^https?:\/\/\S+/i,
+            hint: sqlDriver ? t(sqlEndpointHintKey(form.driver)) : patternHint("endpoint"),
           }),
         ],
       ])
@@ -872,11 +881,13 @@ export function DatasourcePage() {
                 <FormField
                   label={t("datasource.endpoint")}
                   htmlFor="ds-endpoint"
-                  hint={
+                  hint={t(
                     form.driver === "SQL_POSTGRESQL"
-                      ? t("datasource.endpointHintSql")
-                      : t("datasource.endpointHint")
-                  }
+                      ? "datasource.endpointHintSql"
+                      : form.driver === "SQL_MYSQL"
+                        ? "datasource.endpointHintMysql"
+                        : "datasource.endpointHint"
+                  )}
                   className="sm:col-span-full"
                   required
                   error={fieldErrors.endpoint}
@@ -887,7 +898,9 @@ export function DatasourcePage() {
                     placeholder={
                       form.driver === "SQL_POSTGRESQL"
                         ? t("datasource.endpointPlaceholderSql")
-                        : "http://127.0.0.1:9090"
+                        : form.driver === "SQL_MYSQL"
+                          ? t("datasource.endpointPlaceholderMysql")
+                          : "http://127.0.0.1:9090"
                     }
                     onChange={(event) =>
                       setForm({ ...form, endpoint: event.target.value })

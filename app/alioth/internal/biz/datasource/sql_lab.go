@@ -10,9 +10,11 @@ import (
 	"github.com/aide-family/moon/pkg/merr"
 )
 
-// sqlDriver 是 PostgreSQL 数据库数据源的驱动编码。SQL 实验室只服务这一种驱动，
-// 其它 SQL 驱动接入时再按驱动拆分浏览和执行的实现。
-const sqlDriver = "SQL_POSTGRESQL"
+// isSqlDatasource 判断是否由 SQL 实验室处理的数据库数据源。
+// 驱动与方言的对应关系在数据层收口，这里只判断类型。
+func isSqlDatasource(item *bo.Datasource) bool {
+	return item.Type == "SQL" && (item.Driver == "SQL_POSTGRESQL" || item.Driver == "SQL_MYSQL")
+}
 
 // SqlDatabases 列出数据源可以连接的库。
 func (gateway *Gateway) SqlDatabases(ctx context.Context, uid string) ([]string, error) {
@@ -171,7 +173,7 @@ func (gateway *Gateway) sqlSource(ctx context.Context, uid, permission string) (
 	if item.Status != "ACTIVE" {
 		return nil, merr.Invalid("datasource is disabled")
 	}
-	if item.Type != "SQL" || item.Driver != sqlDriver {
+	if !isSqlDatasource(item) {
 		return nil, merr.Invalid("datasource is not sql")
 	}
 	return item, nil

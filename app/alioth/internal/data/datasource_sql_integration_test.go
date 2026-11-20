@@ -97,10 +97,10 @@ func TestSqlLabBrowsesAndManagesTables(t *testing.T) {
 
 	// 只读查询返回列名和字符串化的行。
 	if _, err := store.db.ExecContext(ctx, fmt.Sprintf(
-		`INSERT INTO %s (id, name) VALUES (1, 'alpha'), (2, 'beta')`, quoteSqlIdentifier(table))); err != nil {
+		`INSERT INTO %s (id, name) VALUES (1, 'alpha'), (2, 'beta')`, postgresDialect{}.quoteIdentifier(table))); err != nil {
 		t.Fatalf("insert rows: %v", err)
 	}
-	result, err := repo.QuerySql(ctx, item, "", fmt.Sprintf(`SELECT id, name, created_at FROM %s ORDER BY id`, quoteSqlIdentifier(table)), 10)
+	result, err := repo.QuerySql(ctx, item, "", fmt.Sprintf(`SELECT id, name, created_at FROM %s ORDER BY id`, postgresDialect{}.quoteIdentifier(table)), 10)
 	if err != nil {
 		t.Fatalf("QuerySql: %v", err)
 	}
@@ -140,7 +140,7 @@ func TestSqlLabBrowsesAndManagesTables(t *testing.T) {
 	}
 
 	// 行数上限截断时标记 truncated。
-	truncated, err := repo.QuerySql(ctx, item, "", fmt.Sprintf(`SELECT id FROM %s ORDER BY id`, quoteSqlIdentifier(table)), 1)
+	truncated, err := repo.QuerySql(ctx, item, "", fmt.Sprintf(`SELECT id FROM %s ORDER BY id`, postgresDialect{}.quoteIdentifier(table)), 1)
 	if err != nil {
 		t.Fatalf("QuerySql truncated: %v", err)
 	}
@@ -149,7 +149,7 @@ func TestSqlLabBrowsesAndManagesTables(t *testing.T) {
 	}
 
 	// 写语句在只读入口被拒绝。
-	if _, err := repo.QuerySql(ctx, item, "", fmt.Sprintf(`DELETE FROM %s`, quoteSqlIdentifier(table)), 10); !merr.IsInvalid(err) {
+	if _, err := repo.QuerySql(ctx, item, "", fmt.Sprintf(`DELETE FROM %s`, postgresDialect{}.quoteIdentifier(table)), 10); !merr.IsInvalid(err) {
 		t.Fatalf("delete query err = %v", err)
 	}
 

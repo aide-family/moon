@@ -244,7 +244,7 @@ message CreateDatasourceRequest {
   // 类型，取值为 METRICS、LOGS、TRACE 或 SQL。
   string type = 2 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE", "SQL"]}];
   // 驱动。
-  string driver = 3 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "SQL_POSTGRESQL"]}];
+  string driver = 3 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "SQL_POSTGRESQL", "SQL_MYSQL"]}];
   // 连接地址。
   string endpoint = 4 [(buf.validate.field).string.min_len = 1];
   // 用户名。
@@ -288,7 +288,7 @@ message UpdateDatasourceRequest {
   // 类型，取值为 METRICS、LOGS、TRACE 或 SQL。
   string type = 3 [(buf.validate.field).string = {in: ["METRICS", "LOGS", "TRACE", "SQL"]}];
   // 驱动。
-  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "SQL_POSTGRESQL", "PROBE_HTTP"]}];
+  string driver = 4 [(buf.validate.field).string = {in: ["METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "SQL_POSTGRESQL", "SQL_MYSQL", "PROBE_HTTP"]}];
   // 连接地址。
   string endpoint = 5 [(buf.validate.field).string.min_len = 1];
   // 用户名。

@@ -92,6 +92,7 @@ const typeTones: Record<string, BadgeTone> = {
   // SQL 数据库与指标同属「可查询数据源」，用同一种 info 色。
   SQL: "info",
   SQL_POSTGRESQL: "info",
+  SQL_MYSQL: "info",
   PROBE_HTTP: "primary",
   // 五种探测类型同属探测能力，共用品牌色标签，靠文案区分类型。
   PROBE_TCP: "primary",

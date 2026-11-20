@@ -8,6 +8,8 @@ export type DatasourceDriver =
   | "LOGS_VLOGS"
   | "TRACE_JAEGER"
   | "SQL_POSTGRESQL"
+  | "SQL_MYSQL"
+  | "SQL_POSTGRESQL"
 
 export interface DatasourceItem {
   uid: string

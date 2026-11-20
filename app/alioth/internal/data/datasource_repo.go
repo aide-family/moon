@@ -298,7 +298,7 @@ func validDatasourceDriver(driver string) bool {
 	switch datasource.Driver(driver) {
 	case datasource.DriverMETRICS_PROMETHEUS, datasource.DriverMETRICS_VICTORIA_METRICS,
 		datasource.DriverLOGS_ELASTICSEARCH, datasource.DriverLOGS_LOKI, datasource.DriverLOGS_VLOGS,
-		datasource.DriverTRACE_JAEGER, datasource.DriverSQL_POSTGRESQL:
+		datasource.DriverTRACE_JAEGER, datasource.DriverSQL_POSTGRESQL, datasource.DriverSQL_MYSQL:
 		return true
 	default:
 		return false
@@ -491,7 +491,7 @@ func datasourceEnums(kind, driver, status string) (datasource.Type, datasource.D
 	}
 	parsedDriver := datasource.Driver(driver)
 	switch parsedDriver {
-	case datasource.DriverMETRICS_PROMETHEUS, datasource.DriverMETRICS_VICTORIA_METRICS, datasource.DriverLOGS_ELASTICSEARCH, datasource.DriverLOGS_LOKI, datasource.DriverLOGS_VLOGS, datasource.DriverTRACE_JAEGER, datasource.DriverSQL_POSTGRESQL:
+	case datasource.DriverMETRICS_PROMETHEUS, datasource.DriverMETRICS_VICTORIA_METRICS, datasource.DriverLOGS_ELASTICSEARCH, datasource.DriverLOGS_LOKI, datasource.DriverLOGS_VLOGS, datasource.DriverTRACE_JAEGER, datasource.DriverSQL_POSTGRESQL, datasource.DriverSQL_MYSQL:
 	default:
 		return "", "", "", merr.Invalid("invalid request")
 	}

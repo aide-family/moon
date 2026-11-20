@@ -21,7 +21,7 @@ func (Datasource) Fields() []ent.Field {
 		field.String("namespace_uid").NotEmpty(),
 		field.String("name").NotEmpty(),
 		field.Enum("type").Values("METRICS", "LOGS", "TRACE", "SQL"),
-		field.Enum("driver").Values("METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "SQL_POSTGRESQL"),
+		field.Enum("driver").Values("METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_ELASTICSEARCH", "LOGS_LOKI", "LOGS_VLOGS", "TRACE_JAEGER", "SQL_POSTGRESQL", "SQL_MYSQL"),
 		field.String("endpoint").NotEmpty(),
 		// Elasticsearch 的索引模式和时间字段。其他驱动留空，不使用这两个字段。
 		field.String("index_pattern").Default(""),

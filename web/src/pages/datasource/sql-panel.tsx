@@ -558,8 +558,10 @@ function TableDataTable({ result }: { result: SqlTableDataResult }) {
 export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
   const { t } = useTranslation()
   const [tab, setTab] = useState<SqlTab>("query")
+  // MySQL 里模式和库是同一层，不需要单独选模式，查询统一用连接库。
+  const isMysql = datasource.driver === "SQL_MYSQL"
   const [database, setDatabase] = useState("")
-  const [schema, setSchema] = useState("public")
+  const [schema, setSchema] = useState(isMysql ? "" : "public")
   const [databases, setDatabases] = useState<string[]>([])
   const [schemas, setSchemas] = useState<string[]>([])
   const [catalogLoading, setCatalogLoading] = useState(false)
@@ -662,10 +664,12 @@ export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
       try {
         const [databaseResult, schemaResult] = await Promise.all([
           listSqlDatabases(datasource.uid),
-          listSqlSchemas({
-            uid: datasource.uid,
-            database: database || undefined,
-          }),
+          isMysql
+            ? Promise.resolve({ items: [] as string[] })
+            : listSqlSchemas({
+                uid: datasource.uid,
+                database: database || undefined,
+              }),
         ])
         if (!active) {
           return
@@ -865,7 +869,7 @@ export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
 
   function changeDatabase(value: string) {
     setDatabase(value === CONNECTION_DATABASE ? "" : value)
-    setSchema("public")
+    setSchema(isMysql ? "" : "public")
     setTables([])
     setSelectedTable("")
     setColumns([])
@@ -1189,21 +1193,23 @@ export function SqlPanel({ datasource }: { datasource: DatasourceItem }) {
             ))}
           </SelectContent>
         </Select>
-        <Select value={schema} onValueChange={changeSchema}>
-          <SelectTrigger className="w-44" aria-label={t("sqlLab.schema")}>
-            <SelectValue placeholder={t("sqlLab.schema")} />
-          </SelectTrigger>
-          <SelectContent>
-            {(schema && !schemas.includes(schema)
-              ? [schema, ...schemas]
-              : schemas
-            ).map((item) => (
-              <SelectItem key={item} value={item}>
-                {item}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {isMysql ? null : (
+          <Select value={schema} onValueChange={changeSchema}>
+            <SelectTrigger className="w-44" aria-label={t("sqlLab.schema")}>
+              <SelectValue placeholder={t("sqlLab.schema")} />
+            </SelectTrigger>
+            <SelectContent>
+              {(schema && !schemas.includes(schema)
+                ? [schema, ...schemas]
+                : schemas
+              ).map((item) => (
+                <SelectItem key={item} value={item}>
+                  {item}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <Button
           type="button"
           variant="outline"

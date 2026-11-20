@@ -353,7 +353,7 @@ func (gateway *Gateway) statusSource(ctx context.Context, uid string) (*bo.Datas
 		return nil, err
 	}
 	switch item.Driver {
-	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_LOKI", "LOGS_VLOGS", "LOGS_ELASTICSEARCH", "SQL_POSTGRESQL":
+	case "METRICS_PROMETHEUS", "METRICS_VICTORIA_METRICS", "LOGS_LOKI", "LOGS_VLOGS", "LOGS_ELASTICSEARCH", "SQL_POSTGRESQL", "SQL_MYSQL":
 		return item, nil
 	default:
 		return nil, merr.Invalid("invalid request")
@@ -513,7 +513,7 @@ func TypeForDriver(driver string) string {
 		return "LOGS"
 	case "TRACE_JAEGER":
 		return "TRACE"
-	case "SQL_POSTGRESQL":
+	case "SQL_POSTGRESQL", "SQL_MYSQL":
 		return "SQL"
 	default:
 		return ""
@@ -529,8 +529,16 @@ func validateDatasourceEndpoint(driver, raw string) error {
 		return merr.Invalid("invalid request")
 	}
 	if TypeForDriver(driver) == "SQL" {
-		if parsed.Scheme != "postgres" && parsed.Scheme != "postgresql" {
-			return merr.Invalid("invalid request")
+		// 每种数据库只接受自己的连接串前缀，连接串写错在保存时就拒绝。
+		switch driver {
+		case "SQL_MYSQL":
+			if parsed.Scheme != "mysql" {
+				return merr.Invalid("invalid request")
+			}
+		default:
+			if parsed.Scheme != "postgres" && parsed.Scheme != "postgresql" {
+				return merr.Invalid("invalid request")
+			}
 		}
 		return nil
 	}

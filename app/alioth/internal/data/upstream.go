@@ -83,9 +83,13 @@ func (r *repoBase) callUpstream(ctx context.Context, item bo.Datasource, method,
 }
 
 func (r *datasourceRepo) DatasourceStatus(ctx context.Context, item bo.Datasource) (string, error) {
-	// PostgreSQL 没有健康检查路径，连上并执行一次 SELECT 1 才算可用。
-	if item.Driver == driverSQLPostgresql {
-		db, err := r.sqlDataSourceFor(ctx, item, "")
+	// 数据库数据源没有健康检查路径，连上并执行一次 SELECT 1 才算可用。
+	if isSqlDriver(item.Driver) {
+		dialect, err := sqlDialectFor(item.Driver)
+		if err != nil {
+			return "", err
+		}
+		db, err := r.sqlDataSourceFor(ctx, item, "", dialect)
 		if err != nil {
 			return "", err
 		}

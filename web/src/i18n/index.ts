@@ -1853,6 +1853,9 @@ const zh = {
     endpointHintSql:
       "填写 PostgreSQL 连接串，例如 postgres://user:password@host:5432/dbname。库名可以留空，之后在 SQL 面板里选择。",
     endpointPlaceholderSql: "postgres://user:password@host:5432/dbname",
+    endpointHintMysql:
+      "填写 MySQL 连接串，例如 mysql://user:password@host:3306/dbname。库名可以留空，之后在 SQL 面板里选择。",
+    endpointPlaceholderMysql: "mysql://user:password@host:3306/dbname",
     sqlDatabases: "可达数据库",
     sqlDatabasesEmpty: "当前连接串没有可访问的数据库。",
     username: "用户名",
@@ -4470,6 +4473,7 @@ const zh = {
     TRACE_JAEGER: "Jaeger",
     SQL: "SQL 数据库",
     SQL_POSTGRESQL: "PostgreSQL",
+    SQL_MYSQL: "MySQL",
     EQ: "等于",
     NE: "不等于",
     GT: "大于",
@@ -7219,6 +7223,9 @@ const en = {
     endpointHintSql:
       "Enter a PostgreSQL connection string, for example postgres://user:password@host:5432/dbname. The database can be left out and selected later in the SQL panel.",
     endpointPlaceholderSql: "postgres://user:password@host:5432/dbname",
+    endpointHintMysql:
+      "Enter a MySQL connection string, for example mysql://user:password@host:3306/dbname. The database can be left out and selected later in the SQL panel.",
+    endpointPlaceholderMysql: "mysql://user:password@host:3306/dbname",
     sqlDatabases: "Reachable databases",
     sqlDatabasesEmpty: "No databases are reachable with this connection.",
     username: "Username",
@@ -9972,6 +9979,7 @@ const en = {
     TRACE_JAEGER: "Jaeger",
     SQL: "SQL",
     SQL_POSTGRESQL: "PostgreSQL",
+    SQL_MYSQL: "MySQL",
     EQ: "Equal",
     NE: "Not equal",
     GT: "Greater than",

@@ -177,6 +177,7 @@ const (
 	DriverLOGS_VLOGS               Driver = "LOGS_VLOGS"
 	DriverTRACE_JAEGER             Driver = "TRACE_JAEGER"
 	DriverSQL_POSTGRESQL           Driver = "SQL_POSTGRESQL"
+	DriverSQL_MYSQL                Driver = "SQL_MYSQL"
 )
 
 func (_driver Driver) String() string {
@@ -186,7 +187,7 @@ func (_driver Driver) String() string {
 // DriverValidator is a validator for the "driver" field enum values. It is called by the builders before save.
 func DriverValidator(_driver Driver) error {
 	switch _driver {
-	case DriverMETRICS_PROMETHEUS, DriverMETRICS_VICTORIA_METRICS, DriverLOGS_ELASTICSEARCH, DriverLOGS_LOKI, DriverLOGS_VLOGS, DriverTRACE_JAEGER, DriverSQL_POSTGRESQL:
+	case DriverMETRICS_PROMETHEUS, DriverMETRICS_VICTORIA_METRICS, DriverLOGS_ELASTICSEARCH, DriverLOGS_LOKI, DriverLOGS_VLOGS, DriverTRACE_JAEGER, DriverSQL_POSTGRESQL, DriverSQL_MYSQL:
 		return nil
 	default:
 		return fmt.Errorf("datasource: invalid enum value for driver field: %q", _driver)
